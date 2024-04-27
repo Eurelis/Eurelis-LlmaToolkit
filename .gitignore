@@ -1,0 +1,12 @@
+# VS Code
+.vscode
+
+# Misc
+MY_NOTES.md
+temp/*
+
+# Python venv
+__pycache__
+.venv/
+.env
+.env.*
