@@ -70,5 +70,4 @@ selfcheck = [
 package-dir = {"" = "src"}
 
 [project.scripts]
-kbf = "eurelis_llmatoolkit.main:main_cli"
-
+llmatoolkit = "eurelis_llmatoolkit.langchain.console:main_cli"
