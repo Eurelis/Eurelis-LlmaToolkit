@@ -4,6 +4,8 @@
 # Misc
 MY_NOTES.md
 temp/*
+etc/no-commit/*
+etc/test/*
 
 # Python venv
 __pycache__

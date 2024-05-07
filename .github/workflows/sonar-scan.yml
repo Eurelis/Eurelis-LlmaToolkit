@@ -1,0 +1,26 @@
+#
+# Description : Workflow Github pour lancer analyse Sonar
+# Version     : 1.0.2
+# Auteur      : Eurelis
+#
+name: sonar-scan
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  sonar-scan:
+    runs-on: sonar
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Run sonar-scanner-cli
+        run:
+            docker run --rm --user=$(id -u):$(id -g) -v ${{ github.workspace }}:/usr/src -e SONAR_HOST_URL="https://sonar.eurelis.info" -e SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}" sonarsource/sonar-scanner-cli
