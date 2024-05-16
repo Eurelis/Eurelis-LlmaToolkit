@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eurelis_llmatoolkit"
-version = "0.0.1a"
+version = "1.0.0rc1"
 authors = [
-  { name="Jérôme DIAZ", email="j.diaz@eurelis.com" },
-  { name="Vincent LAMBERT", email="v.lambert@eurelis.com" }
+  { name="Vincent LAMBERT", email="v.lambert@eurelis.com" },
+  { name="Jérôme DIAZ", email="j.diaz@eurelis.com" }
 ]
 description = "Framework to build and manage IA based applications. Based on Langchain under the hood."
 readme = "README.md"
