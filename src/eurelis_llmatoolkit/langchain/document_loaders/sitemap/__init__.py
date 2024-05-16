@@ -1,5 +1,5 @@
 import types
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from langchain.document_loaders.base import BaseLoader
 
@@ -76,8 +76,10 @@ class SitemapDocumentLoaderFactory(ParamsDictFactory[BaseLoader]):
             raise ValueError("Missing required web_path parameter")
 
         header_template = default_header_template.copy()
-        # default user agent is "EurelisKBF/0.1"
-        header_template["User-Agent"] = self.params.get("user_agent", "EurelisKBF/0.1")
+        # default user agent is "EurelisLlmaToolkit/0.1"
+        header_template["User-Agent"] = self.params.get(
+            "user_agent", "EurelisLlmaToolkit/1.0"
+        )
 
         parameters = self.get_optional_params()
 
