@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eurelis-llmatoolkit"
-version = "1.0.0rc1"
+version = "1.0.0"
 authors = [
   { name="Vincent LAMBERT", email="v.lambert@eurelis.com" },
   { name="Jérôme DIAZ", email="j.diaz@eurelis.com" }
