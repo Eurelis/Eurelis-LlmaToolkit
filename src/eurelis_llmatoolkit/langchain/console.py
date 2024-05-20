@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from eurelis_llmatoolkit.langchain.langchain_wrapper import LangchainWrapper
 
 
+# FIXME: Move to TOP level package
 @click.group()
 @click.option("--verbose/--no-verbose", default=False)
 @click.option("-config", default=None)
