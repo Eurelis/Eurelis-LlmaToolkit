@@ -53,6 +53,7 @@ class SitemapDocumentLoaderFactory(ParamsDictFactory[BaseLoader]):
         "is_local",
         "continue_on_failure",
         "restrict_to_same_domain",
+        "requests_per_second",
     }
 
     def build(self, context: "BaseContext") -> BaseLoader:
