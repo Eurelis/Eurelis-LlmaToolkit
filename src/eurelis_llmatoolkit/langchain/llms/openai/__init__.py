@@ -1,7 +1,5 @@
 from typing import TYPE_CHECKING
-
-from langchain.llms.base import BaseLLM
-from langchain_core.language_models import BaseChatModel
+from langchain_core.language_models import BaseLLM, BaseChatModel
 
 from eurelis_llmatoolkit.utils.base_factory import ParamsDictFactory, ProviderFactory
 

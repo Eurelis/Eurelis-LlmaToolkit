@@ -1,8 +1,7 @@
 from typing import TYPE_CHECKING
 
-from langchain.schema import BaseRetriever
-
 from eurelis_llmatoolkit.langchain import BaseFactory, T
+from langchain_core.retrievers import BaseRetriever
 
 if TYPE_CHECKING:
     from eurelis_llmatoolkit.langchain.langchain_wrapper import BaseContext

@@ -1,11 +1,10 @@
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from langchain.callbacks.base import BaseCallbackHandler
-from langchain.schema import BaseMessage
-
 from eurelis_llmatoolkit.langchain.addons.checker import CheckInput, Method
 from eurelis_llmatoolkit.langchain.addons.checker.chat_checker import ChatChecker
+from langchain_core.callbacks import BaseCallbackHandler
+from langchain_core.messages import BaseMessage
 
 
 class CheckInputCallback(BaseCallbackHandler):

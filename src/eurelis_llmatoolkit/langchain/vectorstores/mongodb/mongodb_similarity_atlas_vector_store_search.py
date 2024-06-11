@@ -1,7 +1,6 @@
 from typing import Optional, List, Any, Callable
-
-from langchain.schema import Document
 from langchain_community.vectorstores import MongoDBAtlasVectorSearch
+from langchain_core.documents import Document
 
 
 class MongoDBSimilarityAtlasVectorStoreSearch(MongoDBAtlasVectorSearch):

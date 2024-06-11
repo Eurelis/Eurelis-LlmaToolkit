@@ -2,9 +2,9 @@ from typing import TYPE_CHECKING
 
 from langchain.chains.query_constructor.schema import AttributeInfo
 from langchain.retrievers import SelfQueryRetriever
-from langchain.schema import BaseRetriever
 
 from eurelis_llmatoolkit.utils.base_factory import ParamsDictFactory, DefaultFactories
+from langchain_core.retrievers import BaseRetriever
 
 if TYPE_CHECKING:
     from eurelis_llmatoolkit.langchain.langchain_wrapper import BaseContext

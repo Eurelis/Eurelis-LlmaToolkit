@@ -1,6 +1,6 @@
-from langchain.schema.vectorstore import VectorStore
 
 from eurelis_llmatoolkit.utils.base_factory import ProviderFactory
+from langchain_core.vectorstores import VectorStore
 
 
 class GenericVectorStoreFactory(ProviderFactory[VectorStore]):

@@ -1,8 +1,7 @@
 from typing import Mapping, Union
 
-from langchain.schema.embeddings import Embeddings
-
 from eurelis_llmatoolkit.utils.base_factory import ProviderFactory
+from langchain_core.embeddings import Embeddings
 
 
 class GenericEmbeddingsFactory(ProviderFactory[Embeddings]):

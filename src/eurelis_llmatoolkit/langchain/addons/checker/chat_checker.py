@@ -1,9 +1,8 @@
 from typing import Any, List, Optional
 
-from langchain.chat_models.base import BaseChatModel
-from langchain.schema import BaseMessage
-
 from eurelis_llmatoolkit.langchain.addons.checker import CheckInput, Method
+from langchain_core.language_models import BaseChatModel
+from langchain_core.messages import BaseMessage
 
 
 class ChatChecker:

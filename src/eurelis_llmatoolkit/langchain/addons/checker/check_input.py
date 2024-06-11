@@ -1,6 +1,5 @@
 from typing import List
-
-from langchain.schema import BaseMessage
+from langchain_core.messages import BaseMessage
 
 
 class CheckInput:

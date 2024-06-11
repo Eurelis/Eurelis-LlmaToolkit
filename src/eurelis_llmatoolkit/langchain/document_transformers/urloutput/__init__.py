@@ -1,12 +1,11 @@
 from typing import TYPE_CHECKING, Any, Iterable, Iterator, Sequence
 from urllib.parse import ParseResult, urlparse
 
-from langchain.schema import BaseDocumentTransformer, Document
-
 from eurelis_llmatoolkit.utils.base_factory import BaseFactory
 from eurelis_llmatoolkit.langchain.document_transformers.base import (
     BaseIteratorDocumentTransformer,
 )
+from langchain_core.documents import BaseDocumentTransformer, Document
 
 if TYPE_CHECKING:
     from eurelis_llmatoolkit.langchain.langchain_wrapper import BaseContext

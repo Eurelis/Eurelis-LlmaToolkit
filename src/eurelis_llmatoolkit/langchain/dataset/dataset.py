@@ -15,19 +15,18 @@ from typing import (
     cast,
 )
 
-from langchain.document_loaders.base import BaseLoader
-from langchain.schema import BaseDocumentTransformer, Document
-from langchain.text_splitter import TextSplitter
-
 from eurelis_llmatoolkit.utils.base_factory import JSON
 from eurelis_llmatoolkit.types import PARAMS
 from eurelis_llmatoolkit.langchain.document_transformers.base import (
     BaseIteratorDocumentTransformer,
 )
+from langchain_core.document_loaders import BaseLoader
+from langchain_core.documents import BaseDocumentTransformer, Document
+from langchain_text_splitters import TextSplitter
 
 if TYPE_CHECKING:
-    from langchain.schema.embeddings import Embeddings
-    from langchain.schema.vectorstore import VectorStore
+    from langchain_core.embeddings import Embeddings
+    from langchain_core.vectorstores import VectorStore
 
 
 class TemplateTextDocWrapper:

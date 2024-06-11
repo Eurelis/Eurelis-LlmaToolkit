@@ -1,10 +1,9 @@
 from typing import Iterator, List, Sequence
 
-from langchain.document_loaders.base import BaseLoader
-from langchain.schema import Document
-
 from eurelis_llmatoolkit.utils.base_factory import BaseFactory
 from eurelis_llmatoolkit.types import FACTORY
+from langchain_core.document_loaders import BaseLoader
+from langchain_core.documents import Document
 
 
 class ListLoader(BaseLoader):
