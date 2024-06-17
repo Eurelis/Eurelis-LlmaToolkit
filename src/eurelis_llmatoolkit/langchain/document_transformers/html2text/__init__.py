@@ -1,8 +1,7 @@
 from typing import TYPE_CHECKING
 
-from langchain.schema import BaseDocumentTransformer
-
 from eurelis_llmatoolkit.utils.base_factory import BaseFactory
+from langchain_core.documents import BaseDocumentTransformer
 
 if TYPE_CHECKING:
     from eurelis_llmatoolkit.langchain.langchain_wrapper import BaseContext
@@ -22,6 +21,6 @@ class Html2TextTransformerFactory(BaseFactory[BaseDocumentTransformer]):
         Returns:
             a Html2TextTransformer instance
         """
-        from langchain.document_transformers.html2text import Html2TextTransformer
+        from langchain_community.document_transformers import Html2TextTransformer
 
         return Html2TextTransformer()

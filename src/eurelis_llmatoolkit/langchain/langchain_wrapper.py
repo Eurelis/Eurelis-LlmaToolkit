@@ -21,10 +21,10 @@ from typing import (
 
 import numpy as np
 from langchain.chains.base import Chain
-from langchain.indexes._api import _get_source_id_assigner
-from langchain.llms.base import BaseLLM
-from langchain.schema import Document
-from langchain.schema.vectorstore import VectorStore
+from langchain_core.indexing.api import _get_source_id_assigner
+from langchain_core.language_models import BaseLLM
+from langchain_core.documents import Document
+from langchain_core.vectorstores import VectorStore
 
 from eurelis_llmatoolkit.utils.base_factory import DefaultFactories
 from eurelis_llmatoolkit.utils.class_loader import ClassLoader
@@ -38,8 +38,8 @@ from eurelis_llmatoolkit.types import DOCUMENT_MEAN_EMBEDDING, EMBEDDING, FACTOR
 from eurelis_llmatoolkit.utils.misc import batched, parse_param_value
 
 if TYPE_CHECKING:
-    from langchain.schema.embeddings import Embeddings
-    from langchain.schema.vectorstore import VectorStore
+    from langchain_core.embeddings import Embeddings
+    from langchain_core.vectorstores import VectorStore
 
 
 class MetadataEncoder(json.JSONEncoder):

@@ -1,9 +1,8 @@
 from typing import TYPE_CHECKING
 
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.schema.embeddings import Embeddings
-
 from eurelis_llmatoolkit.utils.base_factory import ParamsDictFactory
+from langchain_core.embeddings import Embeddings
+from langchain_openai import OpenAIEmbeddings
 
 if TYPE_CHECKING:
     from eurelis_llmatoolkit.langchain.langchain_wrapper import BaseContext

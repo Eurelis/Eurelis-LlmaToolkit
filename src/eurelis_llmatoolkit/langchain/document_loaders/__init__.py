@@ -1,6 +1,6 @@
-from langchain.document_loaders.base import BaseLoader
 
 from eurelis_llmatoolkit.utils.base_factory import ProviderFactory
+from langchain_core.document_loaders import BaseLoader
 
 
 class GenericLoaderFactory(ProviderFactory[BaseLoader]):

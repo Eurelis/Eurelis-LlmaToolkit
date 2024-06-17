@@ -1,7 +1,6 @@
 from typing import Dict, Any, Optional
 from uuid import UUID
-
-from langchain.callbacks.base import BaseCallbackHandler
+from langchain_core.callbacks import BaseCallbackHandler
 
 
 class MarkdownHtmlCallback(BaseCallbackHandler):

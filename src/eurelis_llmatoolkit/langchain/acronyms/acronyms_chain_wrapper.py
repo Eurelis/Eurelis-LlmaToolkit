@@ -1,15 +1,11 @@
 from typing import Any, Dict, List
-
-from langchain.callbacks.manager import (
-    AsyncCallbackManagerForChainRun,
-    CallbackManagerForChainRun,
-)
 from langchain.chains.conversational_retrieval.base import (
     BaseConversationalRetrievalChain,
 )
-from langchain.schema import Document
 
 from eurelis_llmatoolkit.langchain.acronyms import AcronymsTextTransformer
+from langchain_core.callbacks import AsyncCallbackManagerForChainRun, CallbackManagerForChainRun
+from langchain_core.documents import Document
 
 
 class AcronymsChainWrapper(BaseConversationalRetrievalChain):

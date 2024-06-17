@@ -1,6 +1,6 @@
-from langchain.schema import BaseRetriever
 
 from eurelis_llmatoolkit.utils.base_factory import ProviderFactory
+from langchain_core.retrievers import BaseRetriever
 
 
 class GenericRetrieverFactory(ProviderFactory[BaseRetriever]):

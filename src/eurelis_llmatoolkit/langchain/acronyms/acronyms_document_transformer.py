@@ -1,11 +1,10 @@
 from typing import Any, Iterable, Optional, Sequence, Union
 
-from langchain.schema import BaseDocumentTransformer, Document
-
 from eurelis_llmatoolkit.langchain.acronyms import AcronymsTextTransformer
 from eurelis_llmatoolkit.langchain.document_transformers.base import (
     BaseIteratorDocumentTransformer,
 )
+from langchain_core.documents import BaseDocumentTransformer, Document
 
 
 class AcronymsDocumentTransformer(BaseIteratorDocumentTransformer):

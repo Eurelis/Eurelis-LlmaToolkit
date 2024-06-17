@@ -1,8 +1,7 @@
 from typing import TYPE_CHECKING
 
-from langchain.llms.base import BaseLLM
-
 from eurelis_llmatoolkit.utils.base_factory import ParamsDictFactory
+from langchain_core.language_models import BaseLLM
 
 if TYPE_CHECKING:
     from eurelis_llmatoolkit.langchain.langchain_wrapper import BaseContext
@@ -32,7 +31,7 @@ class HuggingFaceFactory(ParamsDictFactory[BaseLLM]):
         self.task = task
 
     def build(self, context: "BaseContext") -> BaseLLM:
-        from langchain.llms import HuggingFacePipeline
+        from langchain_community.llms import HuggingFacePipeline
 
         arguments = self.get_optional_params()
 

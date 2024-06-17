@@ -1,9 +1,8 @@
 import types
 from typing import TYPE_CHECKING, Any
 
-from langchain.document_loaders.base import BaseLoader
-
 from eurelis_llmatoolkit.utils.base_factory import ParamsDictFactory
+from langchain_core.document_loaders import BaseLoader
 
 if TYPE_CHECKING:
     from eurelis_llmatoolkit.langchain.langchain_wrapper import BaseContext
@@ -66,7 +65,7 @@ class SitemapDocumentLoaderFactory(ParamsDictFactory[BaseLoader]):
         Returns:
             a document loader
         """
-        from langchain.document_loaders.sitemap import SitemapLoader
+        from langchain_community.document_loaders import SitemapLoader
         from langchain_community.document_loaders.web_base import (
             default_header_template,
         )

@@ -1,9 +1,8 @@
 from typing import TYPE_CHECKING, cast
 
-from langchain.document_loaders.base import BaseLoader
-
 from eurelis_llmatoolkit.utils.base_factory import ParamsDictFactory
 from eurelis_llmatoolkit.types import FACTORY, PARAMS
+from langchain_core.document_loaders import BaseLoader
 
 if TYPE_CHECKING:
     from eurelis_llmatoolkit.langchain.langchain_wrapper import BaseContext

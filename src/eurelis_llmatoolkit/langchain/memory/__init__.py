@@ -1,6 +1,6 @@
-from langchain.schema import BaseMemory
 
 from eurelis_llmatoolkit.utils.base_factory import ProviderFactory
+from langchain_core.memory import BaseMemory
 
 
 class GenericMemoryFactory(ProviderFactory[BaseMemory]):

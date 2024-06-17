@@ -2,10 +2,10 @@ from typing import TYPE_CHECKING
 
 import chromadb  # type: ignore[import-not-found]
 from chromadb import API
-from langchain.schema.vectorstore import VectorStore
 from langchain_community.vectorstores import Chroma
 
 from eurelis_llmatoolkit.utils.base_factory import BaseFactory
+from langchain_core.vectorstores import VectorStore
 
 if TYPE_CHECKING:
     from eurelis_llmatoolkit.langchain.langchain_wrapper import BaseContext
