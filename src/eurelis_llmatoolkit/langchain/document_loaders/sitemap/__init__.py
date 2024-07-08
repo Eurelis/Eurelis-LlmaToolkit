@@ -1,6 +1,6 @@
 import types
 from typing import TYPE_CHECKING, Any
-
+from bs4 import BeautifulSoup
 from eurelis_llmatoolkit.utils.base_factory import ParamsDictFactory
 from langchain_core.document_loaders import BaseLoader
 
@@ -8,24 +8,53 @@ if TYPE_CHECKING:
     from eurelis_llmatoolkit.langchain.langchain_wrapper import BaseContext
 
 
-def _parsing_function_factory(remove_list: list):
-    if not remove_list:
+def _parsing_function_factory(parsing_config: list):
+    if not parsing_config:
         return lambda content: content.get_text()
 
-    def _parsing_function(content: Any) -> str:
-        for remove in remove_list:
-            if isinstance(remove, str):  # tagname
-                nodes = content.find_all(remove)
+    def parse_include_exclude(content: Any) -> str:
+        def parsing_exclude_function(content: Any) -> str:
+            for remove in parsing_list:
+                if isinstance(remove, str):  # tagname
+                    nodes = content.find_all(remove)
+                    for node in nodes:
+                        node.extract()
+                elif isinstance(remove, dict):
+                    nodes = content.find_all(**remove)
+                    for node in nodes:
+                        node.extract()
+
+            return content
+      
+        def parsing_include_function(content: Any) -> str:
+            # Créer une nouvelle structure BeautifulSoup pour les éléments conservés
+            soup = BeautifulSoup("<div></div>", "html.parser")
+            container = soup.div
+
+            # Trouver et ajouter les éléments à conserver
+            for include in parsing_list:
+                if isinstance(include, str):  # tagname
+                    nodes = content.find_all(include)
+                elif isinstance(include, dict):
+                    nodes = content.find_all(**include)
+
                 for node in nodes:
-                    node.extract()
-            elif isinstance(remove, dict):
-                nodes = content.find_all(**remove)
-                for node in nodes:
-                    node.extract()
+                    container.append(node)
+
+            return container
+      
+        for operation in parsing_config:
+            op_type = operation.get("operation")
+            parsing_list = operation.get("elements", [])
+
+            if op_type == "parser_include":
+                content = parsing_include_function(content)
+            elif op_type == "parser_exclude":
+                parsing_exclude_function(content)
 
         return content.get_text("\n")
 
-    return _parsing_function
+    return parse_include_exclude
 
 
 def _meta_function(meta: dict, content: Any) -> dict:
@@ -86,7 +115,7 @@ class SitemapDocumentLoaderFactory(ParamsDictFactory[BaseLoader]):
         loader = SitemapLoader(
             web_path,
             parsing_function=_parsing_function_factory(
-                self.params.get("parser_remove")
+                self.params.get("parser")
             ),
             meta_function=_meta_function,
             header_template=header_template,
