@@ -21,7 +21,9 @@ from typing import (
 
 import numpy as np
 from langchain.chains.base import Chain
+from langchain.indexes import SQLRecordManager, index
 from langchain_core.indexing.api import _get_source_id_assigner
+from langchain_core.indexing.base import RecordManager
 from langchain_core.language_models import BaseLLM
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
@@ -34,6 +36,7 @@ from eurelis_llmatoolkit.langchain.acronyms.acronyms_chain_wrapper import (
 )
 from eurelis_llmatoolkit.langchain.dataset import DatasetFactory
 from eurelis_llmatoolkit.langchain.dataset.dataset import Dataset
+from eurelis_llmatoolkit.langchain.indexes.mongo_record_manager import MongoRecordManager
 from eurelis_llmatoolkit.types import DOCUMENT_MEAN_EMBEDDING, EMBEDDING, FACTORY
 from eurelis_llmatoolkit.utils.misc import batched, parse_param_value
 
@@ -101,6 +104,9 @@ class LangchainWrapper(BaseContext):
         self.index_fn = None
         self.opt_project: Optional[str] = None
         self.opt_record_manager_db_url: Optional[str] = None
+        self.opt_record_manager_mongodb_url: Optional[str] = None
+        self.opt_record_manager_db_name: Optional[str] = None
+        self.opt_record_manager_collection_name: Optional[str] = "documentMetadata"
         self.llm: Optional[BaseLLM] = None
         self.llm_factory: Optional[FACTORY] = None
         self.chain_factory: Optional[FACTORY] = None
@@ -120,6 +126,24 @@ class LangchainWrapper(BaseContext):
         if not self.opt_record_manager_db_url:
             raise RuntimeError("record_manager was not set")
         return self.opt_record_manager_db_url
+    
+    @property
+    def record_manager_mongodb_url(self) -> str:
+        if not self.opt_record_manager_mongodb_url:
+            raise RuntimeError("record_manager_mongodb_url was not set")
+        return self.opt_record_manager_mongodb_url
+    
+    @property
+    def record_manager_db_name(self) -> str:
+        if not self.opt_record_manager_db_name:
+            raise RuntimeError("record_manager_db_name was not set")
+        return self.opt_record_manager_db_name
+    
+    @property
+    def record_manager_collection_name(self) -> str:
+        if not self.opt_record_manager_collection_name:
+            raise RuntimeError("record_manager_collection_name was not set")
+        return self.opt_record_manager_collection_name
 
     def ensure_initialized(self):
         """
@@ -183,19 +207,7 @@ class LangchainWrapper(BaseContext):
             self.llm_factory = config.get("llm")
             self.chain_factory = config.get("chain", {})
 
-            self.opt_record_manager_db_url = parse_param_value(
-                config.get("record_manager", "sqlite:///record_manager_cache.sql")
-            )
-
-            sqlite_prefix = "sqlite:///"
-
-            if self.record_manager_db_url.startswith(sqlite_prefix):
-                sqlite_length = len(sqlite_prefix)
-                path = self.record_manager_db_url[sqlite_length:]
-                path = path if os.path.isabs(path) else os.path.join(os.getcwd(), path)
-                file_folder = Path(os.path.dirname(path))
-                os.makedirs(file_folder, exist_ok=True)
-
+            self._parse_record_manager(config.get("record_manager", "sqlite:///record_manager_cache.sql"))
             self.is_initialized = True
 
     @property
@@ -254,6 +266,56 @@ class LangchainWrapper(BaseContext):
             self, DefaultFactories.VECTORSTORE, vector_store, True
         )
 
+    def create_record_manager(self, namespace) -> MongoRecordManager | SQLRecordManager :
+        if self.record_manager_mongodb_url:
+            record_manager = MongoRecordManager(
+                namespace=namespace,
+                mongodb_url=self.record_manager_mongodb_url,
+                db_name=self.record_manager_db_name,
+                collection_name=self.record_manager_collection_name
+            )
+        else:
+            record_manager = SQLRecordManager(
+                namespace=namespace,
+                db_url=self.record_manager_db_url
+            )
+        return record_manager
+
+    def _parse_record_manager(self, record_manager_config):
+        """
+        Process the record manager configuration
+
+        Args:
+            record_manager_config: dictionary or string for the record manager configuration
+
+        Returns:
+
+        """
+        self.console.verbose_print(f"Reading record manager from configuration file")
+        
+        if isinstance(record_manager_config, dict):
+            self.opt_record_manager_mongodb_url = parse_param_value(record_manager_config.get("mongodb_url"))
+            self.opt_record_manager_db_name = parse_param_value(record_manager_config.get("db_name"))
+            self.opt_record_manager_collection_name = parse_param_value(record_manager_config.get("collection_name", "documentMetadata"))
+
+            if not self.record_manager_mongodb_url or not self.record_manager_db_name:
+                raise ValueError("Configuration parameters for MongoDB are missing")
+        else:
+            sqlite_prefix = "sqlite:///"
+            self.opt_record_manager_db_url = parse_param_value(
+                record_manager_config or "sqlite:///record_manager_cache.sql"
+            )
+
+            if not self.opt_record_manager_db_url:
+                raise ValueError("Configuration parameters for SQLite are missing")
+
+            if self.opt_record_manager_db_url.startswith(sqlite_prefix):
+                sqlite_length = len(sqlite_prefix)
+                path = self.opt_record_manager_db_url[sqlite_length:]
+                path = path if os.path.isabs(path) else os.path.join(os.getcwd(), path)
+                file_folder = Path(os.path.dirname(path))
+                os.makedirs(file_folder, exist_ok=True)
+
     def _list_datasets(self, dataset_id: Optional[str] = None) -> Iterable[Dataset]:
         """
         Getter for the dataset objects
@@ -298,7 +360,7 @@ class LangchainWrapper(BaseContext):
                 continue
 
             index_dataset = LangchainWrapper.build_index_dataset(
-                dataset, self.project, self.record_manager_db_url
+                dataset, self.project, self.create_record_manager
             )
 
             return_value = self.console.status(
@@ -668,8 +730,6 @@ class LangchainWrapper(BaseContext):
 
         self.ensure_initialized()
 
-        from langchain.indexes import SQLRecordManager
-
         # TODO: add lockfile
         # TODO: get dataset from document schema
 
@@ -696,7 +756,7 @@ class LangchainWrapper(BaseContext):
         ]
 
         namespace = f"{self.project}/{dataset.name}"
-        record_manager = SQLRecordManager(namespace, db_url=self.record_manager_db_url)
+        record_manager = self.create_record_manager(namespace)
 
         record_manager.create_schema()
 
@@ -772,7 +832,6 @@ class LangchainWrapper(BaseContext):
         self.ensure_initialized()
 
         dataset_index_results = OrderedDict()
-        from langchain.indexes import SQLRecordManager, index
 
         # TODO: add lockfile
 
@@ -782,9 +841,7 @@ class LangchainWrapper(BaseContext):
                 continue
 
             namespace = f"{self.project}/{dataset.name}"
-            record_manager = SQLRecordManager(
-                namespace, db_url=self.record_manager_db_url
-            )
+            record_manager = self.create_record_manager(namespace)
 
             record_manager.create_schema()
 
@@ -909,20 +966,18 @@ class LangchainWrapper(BaseContext):
 
     @staticmethod
     def build_index_dataset(
-        dataset: Dataset, project: str, record_manager_db_url: str
+        dataset: Dataset, project: str, create_record_manager_fn: Callable[[str], RecordManager]
     ) -> Callable[[], Mapping[str, int]]:
         """Build the index_dataset method
 
         Args:
             dataset: the dataset
             project: name of the project
-            record_manager_db_url: url to store record_manager
+            create_record_manager_fn: function to create the record manager
 
         Returns:
             The index_dataset method
         """
-
-        from langchain.indexes import SQLRecordManager, index
 
         namespace = f"{project}/{dataset.name}"
 
@@ -951,7 +1006,7 @@ class LangchainWrapper(BaseContext):
                     "num_deleted": "-",
                 }
 
-            record_manager = SQLRecordManager(namespace, db_url=record_manager_db_url)
+            record_manager = create_record_manager_fn(namespace)
 
             record_manager.create_schema()
 
