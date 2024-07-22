@@ -21,7 +21,7 @@ from typing import (
 
 import numpy as np
 from langchain.chains.base import Chain
-from langchain.indexes import SQLRecordManager, index
+from langchain.indexes import index
 from langchain_core.indexing.api import _get_source_id_assigner
 from langchain_core.indexing.base import RecordManager
 from langchain_core.language_models import BaseLLM
@@ -36,7 +36,8 @@ from eurelis_llmatoolkit.langchain.acronyms.acronyms_chain_wrapper import (
 )
 from eurelis_llmatoolkit.langchain.dataset import DatasetFactory
 from eurelis_llmatoolkit.langchain.dataset.dataset import Dataset
-from eurelis_llmatoolkit.langchain.indexes.mongo_record_manager import MongoRecordManager
+from eurelis_llmatoolkit.langchain.record_manager.mongodb import MongoDBRecordManagerFactory
+from eurelis_llmatoolkit.langchain.record_manager.sqlite import SQLiteRecordManagerFactory
 from eurelis_llmatoolkit.types import DOCUMENT_MEAN_EMBEDDING, EMBEDDING, FACTORY
 from eurelis_llmatoolkit.utils.misc import batched, parse_param_value
 
@@ -103,10 +104,7 @@ class LangchainWrapper(BaseContext):
         self._datasets_data: Optional[Union[List[dict], dict]] = None
         self.index_fn = None
         self.opt_project: Optional[str] = None
-        self.opt_record_manager_db_url: Optional[str] = None
-        self.opt_record_manager_mongodb_url: Optional[str] = None
-        self.opt_record_manager_db_name: Optional[str] = None
-        self.opt_record_manager_collection_name: Optional[str] = "documentMetadata"
+        self.record_manager: MongoDBRecordManagerFactory | SQLiteRecordManagerFactory
         self.llm: Optional[BaseLLM] = None
         self.llm_factory: Optional[FACTORY] = None
         self.chain_factory: Optional[FACTORY] = None
@@ -120,30 +118,6 @@ class LangchainWrapper(BaseContext):
         if not self.opt_project:
             raise RuntimeError("project was not set")
         return self.opt_project
-
-    @property
-    def record_manager_db_url(self) -> str:
-        if not self.opt_record_manager_db_url:
-            raise RuntimeError("record_manager was not set")
-        return self.opt_record_manager_db_url
-    
-    @property
-    def record_manager_mongodb_url(self) -> str:
-        if not self.opt_record_manager_mongodb_url:
-            raise RuntimeError("record_manager_mongodb_url was not set")
-        return self.opt_record_manager_mongodb_url
-    
-    @property
-    def record_manager_db_name(self) -> str:
-        if not self.opt_record_manager_db_name:
-            raise RuntimeError("record_manager_db_name was not set")
-        return self.opt_record_manager_db_name
-    
-    @property
-    def record_manager_collection_name(self) -> str:
-        if not self.opt_record_manager_collection_name:
-            raise RuntimeError("record_manager_collection_name was not set")
-        return self.opt_record_manager_collection_name
 
     def ensure_initialized(self):
         """
@@ -207,7 +181,7 @@ class LangchainWrapper(BaseContext):
             self.llm_factory = config.get("llm")
             self.chain_factory = config.get("chain", {})
 
-            self._parse_record_manager(config.get("record_manager", "sqlite:///record_manager_cache.sql"))
+            self.set_record_manager_factory(config.get("record_manager", "sqlite:///record_manager_cache.sql"))
             self.is_initialized = True
 
     @property
@@ -266,22 +240,7 @@ class LangchainWrapper(BaseContext):
             self, DefaultFactories.VECTORSTORE, vector_store, True
         )
 
-    def create_record_manager(self, namespace) -> MongoRecordManager | SQLRecordManager :
-        if self.record_manager_mongodb_url:
-            record_manager = MongoRecordManager(
-                namespace=namespace,
-                mongodb_url=self.record_manager_mongodb_url,
-                db_name=self.record_manager_db_name,
-                collection_name=self.record_manager_collection_name
-            )
-        else:
-            record_manager = SQLRecordManager(
-                namespace=namespace,
-                db_url=self.record_manager_db_url
-            )
-        return record_manager
-
-    def _parse_record_manager(self, record_manager_config):
+    def set_record_manager_factory(self, record_manager_config):
         """
         Process the record manager configuration
 
@@ -294,27 +253,51 @@ class LangchainWrapper(BaseContext):
         self.console.verbose_print(f"Reading record manager from configuration file")
         
         if isinstance(record_manager_config, dict):
-            self.opt_record_manager_mongodb_url = parse_param_value(record_manager_config.get("mongodb_url"))
-            self.opt_record_manager_db_name = parse_param_value(record_manager_config.get("db_name"))
-            self.opt_record_manager_collection_name = parse_param_value(record_manager_config.get("collection_name", "documentMetadata"))
+            provider = record_manager_config.get("provider")
+            if provider == "mongodb":
+                mongodb_url = parse_param_value(record_manager_config.get("url"))
+                db_name = parse_param_value(record_manager_config.get("db_name"))
+                collection_name = parse_param_value(record_manager_config.get("collection_name", "documentMetadata"))
+                
+                if not mongodb_url or not db_name:
+                    raise ValueError("MongoDB configuration parameters are missing")
+                
+                factory = MongoDBRecordManagerFactory(
+                    mongodb_url=mongodb_url,
+                    db_name=db_name,
+                    collection_name=collection_name
+                ).build()
+                self.record_manager = factory
 
-            if not self.record_manager_mongodb_url or not self.record_manager_db_name:
-                raise ValueError("Configuration parameters for MongoDB are missing")
+            elif provider == "sqlite":
+                db_url = parse_param_value(record_manager_config.get("url"))
+                if not db_url:
+                    raise ValueError("SQLite configuration parameters are missing")
+
+                factory = SQLiteRecordManagerFactory(
+                    db_url=db_url
+                ).build()
+                self.record_manager = factory
+
+            else:
+                raise ValueError("The specified provider is not supported")
+        
         else:
             sqlite_prefix = "sqlite:///"
-            self.opt_record_manager_db_url = parse_param_value(
-                record_manager_config or "sqlite:///record_manager_cache.sql"
-            )
+            db_url = parse_param_value(record_manager_config or "sqlite:///record_manager_cache.sql")
 
-            if not self.opt_record_manager_db_url:
+            if not db_url:
                 raise ValueError("Configuration parameters for SQLite are missing")
 
-            if self.opt_record_manager_db_url.startswith(sqlite_prefix):
+            if db_url.startswith(sqlite_prefix):
                 sqlite_length = len(sqlite_prefix)
-                path = self.opt_record_manager_db_url[sqlite_length:]
+                path = db_url[sqlite_length:]
                 path = path if os.path.isabs(path) else os.path.join(os.getcwd(), path)
                 file_folder = Path(os.path.dirname(path))
                 os.makedirs(file_folder, exist_ok=True)
+
+            factory = SQLiteRecordManagerFactory(db_url=db_url).build()
+            self.record_manager = factory
 
     def _list_datasets(self, dataset_id: Optional[str] = None) -> Iterable[Dataset]:
         """
@@ -360,7 +343,7 @@ class LangchainWrapper(BaseContext):
                 continue
 
             index_dataset = LangchainWrapper.build_index_dataset(
-                dataset, self.project, self.create_record_manager
+                dataset, self.project, self.record_manager.build().create_record_manager
             )
 
             return_value = self.console.status(
@@ -756,7 +739,7 @@ class LangchainWrapper(BaseContext):
         ]
 
         namespace = f"{self.project}/{dataset.name}"
-        record_manager = self.create_record_manager(namespace)
+        record_manager = self.record_manager.build().create_record_manager(namespace)
 
         record_manager.create_schema()
 
@@ -841,7 +824,7 @@ class LangchainWrapper(BaseContext):
                 continue
 
             namespace = f"{self.project}/{dataset.name}"
-            record_manager = self.create_record_manager(namespace)
+            record_manager = self.record_manager.build().create_record_manager(namespace)
 
             record_manager.create_schema()
 
