@@ -55,6 +55,7 @@ class Dataset(BaseLoader):
             loader: langchain document_loader to use
         """
         self.id = dataset_id
+        self.source_match : Optional[Union[str, List[str]]] = None
         self.loader = loader
         self.splitter: Optional[TextSplitter] = None
         self.transformer: Optional[
@@ -91,6 +92,17 @@ class Dataset(BaseLoader):
     def apply_text_template(self, doc: Document):
         substitute_dict = cast(Mapping[str, object], TemplateTextDocWrapper(doc))
         doc.page_content = self.text_template.safe_substitute(substitute_dict)
+
+    def set_source_match(self, source_match: Union[str, List[str]]):
+        """
+        Setter for the source_match
+        Args:
+            source_match
+
+        Returns:
+
+        """
+        self.source_match = source_match
 
     def set_splitter(self, splitter: "TextSplitter"):
         """

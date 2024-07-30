@@ -1,3 +1,4 @@
+import json
 from typing import TYPE_CHECKING, cast
 
 import click
@@ -55,6 +56,7 @@ def cli(ctx, **kwargs):
 
 @cli.group()
 @click.option("--id", default=None, help="Dataset ID")
+@click.option("--content", default=None, help="Content path")
 @click.pass_context
 def dataset(ctx, **kwargs):
     """
@@ -66,9 +68,12 @@ def dataset(ctx, **kwargs):
 
     """
     dataset_id = kwargs["id"] if "id" in kwargs else None
+    content_path = kwargs["content"] if "content" in kwargs else None
     wrapper = ctx.obj["singleton"]()
+    
     ctx.obj["wrapper"] = wrapper
     ctx.obj["dataset_id"] = dataset_id
+    ctx.obj["content_path"] = content_path
 
 
 @dataset.command("index")
@@ -84,8 +89,8 @@ def dataset_index(ctx, **kwargs):
 
     """
     wrapper = ctx.obj["wrapper"]
-    wrapper.index_documents(ctx.obj["dataset_id"])
 
+    wrapper.index_documents(ctx.obj["dataset_id"], ctx.obj["content_path"])
 
 @dataset.command("metadata")
 @click.pass_context

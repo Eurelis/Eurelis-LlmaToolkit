@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os.path
+import re
 from abc import ABC
 from collections import OrderedDict
 from pathlib import Path
@@ -318,7 +319,41 @@ class LangchainWrapper(BaseContext):
 
         return dataset_list
 
-    def index_documents(self, dataset_id: Optional[str] = None):
+    def apply_unitary_indexing(self, content_path: str):
+        """
+        Transform the dataset objects with content_path filter for unitary indexing
+        Args:
+            content_path: str, to index only this content_path
+
+        Returns:
+        """        
+        matched_data = None
+        for data in self._datasets_data:
+            source_match = data.get("source_match")
+            
+            if isinstance(source_match, str):
+                matches = re.search(source_match, content_path)
+            elif isinstance(source_match, list):
+                matches = any(re.search(pattern, content_path) for pattern in source_match)
+            else:
+                matches = False
+            
+            if matches:
+                if data["loader"]["provider"] != "sitemap":
+                    raise NotImplementedError("The functionality is only implemented for 'sitemap' provider")
+                matched_data = data
+                break
+        
+        if matched_data:
+            escaped_content_path = re.escape(content_path)
+            filter_url_pattern = f"^{escaped_content_path}$" # $ pour url exacte avec rien après sinon retirer pour les sous pages 
+            matched_data["loader"]["filter_urls"] = [filter_url_pattern]
+            matched_data["index"]["cleanup"] = "incremental"
+            self._datasets_data = matched_data
+        else:
+            raise ValueError("No match found for the given content path")
+
+    def index_documents(self, dataset_id: Optional[str] = None, content_path: Optional[str] = None):
         """
         Method to index documents to the vector store
         Args:
@@ -330,6 +365,9 @@ class LangchainWrapper(BaseContext):
         self.ensure_initialized()
 
         dataset_index_results = OrderedDict()
+
+        if content_path:
+            self.apply_unitary_indexing(content_path)
 
         # TODO: add lockfile
 
