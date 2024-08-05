@@ -1040,3 +1040,22 @@ class LangchainWrapper(BaseContext):
             )
 
         return index_dataset
+    
+    def unitaryDelete(self, filter_args: dict | None) -> bool:
+        self.ensure_initialized()
+        if filter_args is None:
+            self.console.print(f"Missing argument : filter_args")
+            return False
+
+        if hasattr(self.vector_store, 'find'):
+            ids_to_delete: List[str] = self.vector_store.find(filter_args) # type: ignore
+            self.console.print(f"{len(ids_to_delete)} docs to delete.")
+            result: bool = self.vector_store.delete(ids_to_delete)
+            if result:
+                self.console.print(f"Deletion is complete.")
+            else:
+                self.console.print(f"There has been no deletion.")
+            return result
+    
+        self.console.print(f"The find method is only implemented for MongoDB vectorstore.")
+        return False

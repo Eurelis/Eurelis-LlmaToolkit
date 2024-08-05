@@ -188,6 +188,38 @@ def delete(ctx, filters, **kwargs):
 
     wrapper.delete(filter_args, dataset_id)
 
+@cli.command()
+@click.option("filters", "--filter", multiple=True, type=str)
+@click.pass_context
+def unitarydelete(ctx, filters, **kwargs):
+    """
+    Delete the contents of a database using a query
+    Args:
+        ctx: click context
+        filters : filters to be applied to the query
+        **kwargs: options
+
+    Returns:
+
+    """
+    wrapper = ctx.obj["singleton"]()
+
+    filter_args = {}
+
+    for filter_arg in filters:
+        if not filter_arg:
+            continue
+        filter_split = filter_arg.split(":")
+        filter_key = filter_split[0]
+        filter_value = ":".join(filter_split[1:])
+
+        filter_args[filter_key] = filter_value
+
+    if not filter_args:  # if empty dict we consider a None value
+        filter_args = None
+
+    wrapper.unitaryDelete(filter_args)
+
 
 @cli.command()
 @click.argument("query")
