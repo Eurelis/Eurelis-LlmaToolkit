@@ -1,5 +1,5 @@
 from eurelis_llmatoolkit.api.routers.chatbot import chatbot_endpoints
-# from eurelis_llmatoolkit.api.routers.version import version_endpoints
+from eurelis_llmatoolkit.api.routers.version import version_endpoints
 from eurelis_llmatoolkit.api.service.agent_manager import AgentManager
 
 from fastapi import FastAPI
@@ -44,7 +44,7 @@ def create_app():
     def demo(id_agent: str):
         return {"id_agent": id_agent, "timestamp": datetime.datetime.now().timestamp()}
 
-    # app.include_router(version_endpoints.router, prefix="/api/version")
+    app.include_router(version_endpoints.router, prefix="/api/version")
     app.include_router(chatbot_endpoints.router, prefix="/api/chat")
 
     return app

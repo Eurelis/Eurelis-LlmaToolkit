@@ -11,7 +11,7 @@ class ConsoleManager(metaclass=Singleton):
     def __init__(self):
         self.output_factory = OutputFactory()
         # Configurer le niveau de verbosité par défaut
-        console_verbosity = config.get("CONSOLE_VERBOSITY", Verbosity.CONSOLE_DEBUG)
+        console_verbosity = Verbosity.CONSOLE_DEBUG
         self.output_factory.set_verbose(console_verbosity)
         self.output = self.output_factory.build(None)
 
