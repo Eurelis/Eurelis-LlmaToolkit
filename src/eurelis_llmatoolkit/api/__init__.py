@@ -1,4 +1,5 @@
 from eurelis_llmatoolkit.api.routers.chatbot import chatbot_endpoints
+from eurelis_llmatoolkit.api.routers.command import command_endpoints
 from eurelis_llmatoolkit.api.routers.version import version_endpoints
 from eurelis_llmatoolkit.api.service.agent_manager import AgentManager
 
@@ -44,7 +45,8 @@ def create_app():
     def demo(id_agent: str):
         return {"id_agent": id_agent, "timestamp": datetime.datetime.now().timestamp()}
 
-    app.include_router(version_endpoints.router, prefix="/api/version")
     app.include_router(chatbot_endpoints.router, prefix="/api/chat")
+    app.include_router(command_endpoints.router, prefix="/api/command")
+    app.include_router(version_endpoints.router, prefix="/api/version")
 
     return app

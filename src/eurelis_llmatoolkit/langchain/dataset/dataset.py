@@ -363,7 +363,7 @@ class Dataset(BaseLoader):
             return None
 
     @staticmethod
-    def print_datasets(output, datasets: Iterable["Dataset"], verbose_only=False):
+    def print_datasets(output, datasets: Iterable["Dataset"], verbose_only=False) -> str:
         """
         Method to print datasets to an output
         Args:
@@ -388,6 +388,17 @@ class Dataset(BaseLoader):
             ),
             title="Datasets",
         )
+        
+        datasets_list = [
+            {
+                "ID": dataset.id,
+                "Can index?": dataset.index,
+                "Can cache?": bool(dataset.output_folder),
+            }
+            for dataset in datasets
+        ]
+
+        return datasets_list
 
     def set_embeddings(self, embeddings):
         """

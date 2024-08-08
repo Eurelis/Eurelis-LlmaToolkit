@@ -42,19 +42,19 @@ async def chat():
 
 
 @router.get("/search")
-def search(q: str, token: str = Security(token_required)):
+def search(q: str, agent_id: str = Security(token_required)):
     if q == "" or q is None:
         raise HTTPException(
             status_code=400, detail="Query parameter 'q' cannot be empty"
         )
-    llmatk_config = AgentManager().get_llmatoolkit_config(token)
+    llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
     if llmatk_config is None:
         raise HTTPException(
             status_code=500, detail="No configuration file found for this agent"
         )
     wrapper = get_wrapper(llmatk_config)
     
-    max_results = AgentManager().get_max_results(token)
+    max_results = AgentManager().get_max_results(agent_id)
 
     results = wrapper.search_documents(
         q.lower(), k=max_results, include_relevance=True
@@ -62,7 +62,7 @@ def search(q: str, token: str = Security(token_required)):
 
     results = rerank(q, results, score_threshold=0.0)
 
-    prefix_url_img = AgentManager().get_prefixes_img(token)
+    prefix_url_img = AgentManager().get_prefixes_img(agent_id)
 
     formated = format_documents(results, prefix_url_img, max_results)
 
@@ -180,7 +180,7 @@ def search(q: str, token: str = Security(token_required)):
 #     return response, response_code
 
 
-# # TODO a terminer
+# TODO a terminer
 # @router.get("/check_answer/{session_id}/{process_id}")
 # async def check_answer(
 #     session_id: str,

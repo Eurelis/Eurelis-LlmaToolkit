@@ -710,13 +710,16 @@ class LangchainWrapper(BaseContext):
             self.console.print_table if for_print else self.console.verbose_print_table
         )
 
+        # Define the column headers for the table
+        column_headers = ["Index", "Content", "Metadata"]
+
         console_print_table(
             documents,
-            ["Index", "Content", "Metadata"],
-            lambda index, document: (
+            column_headers,
+            lambda index, doc_tuple: (
                 str(index),
-                document.page_content,
-                json.dumps(document.metadata, cls=MetadataEncoder),
+                (doc_tuple[0].page_content),
+                json.dumps(doc_tuple[0].metadata, cls=MetadataEncoder)
             ),
             title=query,
         )
@@ -733,7 +736,7 @@ class LangchainWrapper(BaseContext):
         self.ensure_initialized()
 
         datasets = self._list_datasets()
-        Dataset.print_datasets(self.console, datasets, verbose_only=False)
+        return Dataset.print_datasets(self.console, datasets, verbose_only=False)
 
     def _delete_from_namespace(
         self, namespace: str, documents: List[Document], dataset_id: Optional[str]
