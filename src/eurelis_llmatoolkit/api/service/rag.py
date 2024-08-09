@@ -37,9 +37,9 @@ def format_documents(documents, prefix_url_img, max_results):
 
         doc = item[0]
         score = item[1]
-        source = doc.metadata.get("source")
+        source = doc["metadata"].get("source")
 
-        if source not in urls and "Erreur 404" not in doc.metadata.get("title", ""):
+        if source not in urls and "Erreur 404" not in doc["metadata"].get("title", ""):
             urls.add(source)
 
             img = None
@@ -53,8 +53,8 @@ def format_documents(documents, prefix_url_img, max_results):
                     "url": source,
                     "tags": "Site Internet",
                     "distance": abs(score),
-                    "title": doc.metadata.get("title"),
-                    "baseline": tronquer_texte(doc.metadata.get("description")),
+                    "title": doc["metadata"].get("title"),
+                    "baseline": tronquer_texte(doc["metadata"].get("description")),
                     "image": {
                         "title": img["title"] if img else "",
                         "alt": img["alt"] if img else "",
@@ -146,9 +146,9 @@ def rerank(query, documents, score_threshold=0.0):
     to_rank = []
     for result in documents:
         item = {}
-        item["id"] = result[0].metadata.get("_uid", "")
-        item["meta"] = {"object": result[0]}
-        item["text"] = result[0].page_content
+        item["id"] = result["metadata"].get("_uid", "")
+        item["meta"] = {"object": result}
+        item["text"] = result["content"]
         to_rank.append(item)
 
     # Run rerank

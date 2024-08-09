@@ -204,29 +204,6 @@ class SearchCommandModel(BaseModel):
     query: str
     filters: Optional[List[str]] = None
 
-# API route to handle search
-@router.post("/search")
-async def search_documents(
-    command: SearchCommandModel,
-    verbose: bool = False,
-    agent_id: str = Security(token_required)
-):
-    try:
-        llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
-        if llmatk_config is None:
-            raise HTTPException(
-                status_code=500, detail="No configuration file found for this agent"
-            )
-        wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
-
-        filter_args = parse_filters(command.filters)
-        search_results = wrapper.search_documents(command.query, for_print=True, search_filter=filter_args)
-        return {"results": search_results}, 200
-    except Exception as e:
-        logger.print(f"Error in search_documents: {e}")
-        raise HTTPException(status_code=500, detail=str("Error in search_documents"))
-
-
 def parse_filters(filters: Optional[List[str]]) -> Optional[dict]:
     filter_args = {}
     if filters:

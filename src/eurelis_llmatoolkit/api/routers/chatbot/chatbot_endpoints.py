@@ -34,13 +34,6 @@ async def hello(agent_id: str = Depends(token_required)):
     return {"message": "Hello", "ui_params": ui_params}, 200
 
 
-@router.get("/chat")
-async def chat():
-    logger.print(f"Chat route called with url_prefix: {url_prefix}")
-    print(f"Chat route called with url_prefix: {url_prefix}")
-    return "chat"
-
-
 @router.get("/search")
 def search(q: str, agent_id: str = Security(token_required)):
     if q == "" or q is None:
