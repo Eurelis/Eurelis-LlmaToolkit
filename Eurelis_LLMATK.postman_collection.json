@@ -1,0 +1,414 @@
+{
+	"info": {
+		"_postman_id": "7bf8cd6d-ff3a-45b2-8337-714b474ae7f2",
+		"name": "Eurelis_LLMATK",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20878081"
+	},
+	"item": [
+		{
+			"name": "command",
+			"item": [
+				{
+					"name": "dataset/index",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "http://localhost",
+								"type": "text"
+							},
+							{
+								"key": "Access-Control-Request-Method",
+								"value": "GET",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "X-Agent-ID",
+								"value": "7b80e09b-bb8c-4251-87a0-0e7695a33752",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"content_path\": \"https://www.eurelis.com/\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://local.eurelis.com:8080/api/command/dataset/index",
+							"protocol": "https",
+							"host": [
+								"local",
+								"eurelis",
+								"com"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"command",
+								"dataset",
+								"index"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "dataset/list",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "http://localhost",
+								"type": "text"
+							},
+							{
+								"key": "Access-Control-Request-Method",
+								"value": "GET",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "X-Agent-ID",
+								"value": "7b80e09b-bb8c-4251-87a0-0e7695a33752",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://local.eurelis.com:8080/api/command/dataset/list",
+							"protocol": "https",
+							"host": [
+								"local",
+								"eurelis",
+								"com"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"command",
+								"dataset",
+								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "dataset/clear",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "http://localhost",
+								"type": "text"
+							},
+							{
+								"key": "Access-Control-Request-Method",
+								"value": "GET",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "X-Agent-ID",
+								"value": "7b80e09b-bb8c-4251-87a0-0e7695a33752",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"dataset_id\":\"website\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://local.eurelis.com:8080/api/command/dataset/clear",
+							"protocol": "https",
+							"host": [
+								"local",
+								"eurelis",
+								"com"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"command",
+								"dataset",
+								"clear"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "http://localhost",
+								"type": "text"
+							},
+							{
+								"key": "Access-Control-Request-Method",
+								"value": "GET",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "X-Agent-ID",
+								"value": "7b80e09b-bb8c-4251-87a0-0e7695a33752",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"filters\": [\r\n        \"source:https://www.eurelis.com/agence-web-digitale\"\r\n    ]\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://local.eurelis.com:8080/api/command/delete",
+							"protocol": "https",
+							"host": [
+								"local",
+								"eurelis",
+								"com"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"command",
+								"delete"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "unitarydelete",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "http://localhost",
+								"type": "text"
+							},
+							{
+								"key": "Access-Control-Request-Method",
+								"value": "GET",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "X-Agent-ID",
+								"value": "7b80e09b-bb8c-4251-87a0-0e7695a33752",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"filters\": [\r\n        \"source:https://www.eurelis.com/\"\r\n    ]\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://local.eurelis.com:8080/api/command/unitarydelete",
+							"protocol": "https",
+							"host": [
+								"local",
+								"eurelis",
+								"com"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"command",
+								"unitarydelete"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "chatbot",
+			"item": [
+				{
+					"name": "hello",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "http://localhost",
+								"type": "text"
+							},
+							{
+								"key": "Access-Control-Request-Method",
+								"value": "GET",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "X-Agent-ID",
+								"value": "7b80e09b-bb8c-4251-87a0-0e7695a33752",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"query\": \"find all documents related to Symfony\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://local.eurelis.com:8080/api/chat/hello",
+							"protocol": "https",
+							"host": [
+								"local",
+								"eurelis",
+								"com"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"chat",
+								"hello"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "search",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "http://localhost",
+								"type": "text"
+							},
+							{
+								"key": "Access-Control-Request-Method",
+								"value": "GET",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "X-Agent-ID",
+								"value": "7b80e09b-bb8c-4251-87a0-0e7695a33752",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"query\": \"find all documents related to Symfony\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://local.eurelis.com:8080/api/chat/search?q=symfony",
+							"protocol": "https",
+							"host": [
+								"local",
+								"eurelis",
+								"com"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"chat",
+								"search"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "symfony"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "version",
+			"item": [
+				{
+					"name": "version",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "http://localhost",
+								"type": "text"
+							},
+							{
+								"key": "Access-Control-Request-Method",
+								"value": "GET",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "X-Agent-ID",
+								"value": "7b80e09b-bb8c-4251-87a0-0e7695a33752",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://local.eurelis.com:8080/api/version/info",
+							"protocol": "https",
+							"host": [
+								"local",
+								"eurelis",
+								"com"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"version",
+								"info"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
