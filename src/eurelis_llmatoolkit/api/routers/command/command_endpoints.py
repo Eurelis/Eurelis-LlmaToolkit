@@ -42,17 +42,23 @@ class DatasetCommandModel(BaseModel):
 async def dataset_index(
     command: DatasetCommandModel,
     verbose: bool = False,
-    config: str = None,
+    agent_id: str = Security(token_required),
     background_tasks: BackgroundTasks = BackgroundTasks()
 ):
     try:
-        wrapper = get_wrapper(verbose, config)
+        llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
+        if llmatk_config is None:
+            raise HTTPException(
+                status_code=500, detail="No configuration file found for this agent"
+            )
+        wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
+
         background_tasks.add_task(wrapper.index_documents, command.dataset_id, command.content_path)
         print_datasets_data(wrapper._datasets_data)
         return {"status": "Indexing started"}, 202
     except Exception as e:
         logger.print(f"Error in dataset_index: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str("Error in dataset_index"))
 
 
 def print_datasets_data(data):
@@ -79,16 +85,22 @@ def print_datasets_data(data):
 async def dataset_cache(
     command: DatasetCommandModel,
     verbose: bool = False,
-    config: str = None,
+    agent_id: str = Security(token_required),
     background_tasks: BackgroundTasks = BackgroundTasks()
 ):
     try:
-        wrapper = get_wrapper(verbose, config)
+        llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
+        if llmatk_config is None:
+            raise HTTPException(
+                status_code=500, detail="No configuration file found for this agent"
+            )
+        wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
+
         background_tasks.add_task(wrapper.write_files, command.dataset_id)
         return {"status": "Writing cache files for metadata"}, 202
     except Exception as e:
         logger.print(f"Error in write_files: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str("Error in write_files"))
 
 
 # API route to List dataset
@@ -108,7 +120,7 @@ async def dataset_list(
         return {"datasets": wrapper.list_datasets()}, 202
     except Exception as e:
         logger.print(f"Error in list_datasets: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str("Error in list_datasets"))
 
 
 # API route to Clear dataset
@@ -116,17 +128,23 @@ async def dataset_list(
 async def dataset_clear(
     command: DatasetCommandModel,
     verbose: bool = False,
-    config: str = None,
+    agent_id: str = Security(token_required),
     background_tasks: BackgroundTasks = BackgroundTasks()
 ):
     try:
-        wrapper = get_wrapper(verbose, config)
+        llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
+        if llmatk_config is None:
+            raise HTTPException(
+                status_code=500, detail="No configuration file found for this agent"
+            )
+        wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
+
         background_tasks.add_task(wrapper.clear_datasets, command.dataset_id)
         
         return {"datasets": "Cleaning dataset started"}, 202
     except Exception as e:
         logger.print(f"Error in clear_datasets: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str("Error in clear_datasets"))
 
 
 # Model to validate input for delete and search commands
@@ -139,34 +157,47 @@ class FilterCommandModel(BaseModel):
 async def delete_content(
     command: FilterCommandModel,
     verbose: bool = False,
-    config: str = None,
+    agent_id: str = Security(token_required),
     background_tasks: BackgroundTasks = BackgroundTasks()
 ):
     try:
-        wrapper = get_wrapper(verbose, config)
+        llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
+        if llmatk_config is None:
+            raise HTTPException(
+                status_code=500, detail="No configuration file found for this agent"
+            )
+        wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
+
+        background_tasks.add_task(wrapper.clear_datasets, command.dataset_id)
         filter_args = parse_filters(command.filters)
         background_tasks.add_task(wrapper.delete, filter_args, command.dataset_id)
         return {"status": "Delete operation started"}, 202
     except Exception as e:
         logger.print(f"Error in delete_content: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str("Error in delete_content"))
 
 # API route for unitarydelete command
 @router.post("/unitarydelete")
 async def unitary_delete(
     command: FilterCommandModel,
     verbose: bool = False,
-    config: str = None,
+    agent_id: str = Security(token_required),
     background_tasks: BackgroundTasks = BackgroundTasks()
 ):
     try:
-        wrapper = get_wrapper(verbose, config)
+        llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
+        if llmatk_config is None:
+            raise HTTPException(
+                status_code=500, detail="No configuration file found for this agent"
+            )
+        wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
+
         filter_args = parse_filters(command.filters)
         background_tasks.add_task(wrapper.unitaryDelete, filter_args)
         return {"status": "Unitary delete operation started"}, 202
     except Exception as e:
         logger.print(f"Error in unitary_delete: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str("Error in unitary_delete"))
 
 
 class SearchCommandModel(BaseModel):
@@ -178,16 +209,22 @@ class SearchCommandModel(BaseModel):
 async def search_documents(
     command: SearchCommandModel,
     verbose: bool = False,
-    config: str = None
+    agent_id: str = Security(token_required)
 ):
     try:
-        wrapper = get_wrapper(verbose, config)
+        llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
+        if llmatk_config is None:
+            raise HTTPException(
+                status_code=500, detail="No configuration file found for this agent"
+            )
+        wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
+
         filter_args = parse_filters(command.filters)
         search_results = wrapper.search_documents(command.query, for_print=True, search_filter=filter_args)
         return {"results": search_results}, 200
     except Exception as e:
         logger.print(f"Error in search_documents: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str("Error in search_documents"))
 
 
 def parse_filters(filters: Optional[List[str]]) -> Optional[dict]:

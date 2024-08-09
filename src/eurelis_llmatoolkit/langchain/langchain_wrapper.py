@@ -718,13 +718,21 @@ class LangchainWrapper(BaseContext):
             column_headers,
             lambda index, doc_tuple: (
                 str(index),
-                (doc_tuple[0].page_content),
-                json.dumps(doc_tuple[0].metadata, cls=MetadataEncoder)
+                (doc_tuple.page_content),
+                json.dumps(doc_tuple.metadata, cls=MetadataEncoder)
             ),
             title=query,
         )
 
-        return documents
+        documents_list = [
+            {
+                "content": document.page_content,
+                "metadata": json.loads(json.dumps(document.metadata, cls=MetadataEncoder)), # ObjectId de MongoDB n'est pas sérialisables donc dumps puis loads
+            }
+            for document in documents
+        ]
+
+        return documents_list
 
     def list_datasets(self):
         """

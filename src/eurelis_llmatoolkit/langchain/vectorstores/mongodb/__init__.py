@@ -88,14 +88,14 @@ class MongoDBVectorStoreFactory(ParamsDictFactory[VectorStore]):
 
         display_search_index_info = True
 
-        if version_array[0] >= 7:
-            from pymongo.errors import OperationFailure
+        # if version_array[0] >= 7:
+        #     from pymongo.errors import OperationFailure
 
-            try:
-                collection.create_search_index(search_index)
-                display_search_index_info = False
-            except OperationFailure:
-                context.console.print("Unable to auto create search index")
+        #     try:
+        #         collection.create_search_index(search_index)
+        #         display_search_index_info = False
+        #     except OperationFailure:
+        #         context.console.print("Unable to auto create search index")
 
         if display_search_index_info:
             context.console.print("MongoDB vector store search index configuration:")
