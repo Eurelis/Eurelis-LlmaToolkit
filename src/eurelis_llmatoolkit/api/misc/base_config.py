@@ -13,7 +13,6 @@ class BaseConfig(metaclass=Singleton):
     load_dotenv()
 
     def __getattr__(self, name):
-        # print(f"__getattr__ {name}")
         return self._get_from_env(name)
 
     def get(self, property, default=None):

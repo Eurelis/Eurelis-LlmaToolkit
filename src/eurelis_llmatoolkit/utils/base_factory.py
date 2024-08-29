@@ -2,10 +2,13 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import TYPE_CHECKING, Collection, Generic, Mapping, TypeVar, Union, cast
 
+from eurelis_llmatoolkit.api.misc.console_manager import ConsoleManager
 from eurelis_llmatoolkit.types import JSON, PARAMS
 from eurelis_llmatoolkit.utils.misc import parse_param_value
 
 T = TypeVar("T")
+
+logger = ConsoleManager().get_output()
 
 if TYPE_CHECKING:
     from eurelis_llmatoolkit.langchain.langchain_wrapper import BaseContext
@@ -66,7 +69,7 @@ class BaseFactory(ABC, Generic[T]):
                     func = getattr(self, function_name)
                     func(value)  # call the setter
                 except AttributeError:
-                    print(f"{function_name} not found")
+                    logger.error(f"{function_name} not found")
             else:  # if the setter was not found, we use the default unknown param handler
                 self.handle_unknown_param(key, value)
 

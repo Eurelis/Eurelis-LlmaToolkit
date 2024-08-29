@@ -15,7 +15,7 @@ from eurelis_llmatoolkit.utils.output import Verbosity
 if TYPE_CHECKING:
     from eurelis_llmatoolkit.langchain.langchain_wrapper import LangchainWrapper
 
-logger = ConsoleManager.get_instance().get_output()
+logger = ConsoleManager().get_output()
 
 router = APIRouter()
 
@@ -54,30 +54,30 @@ async def dataset_index(
         wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
 
         background_tasks.add_task(wrapper.index_documents, command.dataset_id, command.content_path)
-        print_datasets_data(wrapper._datasets_data)
+        # print_datasets_data(wrapper._datasets_data)
         return {"status": "Indexing started"}, 202
     except Exception as e:
-        logger.print(f"Error in dataset_index: {e}")
+        logger.error(f"Error in dataset_index: {e}")
         raise HTTPException(status_code=500, detail=str("Error in dataset_index"))
 
+# Pour afficher le contenu d'un dataset dans un fichier car trop grand et pas lisible avec le debugger ou dans la console.
+# def print_datasets_data(data):
+#     print("wrapper")
+#     if data is None:
+#         print("None")
+#     elif isinstance(data, list):
+#         for item in data:
+#             print(item)
+#     elif isinstance(data, dict):
+#         for key, value in data.items():
+#             print(f"{key}: {value}")
+#     else:
+#         print("Unknown data type")
 
-def print_datasets_data(data):
-    print("wrapper")
-    if data is None:
-        print("None")
-    elif isinstance(data, list):
-        for item in data:
-            print(item)
-    elif isinstance(data, dict):
-        for key, value in data.items():
-            print(f"{key}: {value}")
-    else:
-        print("Unknown data type")
-
-    # print(json.dump(wrapper._datasets_data))
-    out_file = open("final_myfile.json", "w")   
-    json.dump(data, out_file, indent = 6)
-    out_file.close()
+#     # print(json.dump(wrapper._datasets_data))
+#     out_file = open("final_myfile.json", "w")   
+#     json.dump(data, out_file, indent = 6)
+#     out_file.close()
 
 
 # API route to Print first doc metadata
@@ -99,7 +99,7 @@ async def dataset_cache(
         background_tasks.add_task(wrapper.write_files, command.dataset_id)
         return {"status": "Writing cache files for metadata"}, 202
     except Exception as e:
-        logger.print(f"Error in write_files: {e}")
+        logger.error(f"Error in write_files: {e}")
         raise HTTPException(status_code=500, detail=str("Error in write_files"))
 
 
@@ -119,7 +119,7 @@ async def dataset_list(
 
         return {"datasets": wrapper.list_datasets()}, 202
     except Exception as e:
-        logger.print(f"Error in list_datasets: {e}")
+        logger.error(f"Error in list_datasets: {e}")
         raise HTTPException(status_code=500, detail=str("Error in list_datasets"))
 
 
@@ -143,7 +143,7 @@ async def dataset_clear(
         
         return {"datasets": "Cleaning dataset started"}, 202
     except Exception as e:
-        logger.print(f"Error in clear_datasets: {e}")
+        logger.error(f"Error in clear_datasets: {e}")
         raise HTTPException(status_code=500, detail=str("Error in clear_datasets"))
 
 
@@ -173,7 +173,7 @@ async def delete_content(
         background_tasks.add_task(wrapper.delete, filter_args, command.dataset_id)
         return {"status": "Delete operation started"}, 202
     except Exception as e:
-        logger.print(f"Error in delete_content: {e}")
+        logger.error(f"Error in delete_content: {e}")
         raise HTTPException(status_code=500, detail=str("Error in delete_content"))
 
 # API route for unitarydelete command
@@ -196,7 +196,7 @@ async def unitary_delete(
         background_tasks.add_task(wrapper.unitaryDelete, filter_args)
         return {"status": "Unitary delete operation started"}, 202
     except Exception as e:
-        logger.print(f"Error in unitary_delete: {e}")
+        logger.error(f"Error in unitary_delete: {e}")
         raise HTTPException(status_code=500, detail=str("Error in unitary_delete"))
 
 

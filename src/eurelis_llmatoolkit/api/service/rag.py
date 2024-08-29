@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, cast
 
 import requests
 from bs4 import BeautifulSoup
+from eurelis_llmatoolkit.api.misc.console_manager import ConsoleManager
 from eurelis_llmatoolkit.utils.output import Verbosity
 from eurelis_llmatoolkit.langchain import LangchainWrapper, LangchainWrapperFactory
 from eurelis_llmatoolkit.langchain.langchain_wrapper import BaseContext
@@ -11,6 +12,7 @@ from eurelis_llmatoolkit.api.misc.base_config import config
 
 from flashrank import Ranker, RerankRequest
 
+logger = ConsoleManager().get_output()
 
 def get_wrapper(llmatk_config: str) -> LangchainWrapper:
     factory = LangchainWrapperFactory()
@@ -115,10 +117,10 @@ def get_image(url, starts_with):
                             return img_data
 
     except requests.exceptions.Timeout:
-        print(f"**Timeout atteint pour l'URL : {url}")
+        logger.warning(f"**Timeout atteint pour l'URL : {url}")
 
     except Exception as e:
-        print(f"Erreur lors de la récupération de l'image : {e}")
+        logger.error(f"Erreur lors de la récupération de l'image : {e}")
 
     # Retourne None si aucune balise img n'est trouvée, ne correspond pas aux préfixes ou si le timeout est atteint
     return None
