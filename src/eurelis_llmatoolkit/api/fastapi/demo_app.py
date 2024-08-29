@@ -1,3 +1,4 @@
+from eurelis_llmatoolkit.api.fastapi.search import search_endpoints
 from eurelis_llmatoolkit.api.fastapi.chatbot import chatbot_endpoints
 from eurelis_llmatoolkit.api.fastapi.command import command_endpoints
 from eurelis_llmatoolkit.api.fastapi.version import version_endpoints
@@ -45,6 +46,7 @@ def create_app_demo():
     def demo(id_agent: str):
         return {"id_agent": id_agent, "timestamp": datetime.datetime.now().timestamp()}
 
+    app.include_router(search_endpoints.router, prefix="/api/search")
     app.include_router(chatbot_endpoints.router, prefix="/api/chat")
     app.include_router(command_endpoints.router, prefix="/api/command")
     app.include_router(version_endpoints.router, prefix="/api/version")
