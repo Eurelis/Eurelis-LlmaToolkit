@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Security, Depends
 
 from eurelis_llmatoolkit.api.model.api_model import AgentSearchListResponse
-from eurelis_llmatoolkit.api.routers.security.security import token_required
+from eurelis_llmatoolkit.api.fastapi.security.security import token_required
 from eurelis_llmatoolkit.api.service.agent_manager import AgentManager
 from eurelis_llmatoolkit.api.service.rag import format_documents, get_wrapper, rerank
 

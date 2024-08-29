@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from typing import TYPE_CHECKING, cast, List, Optional
 
 from eurelis_llmatoolkit.api.misc.console_manager import ConsoleManager
-from eurelis_llmatoolkit.api.routers.security.security import token_required
+from eurelis_llmatoolkit.api.fastapi.security.security import token_required
 from eurelis_llmatoolkit.api.service.agent_manager import AgentManager
 from eurelis_llmatoolkit.langchain import LangchainWrapperFactory
 from eurelis_llmatoolkit.langchain.langchain_wrapper import BaseContext

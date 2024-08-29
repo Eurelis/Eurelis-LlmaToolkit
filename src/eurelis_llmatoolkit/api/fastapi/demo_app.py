@@ -1,6 +1,6 @@
-from eurelis_llmatoolkit.api.routers.chatbot import chatbot_endpoints
-from eurelis_llmatoolkit.api.routers.command import command_endpoints
-from eurelis_llmatoolkit.api.routers.version import version_endpoints
+from eurelis_llmatoolkit.api.fastapi.chatbot import chatbot_endpoints
+from eurelis_llmatoolkit.api.fastapi.command import command_endpoints
+from eurelis_llmatoolkit.api.fastapi.version import version_endpoints
 from eurelis_llmatoolkit.api.service.agent_manager import AgentManager
 
 from fastapi import FastAPI
@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 import datetime
 
-def create_app():
+def create_app_demo():
     app = FastAPI()
 
     # TODO a TESTER CORS
