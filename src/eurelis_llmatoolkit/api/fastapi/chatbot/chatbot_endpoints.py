@@ -8,7 +8,9 @@ logger = ConsoleManager().get_output()
 router = APIRouter()
 url_prefix = "/api/chat"
 
-@router.get("/endpoint")
+# TODO Implémentation chatbot
+
+@router.get("/hello-endpoint")
 async def hello_endpoint():
     logger.info(f"Endpoint route called with url_prefix: {url_prefix}")
     result = hello()
