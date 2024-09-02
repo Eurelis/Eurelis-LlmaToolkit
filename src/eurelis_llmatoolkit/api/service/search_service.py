@@ -1,5 +1,3 @@
-from fastapi import HTTPException
-
 from eurelis_llmatoolkit.api.model.api_model import AgentSearchListResponse
 from eurelis_llmatoolkit.api.service.agent_manager import AgentManager
 from eurelis_llmatoolkit.api.service.rag import format_documents, get_wrapper, rerank
@@ -13,14 +11,12 @@ def hello(agent_id: str):
 
 def search(q: str, agent_id: str):
     if q == "" or q is None:
-        raise HTTPException(
-            status_code=400, detail="Query parameter 'q' cannot be empty"
-        )
+        raise ValueError("Query parameter 'q' cannot be empty", 400)
+
     llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
     if llmatk_config is None:
-        raise HTTPException(
-            status_code=500, detail="No configuration file found for this agent"
-        )
+        raise RuntimeError("No configuration file found for this agent", 500)
+
     wrapper = get_wrapper(llmatk_config)
     
     max_results = AgentManager().get_max_results(agent_id)

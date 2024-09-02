@@ -24,6 +24,7 @@ if TYPE_CHECKING:
 logger = ConsoleManager().get_output()
 
 router = APIRouter()
+url_prefix = "/api/command"
 
 def get_wrapper(verbose: bool, config: str) -> "LangchainWrapper":
     factory = LangchainWrapperFactory()
@@ -47,12 +48,16 @@ async def dataset_index_endpoint(
     agent_id: str = Security(token_required),
     background_tasks: BackgroundTasks = BackgroundTasks()
 ):
+    logger.info(f"dataset_index route called with url_prefix: {url_prefix}")
     try:
         dataset_index(command, agent_id, background_tasks.add_task, verbose)
         return {"status": "Indexing started"}, 202
     except Exception as e:
-        logger.error(f"Error in dataset_index: {e}")
-        raise HTTPException(status_code=500, detail=str("Error in dataset_index"))
+        if len(e.args) == 2:
+            message, code = e.args
+            raise HTTPException(status_code=code, detail=message)
+        else:
+            raise HTTPException(status_code=500, detail="An unexpected error occurred")
 
 
 # API route to Print first doc metadata
@@ -63,9 +68,16 @@ async def dataset_cache_endpoint(
     agent_id: str = Security(token_required),
     background_tasks: BackgroundTasks = BackgroundTasks()
 ):
-    dataset_cache(command, agent_id, background_tasks.add_task, verbose)
-    return {"status": "Writing cache files for metadata"}, 202
-
+    try:
+        logger.info(f"dataset_cache route called with url_prefix: {url_prefix}")
+        dataset_cache(command, agent_id, background_tasks.add_task, verbose)
+        return {"status": "Writing cache files for metadata"}, 202
+    except Exception as e:
+        if len(e.args) == 2:
+            message, code = e.args
+            raise HTTPException(status_code=code, detail=message)
+        else:
+            raise HTTPException(status_code=500, detail="An unexpected error occurred")
 
 # API route to List dataset
 @router.post("/dataset/list")
@@ -73,8 +85,17 @@ async def dataset_list_endpoint(
     verbose: bool = False,
     agent_id: str = Security(token_required)
 ):
-    datasets = dataset_list(agent_id, verbose)
-    return datasets, 202
+    try:
+        logger.info(f"dataset_list route called with url_prefix: {url_prefix}")
+        datasets = dataset_list(agent_id, verbose)
+        return datasets, 202
+    except Exception as e:
+        if len(e.args) == 2:
+            message, code = e.args
+            raise HTTPException(status_code=code, detail=message)
+        else:
+            raise HTTPException(status_code=500, detail="An unexpected error occurred")
+
 
 
 # API route to Clear dataset
@@ -85,8 +106,16 @@ async def dataset_clear_endpoint(
     agent_id: str = Security(token_required),
     background_tasks: BackgroundTasks = BackgroundTasks()
 ):
-    dataset_clear(command, agent_id, background_tasks.add_task, verbose)
-    return {"datasets": "Cleaning dataset started"}, 202
+    try:
+        logger.info(f"dataset_clear route called with url_prefix: {url_prefix}")
+        dataset_clear(command, agent_id, background_tasks.add_task, verbose)
+        return {"datasets": "Cleaning dataset started"}, 202
+    except Exception as e:
+        if len(e.args) == 2:
+            message, code = e.args
+            raise HTTPException(status_code=code, detail=message)
+        else:
+            raise HTTPException(status_code=500, detail="An unexpected error occurred")
 
 
 # API route for Delete content from database using a query
@@ -97,8 +126,16 @@ async def delete_content_endpoint(
     agent_id: str = Security(token_required),
     background_tasks: BackgroundTasks = BackgroundTasks()
 ):
-    delete_content(command, agent_id, background_tasks.add_task, verbose)
-    return {"status": "Delete operation started"}, 202
+    try:
+        logger.info(f"delete_content route called with url_prefix: {url_prefix}")
+        delete_content(command, agent_id, background_tasks.add_task, verbose)
+        return {"status": "Delete operation started"}, 202
+    except Exception as e:
+        if len(e.args) == 2:
+            message, code = e.args
+            raise HTTPException(status_code=code, detail=message)
+        else:
+            raise HTTPException(status_code=500, detail="An unexpected error occurred")
 
 
 # API route for unitarydelete command
@@ -109,5 +146,13 @@ async def unitary_delete_endpoint(
     agent_id: str = Security(token_required),
     background_tasks: BackgroundTasks = BackgroundTasks()
 ):
-    unitary_delete(command, agent_id, background_tasks.add_task, verbose)
-    return {"status": "Unitary delete operation started"}, 202
+    try:
+        logger.info(f"unitary_delete route called with url_prefix: {url_prefix}")
+        unitary_delete(command, agent_id, background_tasks.add_task, verbose)
+        return {"status": "Unitary delete operation started"}, 202
+    except Exception as e:
+        if len(e.args) == 2:
+            message, code = e.args
+            raise HTTPException(status_code=code, detail=message)
+        else:
+            raise HTTPException(status_code=500, detail="An unexpected error occurred")

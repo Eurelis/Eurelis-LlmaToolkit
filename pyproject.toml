@@ -65,6 +65,9 @@ selfcheck = [
     "selfcheckgpt==0.1.4",
     "lark==1.1.8"
 ]
+fastapi = [
+    "fastapi==0.109.1"
+]
 
 [project.urls]
 "Homepage" = "https://github.com/Eurelis/Eurelis-LlmaToolkit"

@@ -1,4 +1,3 @@
-from fastapi import HTTPException
 from pydantic import BaseModel
 from typing import TYPE_CHECKING, cast, List, Optional, Callable
 
@@ -38,21 +37,16 @@ def dataset_index(
     add_background_tasks: Callable,
     verbose: bool = False
 ):
-    try:
-        llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
-        if llmatk_config is None:
-            raise HTTPException(
-                status_code=500, detail="No configuration file found for this agent"
-            )
-        wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
+    llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
+    if llmatk_config is None:
+        logger.error(f"Error in dataset_index: No configuration file found for this agent")
+        raise RuntimeError("No configuration file found for this agent", 500)
+    wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
 
-        dataset_id = command.dataset_id if command else None 
-        content_path = command.content_path if command else None
+    dataset_id = command.dataset_id if command else None 
+    content_path = command.content_path if command else None
 
-        add_background_tasks(wrapper.index_documents, dataset_id, content_path)
-    except Exception as e:
-        logger.error(f"Error in dataset_index: {e}")
-        raise HTTPException(status_code=500, detail=str("Error in dataset_index"))
+    add_background_tasks(wrapper.index_documents, dataset_id, content_path)
 
 
 def dataset_cache(
@@ -61,39 +55,28 @@ def dataset_cache(
     add_background_tasks: Callable,
     verbose: bool = False
 ):
-    try:
-        llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
-        if llmatk_config is None:
-            raise HTTPException(
-                status_code=500, detail="No configuration file found for this agent"
-            )
-        wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
+    llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
+    if llmatk_config is None:
+        logger.error(f"Error in dataset_index: No configuration file found for this agent")
+        raise RuntimeError("No configuration file found for this agent", 500)
 
-        dataset_id = command.dataset_id if command else None 
+    wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
 
-        add_background_tasks(wrapper.write_files, dataset_id)
+    dataset_id = command.dataset_id if command else None 
 
-    except Exception as e:
-        logger.error(f"Error in write_files: {e}")
-        raise HTTPException(status_code=500, detail=str("Error in write_files"))
+    add_background_tasks(wrapper.write_files, dataset_id)
 
 
 def dataset_list(
     agent_id: str,
     verbose: bool = False
 ):
-    try:
-        llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
-        if llmatk_config is None:
-            raise HTTPException(
-                status_code=500, detail="No configuration file found for this agent"
-            )
-        wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
+    llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
+    if llmatk_config is None:
+        raise RuntimeError("Error in list_datasets: No configuration file found for this agent", 500)
+    wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
 
-        return {"datasets": wrapper.list_datasets()}
-    except Exception as e:
-        logger.error(f"Error in list_datasets: {e}")
-        raise HTTPException(status_code=500, detail=str("Error in list_datasets"))
+    return {"datasets": wrapper.list_datasets()}
 
 
 def dataset_clear(
@@ -102,20 +85,15 @@ def dataset_clear(
     add_background_tasks: Callable,
     verbose: bool = False
 ):
-    try:
-        llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
-        if llmatk_config is None:
-            raise HTTPException(
-                status_code=500, detail="No configuration file found for this agent"
-            )
-        wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
+    llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
+    if llmatk_config is None:
+      raise RuntimeError("Error in clear_datasets: No configuration file found for this agent", 500)
 
-        dataset_id = command.dataset_id if command else None
+    wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
 
-        add_background_tasks(wrapper.clear_datasets, dataset_id)
-    except Exception as e:
-        logger.error(f"Error in clear_datasets: {e}")
-        raise HTTPException(status_code=500, detail=str("Error in clear_datasets"))
+    dataset_id = command.dataset_id if command else None
+
+    add_background_tasks(wrapper.clear_datasets, dataset_id)
 
 
 # Model to validate input for delete and search commands
@@ -129,23 +107,18 @@ def delete_content(
     add_background_tasks: Callable,
     verbose: bool = False
 ):
-    try:
-        llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
-        if llmatk_config is None:
-            raise HTTPException(
-                status_code=500, detail="No configuration file found for this agent"
-            )
-        wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
+    llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
+    if llmatk_config is None:
+        raise RuntimeError("Error in delete_content: No configuration file found for this agent", 500)
 
-        dataset_id = command.dataset_id if command else None 
-        filters = command.filters if command else None
+    wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
 
-        add_background_tasks(wrapper.clear_datasets, dataset_id)
-        filter_args = parse_filters(filters)
-        add_background_tasks(wrapper.delete, filter_args, dataset_id)
-    except Exception as e:
-        logger.error(f"Error in delete_content: {e}")
-        raise HTTPException(status_code=500, detail=str("Error in delete_content"))
+    dataset_id = command.dataset_id if command else None 
+    filters = command.filters if command else None
+
+    add_background_tasks(wrapper.clear_datasets, dataset_id)
+    filter_args = parse_filters(filters)
+    add_background_tasks(wrapper.delete, filter_args, dataset_id)
 
 
 def unitary_delete(
@@ -154,21 +127,16 @@ def unitary_delete(
     add_background_tasks: Callable,
     verbose: bool = False
 ):
-    try:
-        llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
-        if llmatk_config is None:
-            raise HTTPException(
-                status_code=500, detail="No configuration file found for this agent"
-            )
-        wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
+    llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
+    if llmatk_config is None:
+        raise RuntimeError("Error in unitary_delete: No configuration file found for this agent", 500)
+    
+    wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
 
-        filters = command.filters if command else None
+    filters = command.filters if command else None
 
-        filter_args = parse_filters(filters)
-        add_background_tasks(wrapper.unitaryDelete, filter_args)
-    except Exception as e:
-        logger.error(f"Error in unitary_delete: {e}")
-        raise HTTPException(status_code=500, detail=str("Error in unitary_delete"))
+    filter_args = parse_filters(filters)
+    add_background_tasks(wrapper.unitaryDelete, filter_args)
 
 
 def parse_filters(filters: Optional[List[str]]) -> Optional[dict]:
