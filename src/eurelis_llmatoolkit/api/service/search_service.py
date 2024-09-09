@@ -9,13 +9,15 @@ def hello(agent_id: str):
     ui_params = AgentManager().get_ui_params(agent_id)
     max_history = AgentManager().get_max_history(agent_id)
     is_active = AgentManager().is_authorized(agent_id)
+    is_search_active = AgentManager().is_search_active(agent_id)
 
     return {
         "message": "Hello",
         "is_active": is_active == "authorized",
+        "is_search_active": is_search_active,
         "max_history": max_history,
         "ui_params": ui_params
-    }, 200
+    }
 
 def search(q: str, agent_id: str):
     if q == "" or q is None:

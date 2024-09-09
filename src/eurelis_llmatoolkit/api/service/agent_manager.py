@@ -54,6 +54,25 @@ class AgentManager(metaclass=Singleton):
         if key["is_active"]:
             return "authorized"
         return "forbidden"
+    
+    def is_search_active(self, key):
+        """Vérifie si la clé API est autorisée à accéder à search.
+
+        Args:
+            key (Str): Clé API
+
+        Returns:
+            Bool: True si la clé est True, False si désactivée
+        """
+        if key is None:
+            return False
+
+        key = self.agents.get(key)
+        if key is None:
+            return False
+        if key["is_search_active"]:
+            return True
+        return False
 
     def get_ui_params(self, key):
         """Retourne les paramètres d'interface de l'agent associé à la clé API.
