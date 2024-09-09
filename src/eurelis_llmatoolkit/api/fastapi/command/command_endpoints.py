@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Security
 from typing import TYPE_CHECKING, cast
 
+from eurelis_llmatoolkit.api.misc.base_config import BaseConfig
 from eurelis_llmatoolkit.api.misc.console_manager import ConsoleManager
 from eurelis_llmatoolkit.api.fastapi.security.security import token_required
 from eurelis_llmatoolkit.langchain import LangchainWrapperFactory
@@ -27,6 +28,7 @@ router = APIRouter()
 url_prefix = "/api/command"
 
 def get_wrapper(verbose: bool, config: str) -> "LangchainWrapper":
+    base_config = BaseConfig()
     factory = LangchainWrapperFactory()
     if verbose:
         factory.set_verbose(Verbosity.CONSOLE_DEBUG)
@@ -35,6 +37,8 @@ def get_wrapper(verbose: bool, config: str) -> "LangchainWrapper":
 
     if config:
         factory.set_config_path(config)
+
+    factory.set_logger_config(base_config.get("LANGCHAIN_LOGGER_CONFIG", None), base_config.get("LANGCHAIN_LOGGER_NAME", None))
 
     instance = factory.build(cast(BaseContext, None))
     return instance

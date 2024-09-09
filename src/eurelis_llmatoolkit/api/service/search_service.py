@@ -7,7 +7,15 @@ logger = ConsoleManager().get_output()
 
 def hello(agent_id: str):
     ui_params = AgentManager().get_ui_params(agent_id)
-    return {"message": "Hello", "ui_params": ui_params}, 200
+    max_history = AgentManager().get_max_history(agent_id)
+    is_active = AgentManager().is_authorized(agent_id)
+
+    return {
+        "message": "Hello",
+        "is_active": is_active == "authorized",
+        "max_history": max_history,
+        "ui_params": ui_params
+    }, 200
 
 def search(q: str, agent_id: str):
     if q == "" or q is None:

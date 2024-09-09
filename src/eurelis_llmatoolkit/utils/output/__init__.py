@@ -1,3 +1,4 @@
+import os
 import logging
 from enum import Enum
 from typing import TYPE_CHECKING, Optional, Union
@@ -27,6 +28,8 @@ class OutputFactory(BaseFactory[Output]):
 
     def __init__(self) -> None:
         self.verbosity_level: Verbosity = Verbosity.LOG_INFO
+        self.logger_config_path: str|None = None
+        self.logger_name: str|None = None
 
     def set_verbose(self, verbose: VERBOSE_VALUE):
         """
@@ -50,6 +53,26 @@ class OutputFactory(BaseFactory[Output]):
         else:
             self.verbosity_level = verbose
 
+    def set_logger_config(self, logger_config_path: str|None, logger_name: str|None = None):
+        """
+        setter for the logger_config_path and logger_name properties
+        Args:
+            logger_config_path (str, None)
+
+        Returns:
+
+        """
+        self.logger_name = logger_name
+
+        if logger_config_path is None:
+            self.logger_config_path = None
+        elif os.path.exists(logger_config_path):
+            self.logger_config_path = logger_config_path
+        else:
+            raise ValueError(
+                f"Invalid logger_config_path parameter, expecting a valid path."
+            )
+
     def build(self, context: "BaseContext") -> Output:
         """
         Method to construct a BaseConsoleOutput
@@ -64,13 +87,13 @@ class OutputFactory(BaseFactory[Output]):
                 LoggingConsoleOutput,
             )
 
-            return LoggingConsoleOutput(logging.INFO)
+            return LoggingConsoleOutput(logging.INFO, self.logger_config_path, self.logger_name)
         elif self.verbosity_level == Verbosity.LOG_DEBUG:
             from eurelis_llmatoolkit.utils.output.logging_console_output import (
                 LoggingConsoleOutput,
             )
 
-            return LoggingConsoleOutput(logging.DEBUG)
+            return LoggingConsoleOutput(logging.DEBUG, self.logger_config_path, self.logger_name)
         elif self.verbosity_level == Verbosity.CONSOLE_DEBUG:
             from eurelis_llmatoolkit.utils.output.verbose_console_output import (
                 VerboseConsoleOutput,

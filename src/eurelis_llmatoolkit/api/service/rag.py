@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, cast
 
 import requests
 from bs4 import BeautifulSoup
+from eurelis_llmatoolkit.api.misc.base_config import BaseConfig
 from eurelis_llmatoolkit.api.misc.console_manager import ConsoleManager
 from eurelis_llmatoolkit.utils.output import Verbosity
 from eurelis_llmatoolkit.langchain import LangchainWrapper, LangchainWrapperFactory
@@ -15,9 +16,11 @@ from flashrank import Ranker, RerankRequest
 logger = ConsoleManager().get_output()
 
 def get_wrapper(llmatk_config: str) -> LangchainWrapper:
+    base_config = BaseConfig()
     factory = LangchainWrapperFactory()
     factory.set_verbose(Verbosity.CONSOLE_DEBUG)
     factory.set_config_path(f"config/{llmatk_config}")
+    factory.set_logger_config(base_config.get("LANGCHAIN_LOGGER_CONFIG", None), base_config.get("LANGCHAIN_LOGGER_NAME", None))
     
     instance = factory.build(
         cast(BaseContext, None)

@@ -28,6 +28,7 @@ dependencies = [
     "rich==13.4.2",
     "click==8.1.7",
     "numpy==1.26.0",
+    "sentry-sdk==2.13.0",
 ]
 
 [project.optional-dependencies]
