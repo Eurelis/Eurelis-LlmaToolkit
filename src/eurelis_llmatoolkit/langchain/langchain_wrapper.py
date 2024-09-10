@@ -83,6 +83,7 @@ class BaseContext(ABC):
 
         return self.opt_embeddings
 
+    # README Si erreur alors commenter le if => Le 10/09/24 : "No vectorstore provided" alors que le vectorstore était bien instancié. Pas d'explication sur la nature de cette erreur. 
     @property
     def vector_store(self) -> "VectorStore":
         if not self.opt_vector_store:
