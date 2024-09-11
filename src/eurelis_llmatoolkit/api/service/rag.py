@@ -56,9 +56,9 @@ def format_documents(documents, prefix_url_img, max_results):
 
         doc = item[0]
         score = item[1]
-        source = doc.metadata.get("source")
+        source = get_metadata(doc, "source")
 
-        if source not in urls and "Erreur 404" not in doc.metadata.get("title", ""):
+        if source not in urls and "Erreur 404" not in get_metadata(doc, "title"):
             urls.add(source)
 
             img = None
@@ -72,8 +72,8 @@ def format_documents(documents, prefix_url_img, max_results):
                     "url": source,
                     "tags": "Site Internet",
                     "distance": abs(score),
-                    "title": doc.metadata.get("title"),
-                    "baseline": tronquer_texte(doc.metadata.get("description")),
+                    "title": get_metadata(doc, "title"),
+                    "baseline": tronquer_texte(get_metadata(doc, "description")),
                     "image": {
                         "title": img["title"] if img else "",
                         "alt": img["alt"] if img else "",
@@ -87,6 +87,14 @@ def format_documents(documents, prefix_url_img, max_results):
 
     return result_dict
 
+def get_metadata(doc, key):
+    # Try to access via the attribute, otherwise via square brackets
+    if hasattr(doc, 'metadata'):
+        metadata = getattr(doc, 'metadata', {})
+    else:
+        metadata = doc.get("metadata", {})
+    
+    return metadata.get(key, "")
 
 def tronquer_texte(texte: str, longueur_max: int = 100) -> str:
     if texte is None:

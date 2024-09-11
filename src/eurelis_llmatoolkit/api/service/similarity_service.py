@@ -42,6 +42,6 @@ def similarity(urls: List[str], agent_id: str):
         k=MAX_RESULTS,
         coefs=None,
     )
-    allowed_img_urls = base_config.get("SIMILARITY_ALLOWED_IMG_URLS", "").split(",")
-    formated = format_documents(results, allowed_img_urls, MAX_RESULTS)
+    prefix_url_img = AgentManager().get_prefixes_img(agent_id)
+    formated = format_documents(results, prefix_url_img, MAX_RESULTS)
     return formated
