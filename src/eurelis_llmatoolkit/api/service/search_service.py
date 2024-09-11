@@ -10,11 +10,13 @@ def hello(agent_id: str):
     max_history = AgentManager().get_max_history(agent_id)
     is_active = AgentManager().is_authorized(agent_id)
     is_search_active = AgentManager().is_search_active(agent_id)
+    is_similarity_active = AgentManager().is_similarity_active(agent_id)
 
     return {
         "message": "Hello",
         "is_active": is_active == "authorized",
         "is_search_active": is_search_active,
+        "is_similarity_active": is_similarity_active,
         "max_history": max_history,
         "ui_params": ui_params
     }
