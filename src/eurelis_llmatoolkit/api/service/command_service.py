@@ -17,11 +17,20 @@ logger = ConsoleManager().get_output()
 def get_wrapper(verbose: bool, config: str) -> "LangchainWrapper":
     base_config = BaseConfig()
     factory = LangchainWrapperFactory()
-    if verbose:
-        factory.set_verbose(Verbosity.CONSOLE_DEBUG)
-    else:
-        factory.set_verbose(Verbosity.CONSOLE_INFO)
 
+    logger_log = os.getenv('LANGCHAIN_LOG', 'False').lower() == 'true'
+
+    if verbose and logger_log:
+        verbosity_level = Verbosity.LOG_DEBUG
+    elif verbose:
+        verbosity_level = Verbosity.CONSOLE_DEBUG
+    elif logger_log:
+        verbosity_level = Verbosity.LOG_INFO
+    else:
+        verbosity_level = Verbosity.CONSOLE_INFO
+
+    factory.set_verbose(verbosity_level)
+    
     if config:
         factory.set_config_path(config)
 

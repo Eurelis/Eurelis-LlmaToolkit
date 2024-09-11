@@ -18,7 +18,21 @@ logger = ConsoleManager().get_output()
 def get_wrapper(llmatk_config: str) -> LangchainWrapper:
     base_config = BaseConfig()
     factory = LangchainWrapperFactory()
-    factory.set_verbose(Verbosity.CONSOLE_DEBUG)
+
+    logger_log = os.getenv('LANGCHAIN_LOG', 'False').lower() == 'true'
+    verbose = os.getenv('LANGCHAIN_VERBOSITY_DEBUG', 'False').lower() == 'true'
+
+    if verbose and logger_log:
+        verbosity_level = Verbosity.LOG_DEBUG
+    elif verbose:
+        verbosity_level = Verbosity.CONSOLE_DEBUG
+    elif logger_log:
+        verbosity_level = Verbosity.LOG_INFO
+    else:
+        verbosity_level = Verbosity.CONSOLE_INFO
+
+    factory.set_verbose(verbosity_level)
+
     factory.set_config_path(f"config/{llmatk_config}")
     factory.set_logger_config(base_config.get("LANGCHAIN_LOGGER_CONFIG", None), base_config.get("LANGCHAIN_LOGGER_NAME", None))
     

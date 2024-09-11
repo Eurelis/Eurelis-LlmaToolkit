@@ -35,10 +35,19 @@ def cli(ctx, **kwargs):
 
             factory = LangchainWrapperFactory()
 
-            if "verbose" in kwargs and kwargs.get("verbose"):
-                factory.set_verbose(Verbosity.CONSOLE_DEBUG)
+            verbose = kwargs.get("verbose") if "verbose" in kwargs else False
+            logger_log = os.getenv('LANGCHAIN_LOG', 'False').lower() == 'true'
+
+            if verbose and logger_log:
+                verbosity_level = Verbosity.LOG_DEBUG
+            elif verbose:
+                verbosity_level = Verbosity.CONSOLE_DEBUG
+            elif logger_log:
+                verbosity_level = Verbosity.LOG_INFO
             else:
-                factory.set_verbose(Verbosity.CONSOLE_INFO)
+                verbosity_level = Verbosity.CONSOLE_INFO
+
+            factory.set_verbose(verbosity_level)
 
             if "config" in kwargs and kwargs["config"]:
                 factory.set_config_path(kwargs["config"])

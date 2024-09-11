@@ -30,10 +30,19 @@ url_prefix = "/api/command"
 def get_wrapper(verbose: bool, config: str) -> "LangchainWrapper":
     base_config = BaseConfig()
     factory = LangchainWrapperFactory()
-    if verbose:
-        factory.set_verbose(Verbosity.CONSOLE_DEBUG)
+
+    logger_log = os.getenv('LANGCHAIN_LOG', 'False').lower() == 'true'
+
+    if verbose and logger_log:
+        verbosity_level = Verbosity.LOG_DEBUG
+    elif verbose:
+        verbosity_level = Verbosity.CONSOLE_DEBUG
+    elif logger_log:
+        verbosity_level = Verbosity.LOG_INFO
     else:
-        factory.set_verbose(Verbosity.CONSOLE_INFO)
+        verbosity_level = Verbosity.CONSOLE_INFO
+
+    factory.set_verbose(verbosity_level)
 
     if config:
         factory.set_config_path(config)
