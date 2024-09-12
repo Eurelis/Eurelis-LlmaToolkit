@@ -1,4 +1,5 @@
 import types
+import re
 from typing import TYPE_CHECKING, Any
 from bs4 import BeautifulSoup
 from eurelis_llmatoolkit.utils.base_factory import ParamsDictFactory
@@ -52,7 +53,11 @@ def _parsing_function_factory(parsing_config: list):
             elif op_type == "parser_exclude":
                 parsing_exclude_function(content)
 
-        return content.get_text("\n")
+        text_content = content.get_text("\n")
+
+        # Remplacer les sauts de ligne multiples par un seul saut de ligne
+        text_content = re.sub(r'\n{2,}', '\n', text_content)
+        return text_content
 
     return parse_include_exclude
 
