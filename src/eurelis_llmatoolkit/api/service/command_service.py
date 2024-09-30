@@ -15,11 +15,12 @@ if TYPE_CHECKING:
 
 logger = ConsoleManager().get_output()
 
+
 def get_wrapper(verbose: bool, config: str) -> "LangchainWrapper":
     base_config = BaseConfig()
     factory = LangchainWrapperFactory()
 
-    logger_log = os.getenv('LANGCHAIN_LOG', 'False').lower() == 'true'
+    logger_log = os.getenv("LANGCHAIN_LOG", "False").lower() == "true"
 
     if verbose and logger_log:
         verbosity_level = Verbosity.LOG_DEBUG
@@ -31,33 +32,40 @@ def get_wrapper(verbose: bool, config: str) -> "LangchainWrapper":
         verbosity_level = Verbosity.CONSOLE_INFO
 
     factory.set_verbose(verbosity_level)
-    
+
     if config:
         factory.set_config_path(config)
 
-    factory.set_logger_config(base_config.get("LANGCHAIN_LOGGER_CONFIG", None), base_config.get("LANGCHAIN_LOGGER_NAME", None))
+    factory.set_logger_config(
+        base_config.get("LANGCHAIN_LOGGER_CONFIG", None),
+        base_config.get("LANGCHAIN_LOGGER_NAME", None),
+    )
 
     instance = factory.build(cast(BaseContext, None))
     return instance
 
+
 # Model to validate input for dataset commands
 class DatasetCommandModel(BaseModel):
-    dataset_id: str = None
-    content_path: str = None
+    dataset_id: str
+    content_path: str
+
 
 def dataset_index(
     command: DatasetCommandModel | None,
     agent_id: str,
     add_background_tasks: Callable,
-    verbose: bool = False
+    verbose: bool = False,
 ):
     llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
     if llmatk_config is None:
-        logger.error(f"Error in dataset_index: No configuration file found for this agent")
+        logger.error(
+            f"Error in dataset_index: No configuration file found for this agent"
+        )
         raise RuntimeError("No configuration file found for this agent", 500)
     wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
 
-    dataset_id = command.dataset_id if command else None 
+    dataset_id = command.dataset_id if command else None
     content_path = command.content_path if command else None
 
     add_background_tasks(wrapper.index_documents, dataset_id, content_path)
@@ -67,27 +75,28 @@ def dataset_cache(
     command: DatasetCommandModel | None,
     agent_id: str,
     add_background_tasks: Callable,
-    verbose: bool = False
+    verbose: bool = False,
 ):
     llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
     if llmatk_config is None:
-        logger.error(f"Error in dataset_index: No configuration file found for this agent")
+        logger.error(
+            f"Error in dataset_index: No configuration file found for this agent"
+        )
         raise RuntimeError("No configuration file found for this agent", 500)
 
     wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
 
-    dataset_id = command.dataset_id if command else None 
+    dataset_id = command.dataset_id if command else None
 
     add_background_tasks(wrapper.write_files, dataset_id)
 
 
-def dataset_list(
-    agent_id: str,
-    verbose: bool = False
-):
+def dataset_list(agent_id: str, verbose: bool = False):
     llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
     if llmatk_config is None:
-        raise RuntimeError("Error in list_datasets: No configuration file found for this agent", 500)
+        raise RuntimeError(
+            "Error in list_datasets: No configuration file found for this agent", 500
+        )
     wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
 
     return {"datasets": wrapper.list_datasets()}
@@ -97,11 +106,13 @@ def dataset_clear(
     command: DatasetCommandModel | None,
     agent_id: str,
     add_background_tasks: Callable,
-    verbose: bool = False
+    verbose: bool = False,
 ):
     llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
     if llmatk_config is None:
-      raise RuntimeError("Error in clear_datasets: No configuration file found for this agent", 500)
+        raise RuntimeError(
+            "Error in clear_datasets: No configuration file found for this agent", 500
+        )
 
     wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
 
@@ -115,19 +126,22 @@ class FilterCommandModel(BaseModel):
     dataset_id: Optional[str] = None
     filters: Optional[List[str]] = None
 
+
 def delete_content(
     command: FilterCommandModel | None,
     agent_id: str,
     add_background_tasks: Callable,
-    verbose: bool = False
+    verbose: bool = False,
 ):
     llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
     if llmatk_config is None:
-        raise RuntimeError("Error in delete_content: No configuration file found for this agent", 500)
+        raise RuntimeError(
+            "Error in delete_content: No configuration file found for this agent", 500
+        )
 
     wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
 
-    dataset_id = command.dataset_id if command else None 
+    dataset_id = command.dataset_id if command else None
     filters = command.filters if command else None
 
     add_background_tasks(wrapper.clear_datasets, dataset_id)
@@ -139,12 +153,14 @@ def unitary_delete(
     command: FilterCommandModel,
     agent_id: str,
     add_background_tasks: Callable,
-    verbose: bool = False
+    verbose: bool = False,
 ):
     llmatk_config = AgentManager().get_llmatoolkit_config(agent_id)
     if llmatk_config is None:
-        raise RuntimeError("Error in unitary_delete: No configuration file found for this agent", 500)
-    
+        raise RuntimeError(
+            "Error in unitary_delete: No configuration file found for this agent", 500
+        )
+
     wrapper = get_wrapper(verbose, f"config/{llmatk_config}")
 
     filters = command.filters if command else None
