@@ -1,9 +1,8 @@
 from typing import Tuple, cast, TYPE_CHECKING
 
-from langchain.text_splitter import TextSplitter
-
 from eurelis_llmatoolkit.utils.base_factory import ParamsDictFactory, PARAMS
 from eurelis_llmatoolkit.types import CLASS
+from langchain_text_splitters import TextSplitter
 
 if TYPE_CHECKING:
     from eurelis_llmatoolkit.langchain.langchain_wrapper import BaseContext

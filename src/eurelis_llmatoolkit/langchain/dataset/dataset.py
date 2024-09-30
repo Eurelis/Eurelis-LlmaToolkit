@@ -15,19 +15,18 @@ from typing import (
     cast,
 )
 
-from langchain.document_loaders.base import BaseLoader
-from langchain.schema import BaseDocumentTransformer, Document
-from langchain.text_splitter import TextSplitter
-
 from eurelis_llmatoolkit.utils.base_factory import JSON
 from eurelis_llmatoolkit.types import PARAMS
 from eurelis_llmatoolkit.langchain.document_transformers.base import (
     BaseIteratorDocumentTransformer,
 )
+from langchain_core.document_loaders import BaseLoader
+from langchain_core.documents import BaseDocumentTransformer, Document
+from langchain_text_splitters import TextSplitter
 
 if TYPE_CHECKING:
-    from langchain.schema.embeddings import Embeddings
-    from langchain.schema.vectorstore import VectorStore
+    from langchain_core.embeddings import Embeddings
+    from langchain_core.vectorstores import VectorStore
 
 
 class TemplateTextDocWrapper:
@@ -56,6 +55,7 @@ class Dataset(BaseLoader):
             loader: langchain document_loader to use
         """
         self.id = dataset_id
+        self.source_match : Optional[Union[str, List[str]]] = None
         self.loader = loader
         self.splitter: Optional[TextSplitter] = None
         self.transformer: Optional[
@@ -92,6 +92,17 @@ class Dataset(BaseLoader):
     def apply_text_template(self, doc: Document):
         substitute_dict = cast(Mapping[str, object], TemplateTextDocWrapper(doc))
         doc.page_content = self.text_template.safe_substitute(substitute_dict)
+
+    def set_source_match(self, source_match: Union[str, List[str]]):
+        """
+        Setter for the source_match
+        Args:
+            source_match
+
+        Returns:
+
+        """
+        self.source_match = source_match
 
     def set_splitter(self, splitter: "TextSplitter"):
         """
@@ -352,7 +363,7 @@ class Dataset(BaseLoader):
             return None
 
     @staticmethod
-    def print_datasets(output, datasets: Iterable["Dataset"], verbose_only=False):
+    def print_datasets(output, datasets: Iterable["Dataset"], verbose_only=False) -> str:
         """
         Method to print datasets to an output
         Args:
@@ -377,6 +388,17 @@ class Dataset(BaseLoader):
             ),
             title="Datasets",
         )
+        
+        datasets_list = [
+            {
+                "ID": dataset.id,
+                "Can index?": dataset.index,
+                "Can cache?": bool(dataset.output_folder),
+            }
+            for dataset in datasets
+        ]
+
+        return datasets_list
 
     def set_embeddings(self, embeddings):
         """

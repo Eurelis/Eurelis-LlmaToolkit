@@ -21,6 +21,7 @@ class DatasetFactory(ParamsDictFactory[Dataset]):
     def __init__(self):
         super().__init__()
         self.id = None
+        self.source_match = None
         self.loader_factory_data = None
         self.splitter_factory_data = None
         self.transformer_factory_data = None
@@ -94,6 +95,18 @@ class DatasetFactory(ParamsDictFactory[Dataset]):
         Returns:
         """
         self.metadata = metadata
+    
+    def _handle_source_match(self, instance: Dataset):
+        """
+        Helper method to handle source_match related options
+        Args:
+            instance: dataset instance
+
+        Returns:
+
+        """
+        source_match = self.params.get("source_match")
+        instance.set_source_match(source_match)
 
     def _handle_output(self, instance: Dataset):
         """
@@ -196,6 +209,7 @@ class DatasetFactory(ParamsDictFactory[Dataset]):
         instance.set_transformer(transformer)
         instance.set_metadata(self.metadata)
 
+        self._handle_source_match(instance)
         self._handle_output(instance)
         self._handle_index(instance)
 

@@ -1,11 +1,9 @@
 from typing import TYPE_CHECKING, Iterator
 
-from langchain.document_loaders.base import BaseBlobParser
-from langchain.schema import Document
-from langchain_community.document_loaders import Blob
-
 from eurelis_llmatoolkit.utils.base_factory import BaseFactory
 from eurelis_llmatoolkit.langchain.dataset.dataset import Dataset
+from langchain_core.document_loaders import BaseBlobParser, Blob
+from langchain_core.documents import Document
 
 if TYPE_CHECKING:
     from eurelis_llmatoolkit.langchain.langchain_wrapper import BaseContext

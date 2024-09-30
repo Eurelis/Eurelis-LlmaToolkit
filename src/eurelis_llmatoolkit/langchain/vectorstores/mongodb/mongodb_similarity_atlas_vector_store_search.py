@@ -1,7 +1,6 @@
 from typing import Optional, List, Any, Callable
-
-from langchain.schema import Document
 from langchain_community.vectorstores import MongoDBAtlasVectorSearch
+from langchain_core.documents import Document
 
 
 class MongoDBSimilarityAtlasVectorStoreSearch(MongoDBAtlasVectorSearch):
@@ -64,3 +63,21 @@ class MongoDBSimilarityAtlasVectorStoreSearch(MongoDBAtlasVectorSearch):
         self._collection.delete_many(del_query)
 
         return True
+
+    def find(self, filter_args: dict, **kwargs: Any) -> List[str]:
+        """Find by criteria.
+
+        Args:
+            filter_args: filter by metadata
+            **kwargs: Other keyword arguments that subclasses might use.
+
+        Returns:
+            List[str] : List of ids found,
+        """
+        cursor = self._collection.find(filter_args)
+        
+        ids = []
+        for document in cursor:
+            ids.append(document.get("_uid"))
+
+        return ids

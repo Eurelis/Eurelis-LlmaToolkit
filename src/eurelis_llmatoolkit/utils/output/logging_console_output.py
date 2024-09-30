@@ -1,5 +1,7 @@
 import inspect
 import logging
+from logging.config import fileConfig
+
 import sys
 from typing import List, Sequence
 
@@ -11,7 +13,7 @@ class LoggingConsoleOutput(Output):
     Base output class for non-verbose printing on the console
     """
 
-    def __init__(self, level: int = logging.INFO):
+    def __init__(self, level: int = logging.INFO, config: str = None, logger_name: str = None):
         """
         Constructor
         Args:
@@ -19,16 +21,23 @@ class LoggingConsoleOutput(Output):
         """
         logging_format = "%(asctime)s - %(name)s %(levelname)s %(message)s"
         logging.basicConfig(format=logging_format, level=level)  # NOSONAR
+        fileConfig(config)
+
+        # If a logger_name is provided, retrieve the specific logger
+        self._logger_name = logger_name
 
     @property
     def logger(self) -> logging.Logger:
-        return LoggingConsoleOutput._get_logger()
+        return LoggingConsoleOutput._get_logger(self._logger_name)
 
     @staticmethod
-    def _get_logger() -> logging.Logger:
-        frame = sys._getframe(3)
-        module = inspect.getmodule(frame)
-        return logging.getLogger(module.__name__ if module else __name__)
+    def _get_logger(logger_name: str|None = None) -> logging.Logger:
+        if logger_name:
+            return logging.getLogger(logger_name)
+        else:
+            frame = sys._getframe(3)
+            module = inspect.getmodule(frame)
+            return logging.getLogger(module.__name__ if module else __name__)
 
     def print(self, *args, **kwargs):
         """

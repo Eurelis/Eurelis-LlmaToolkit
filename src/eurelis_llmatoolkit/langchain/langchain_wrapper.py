@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os.path
+import re
 from abc import ABC
 from collections import OrderedDict
 from pathlib import Path
@@ -21,10 +22,12 @@ from typing import (
 
 import numpy as np
 from langchain.chains.base import Chain
-from langchain.indexes._api import _get_source_id_assigner
-from langchain.llms.base import BaseLLM
-from langchain.schema import Document
-from langchain.schema.vectorstore import VectorStore
+from langchain.indexes import index
+from langchain_core.indexing.api import _get_source_id_assigner
+from langchain_core.indexing.base import RecordManager
+from langchain_core.language_models import BaseLLM
+from langchain_core.documents import Document
+from langchain_core.vectorstores import VectorStore
 
 from eurelis_llmatoolkit.utils.base_factory import DefaultFactories
 from eurelis_llmatoolkit.utils.class_loader import ClassLoader
@@ -34,12 +37,14 @@ from eurelis_llmatoolkit.langchain.acronyms.acronyms_chain_wrapper import (
 )
 from eurelis_llmatoolkit.langchain.dataset import DatasetFactory
 from eurelis_llmatoolkit.langchain.dataset.dataset import Dataset
+from eurelis_llmatoolkit.langchain.record_manager.mongodb import MongoDBRecordManagerFactory
+from eurelis_llmatoolkit.langchain.record_manager.sqlite import SQLiteRecordManagerFactory
 from eurelis_llmatoolkit.types import DOCUMENT_MEAN_EMBEDDING, EMBEDDING, FACTORY
 from eurelis_llmatoolkit.utils.misc import batched, parse_param_value
 
 if TYPE_CHECKING:
-    from langchain.schema.embeddings import Embeddings
-    from langchain.schema.vectorstore import VectorStore
+    from langchain_core.embeddings import Embeddings
+    from langchain_core.vectorstores import VectorStore
 
 
 class MetadataEncoder(json.JSONEncoder):
@@ -78,6 +83,7 @@ class BaseContext(ABC):
 
         return self.opt_embeddings
 
+    # README Si erreur alors commenter le if => Le 10/09/24 : "No vectorstore provided" alors que le vectorstore était bien instancié. Pas d'explication sur la nature de cette erreur. 
     @property
     def vector_store(self) -> "VectorStore":
         if not self.opt_vector_store:
@@ -100,7 +106,7 @@ class LangchainWrapper(BaseContext):
         self._datasets_data: Optional[Union[List[dict], dict]] = None
         self.index_fn = None
         self.opt_project: Optional[str] = None
-        self.opt_record_manager_db_url: Optional[str] = None
+        self.record_manager: MongoDBRecordManagerFactory | SQLiteRecordManagerFactory
         self.llm: Optional[BaseLLM] = None
         self.llm_factory: Optional[FACTORY] = None
         self.chain_factory: Optional[FACTORY] = None
@@ -114,12 +120,6 @@ class LangchainWrapper(BaseContext):
         if not self.opt_project:
             raise RuntimeError("project was not set")
         return self.opt_project
-
-    @property
-    def record_manager_db_url(self) -> str:
-        if not self.opt_record_manager_db_url:
-            raise RuntimeError("record_manager was not set")
-        return self.opt_record_manager_db_url
 
     def ensure_initialized(self):
         """
@@ -183,19 +183,7 @@ class LangchainWrapper(BaseContext):
             self.llm_factory = config.get("llm")
             self.chain_factory = config.get("chain", {})
 
-            self.opt_record_manager_db_url = parse_param_value(
-                config.get("record_manager", "sqlite:///record_manager_cache.sql")
-            )
-
-            sqlite_prefix = "sqlite:///"
-
-            if self.record_manager_db_url.startswith(sqlite_prefix):
-                sqlite_length = len(sqlite_prefix)
-                path = self.record_manager_db_url[sqlite_length:]
-                path = path if os.path.isabs(path) else os.path.join(os.getcwd(), path)
-                file_folder = Path(os.path.dirname(path))
-                os.makedirs(file_folder, exist_ok=True)
-
+            self.set_record_manager_factory(config.get("record_manager", "sqlite:///record_manager_cache.sql"))
             self.is_initialized = True
 
     @property
@@ -254,6 +242,65 @@ class LangchainWrapper(BaseContext):
             self, DefaultFactories.VECTORSTORE, vector_store, True
         )
 
+    def set_record_manager_factory(self, record_manager_config):
+        """
+        Process the record manager configuration
+
+        Args:
+            record_manager_config: dictionary or string for the record manager configuration
+
+        Returns:
+
+        """
+        self.console.verbose_print(f"Reading record manager from configuration file")
+        
+        if isinstance(record_manager_config, dict):
+            provider = record_manager_config.get("provider")
+            if provider == "mongodb":
+                mongodb_url = parse_param_value(record_manager_config.get("url"))
+                db_name = parse_param_value(record_manager_config.get("db_name"))
+                collection_name = parse_param_value(record_manager_config.get("collection_name", "documentMetadata"))
+                
+                if not mongodb_url or not db_name:
+                    raise ValueError("MongoDB configuration parameters are missing")
+                
+                factory = MongoDBRecordManagerFactory(
+                    mongodb_url=mongodb_url,
+                    db_name=db_name,
+                    collection_name=collection_name
+                ).build()
+                self.record_manager = factory
+
+            elif provider == "sqlite":
+                db_url = parse_param_value(record_manager_config.get("url"))
+                if not db_url:
+                    raise ValueError("SQLite configuration parameters are missing")
+
+                factory = SQLiteRecordManagerFactory(
+                    db_url=db_url
+                ).build()
+                self.record_manager = factory
+
+            else:
+                raise ValueError("The specified provider is not supported")
+        
+        else:
+            sqlite_prefix = "sqlite:///"
+            db_url = parse_param_value(record_manager_config or "sqlite:///record_manager_cache.sql")
+
+            if not db_url:
+                raise ValueError("Configuration parameters for SQLite are missing")
+
+            if db_url.startswith(sqlite_prefix):
+                sqlite_length = len(sqlite_prefix)
+                path = db_url[sqlite_length:]
+                path = path if os.path.isabs(path) else os.path.join(os.getcwd(), path)
+                file_folder = Path(os.path.dirname(path))
+                os.makedirs(file_folder, exist_ok=True)
+
+            factory = SQLiteRecordManagerFactory(db_url=db_url).build()
+            self.record_manager = factory
+
     def _list_datasets(self, dataset_id: Optional[str] = None) -> Iterable[Dataset]:
         """
         Getter for the dataset objects
@@ -273,7 +320,41 @@ class LangchainWrapper(BaseContext):
 
         return dataset_list
 
-    def index_documents(self, dataset_id: Optional[str] = None):
+    def apply_unitary_indexing(self, content_path: str):
+        """
+        Transform the dataset objects with content_path filter for unitary indexing
+        Args:
+            content_path: str, to index only this content_path
+
+        Returns:
+        """        
+        matched_data = None
+        for data in self._datasets_data:
+            source_match = data.get("source_match")
+            
+            if isinstance(source_match, str):
+                matches = re.search(source_match, content_path)
+            elif isinstance(source_match, list):
+                matches = any(re.search(pattern, content_path) for pattern in source_match)
+            else:
+                matches = False
+            
+            if matches:
+                if data["loader"]["provider"] != "sitemap":
+                    raise NotImplementedError("The functionality is only implemented for 'sitemap' provider")
+                matched_data = data
+                break
+        
+        if matched_data:
+            escaped_content_path = re.escape(content_path)
+            filter_url_pattern = f"^{escaped_content_path}$" # $ pour url exacte avec rien après sinon retirer pour les sous pages 
+            matched_data["loader"]["filter_urls"] = [filter_url_pattern]
+            matched_data["index"]["cleanup"] = "incremental"
+            self._datasets_data = matched_data
+        else:
+            raise ValueError("No match found for the given content path")
+
+    def index_documents(self, dataset_id: Optional[str] = None, content_path: Optional[str] = None):
         """
         Method to index documents to the vector store
         Args:
@@ -285,6 +366,9 @@ class LangchainWrapper(BaseContext):
         self.ensure_initialized()
 
         dataset_index_results = OrderedDict()
+
+        if content_path:
+            self.apply_unitary_indexing(content_path)
 
         # TODO: add lockfile
 
@@ -298,7 +382,7 @@ class LangchainWrapper(BaseContext):
                 continue
 
             index_dataset = LangchainWrapper.build_index_dataset(
-                dataset, self.project, self.record_manager_db_url
+                dataset, self.project, self.record_manager.build().create_record_manager
             )
 
             return_value = self.console.status(
@@ -627,18 +711,29 @@ class LangchainWrapper(BaseContext):
             self.console.print_table if for_print else self.console.verbose_print_table
         )
 
+        # Define the column headers for the table
+        column_headers = ["Index", "Content", "Metadata"]
+
         console_print_table(
             documents,
-            ["Index", "Content", "Metadata"],
-            lambda index, document: (
+            column_headers,
+            lambda index, doc_tuple: (
                 str(index),
-                document.page_content,
-                json.dumps(document.metadata, cls=MetadataEncoder),
+                (doc_tuple[0].page_content),
+                json.dumps(doc_tuple[0].metadata, cls=MetadataEncoder)
             ),
             title=query,
         )
 
-        return documents
+        documents_list = [
+            {
+                "content": document[0].page_content,
+                "metadata": json.loads(json.dumps(document[0].metadata, cls=MetadataEncoder)), # ObjectId de MongoDB n'est pas sérialisables donc dumps puis loads
+            }
+            for document in documents
+        ]
+
+        return documents_list
 
     def list_datasets(self):
         """
@@ -650,7 +745,7 @@ class LangchainWrapper(BaseContext):
         self.ensure_initialized()
 
         datasets = self._list_datasets()
-        Dataset.print_datasets(self.console, datasets, verbose_only=False)
+        return Dataset.print_datasets(self.console, datasets, verbose_only=False)
 
     def _delete_from_namespace(
         self, namespace: str, documents: List[Document], dataset_id: Optional[str]
@@ -667,8 +762,6 @@ class LangchainWrapper(BaseContext):
         """
 
         self.ensure_initialized()
-
-        from langchain.indexes import SQLRecordManager
 
         # TODO: add lockfile
         # TODO: get dataset from document schema
@@ -696,7 +789,7 @@ class LangchainWrapper(BaseContext):
         ]
 
         namespace = f"{self.project}/{dataset.name}"
-        record_manager = SQLRecordManager(namespace, db_url=self.record_manager_db_url)
+        record_manager = self.record_manager.build().create_record_manager(namespace)
 
         record_manager.create_schema()
 
@@ -772,7 +865,6 @@ class LangchainWrapper(BaseContext):
         self.ensure_initialized()
 
         dataset_index_results = OrderedDict()
-        from langchain.indexes import SQLRecordManager, index
 
         # TODO: add lockfile
 
@@ -782,9 +874,7 @@ class LangchainWrapper(BaseContext):
                 continue
 
             namespace = f"{self.project}/{dataset.name}"
-            record_manager = SQLRecordManager(
-                namespace, db_url=self.record_manager_db_url
-            )
+            record_manager = self.record_manager.build().create_record_manager(namespace)
 
             record_manager.create_schema()
 
@@ -909,20 +999,18 @@ class LangchainWrapper(BaseContext):
 
     @staticmethod
     def build_index_dataset(
-        dataset: Dataset, project: str, record_manager_db_url: str
+        dataset: Dataset, project: str, create_record_manager_fn: Callable[[str], RecordManager]
     ) -> Callable[[], Mapping[str, int]]:
         """Build the index_dataset method
 
         Args:
             dataset: the dataset
             project: name of the project
-            record_manager_db_url: url to store record_manager
+            create_record_manager_fn: function to create the record manager
 
         Returns:
             The index_dataset method
         """
-
-        from langchain.indexes import SQLRecordManager, index
 
         namespace = f"{project}/{dataset.name}"
 
@@ -951,7 +1039,7 @@ class LangchainWrapper(BaseContext):
                     "num_deleted": "-",
                 }
 
-            record_manager = SQLRecordManager(namespace, db_url=record_manager_db_url)
+            record_manager = create_record_manager_fn(namespace)
 
             record_manager.create_schema()
 
@@ -964,3 +1052,22 @@ class LangchainWrapper(BaseContext):
             )
 
         return index_dataset
+    
+    def unitaryDelete(self, filter_args: dict | None) -> bool:
+        self.ensure_initialized()
+        if filter_args is None:
+            self.console.print(f"Missing argument : filter_args")
+            return False
+
+        if hasattr(self.vector_store, 'find'):
+            ids_to_delete: List[str] = self.vector_store.find(filter_args) # type: ignore
+            self.console.print(f"{len(ids_to_delete)} docs to delete.")
+            result: bool = self.vector_store.delete(ids_to_delete)
+            if result:
+                self.console.print(f"Deletion is complete.")
+            else:
+                self.console.print(f"There has been no deletion.")
+            return result
+    
+        self.console.print(f"The find method is only implemented for MongoDB vectorstore.")
+        return False

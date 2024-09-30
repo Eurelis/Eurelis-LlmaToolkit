@@ -1,8 +1,7 @@
 from typing import TYPE_CHECKING
 
-from langchain.schema import BaseMemory
-
 from eurelis_llmatoolkit.utils.base_factory import ParamsDictFactory
+from langchain_core.memory import BaseMemory
 
 if TYPE_CHECKING:
     from eurelis_llmatoolkit.langchain.langchain_wrapper import BaseContext

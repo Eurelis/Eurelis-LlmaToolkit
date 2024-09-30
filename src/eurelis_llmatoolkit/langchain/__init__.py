@@ -15,6 +15,8 @@ class LangchainWrapperFactory(BaseFactory[LangchainWrapper]):
         self.verbose = False
         self.config_path = None
         self.base_dir = None
+        self.logger_config_path = None
+        self.logger_name = None
 
     def set_config_path(self, path: str):
         """
@@ -37,6 +39,27 @@ class LangchainWrapperFactory(BaseFactory[LangchainWrapper]):
 
         """
         self.verbose = verbose
+
+    def set_logger_config(self, logger_config_path: str|None, logger_name: str|None = None):
+        """
+        setter for the logger_config_path and logger_name properties
+        Args:
+            logger_config_path (str, None)
+
+        Returns:
+
+        """
+        self.logger_name = logger_name
+
+        if logger_config_path is None:
+            self.logger_config_path = None
+        elif os.path.exists(logger_config_path):
+            self.logger_config_path = logger_config_path
+        else:
+            raise ValueError(
+                f"Invalid logger_config_path parameter, expecting a valid path."
+            )
+
 
     def set_base_dir(self, base_dir: str):
         """
@@ -113,6 +136,7 @@ class LangchainWrapperFactory(BaseFactory[LangchainWrapper]):
 
         output_factory = OutputFactory()
         output_factory.set_verbose(self.verbose)
+        output_factory.set_logger_config(self.logger_config_path, self.logger_name)
         output = output_factory.build(context)
 
         final_path = LangchainWrapperFactory.get_config_final_path(

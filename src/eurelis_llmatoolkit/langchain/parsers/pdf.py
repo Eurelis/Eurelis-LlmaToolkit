@@ -1,11 +1,9 @@
 import os
 from typing import Iterator, TYPE_CHECKING
 
-from langchain_community.document_loaders import Blob
-from langchain.document_loaders.base import BaseBlobParser
-from langchain.schema import Document
-
 from eurelis_llmatoolkit.utils.base_factory import ParamsDictFactory
+from langchain_core.document_loaders import BaseBlobParser, Blob
+from langchain_core.documents import Document
 
 if TYPE_CHECKING:
     from eurelis_llmatoolkit.langchain.langchain_wrapper import BaseContext

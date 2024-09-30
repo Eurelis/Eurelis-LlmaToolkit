@@ -1,3 +1,5 @@
+import json
+import os
 from typing import TYPE_CHECKING, cast
 
 import click
@@ -34,10 +36,19 @@ def cli(ctx, **kwargs):
 
             factory = LangchainWrapperFactory()
 
-            if "verbose" in kwargs and kwargs.get("verbose"):
-                factory.set_verbose(Verbosity.CONSOLE_DEBUG)
+            verbose = kwargs.get("verbose") if "verbose" in kwargs else False
+            logger_log = os.getenv('LANGCHAIN_LOG', 'False').lower() == 'true'
+
+            if verbose and logger_log:
+                verbosity_level = Verbosity.LOG_DEBUG
+            elif verbose:
+                verbosity_level = Verbosity.CONSOLE_DEBUG
+            elif logger_log:
+                verbosity_level = Verbosity.LOG_INFO
             else:
-                factory.set_verbose(Verbosity.CONSOLE_INFO)
+                verbosity_level = Verbosity.CONSOLE_INFO
+
+            factory.set_verbose(verbosity_level)
 
             if "config" in kwargs and kwargs["config"]:
                 factory.set_config_path(kwargs["config"])
@@ -55,6 +66,7 @@ def cli(ctx, **kwargs):
 
 @cli.group()
 @click.option("--id", default=None, help="Dataset ID")
+@click.option("--content", default=None, help="Content path")
 @click.pass_context
 def dataset(ctx, **kwargs):
     """
@@ -66,9 +78,12 @@ def dataset(ctx, **kwargs):
 
     """
     dataset_id = kwargs["id"] if "id" in kwargs else None
+    content_path = kwargs["content"] if "content" in kwargs else None
     wrapper = ctx.obj["singleton"]()
+    
     ctx.obj["wrapper"] = wrapper
     ctx.obj["dataset_id"] = dataset_id
+    ctx.obj["content_path"] = content_path
 
 
 @dataset.command("index")
@@ -84,8 +99,8 @@ def dataset_index(ctx, **kwargs):
 
     """
     wrapper = ctx.obj["wrapper"]
-    wrapper.index_documents(ctx.obj["dataset_id"])
 
+    wrapper.index_documents(ctx.obj["dataset_id"], ctx.obj["content_path"])
 
 @dataset.command("metadata")
 @click.pass_context
@@ -182,6 +197,38 @@ def delete(ctx, filters, **kwargs):
         filter_args = None
 
     wrapper.delete(filter_args, dataset_id)
+
+@cli.command()
+@click.option("filters", "--filter", multiple=True, type=str)
+@click.pass_context
+def unitarydelete(ctx, filters, **kwargs):
+    """
+    Delete the contents of a database using a query
+    Args:
+        ctx: click context
+        filters : filters to be applied to the query
+        **kwargs: options
+
+    Returns:
+
+    """
+    wrapper = ctx.obj["singleton"]()
+
+    filter_args = {}
+
+    for filter_arg in filters:
+        if not filter_arg:
+            continue
+        filter_split = filter_arg.split(":")
+        filter_key = filter_split[0]
+        filter_value = ":".join(filter_split[1:])
+
+        filter_args[filter_key] = filter_value
+
+    if not filter_args:  # if empty dict we consider a None value
+        filter_args = None
+
+    wrapper.unitaryDelete(filter_args)
 
 
 @cli.command()
