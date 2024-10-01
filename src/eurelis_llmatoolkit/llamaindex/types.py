@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING, Callable, Mapping, Sequence, TypeAlias, Union
 
-# TODO : Faire 2 fichiers ? Un dans langchain et un dans llamaindex ?
-# FIXME: Move to eurelis_llmatoolkit.langchain.types
+# TODO : Faire valider types dans llamaindex
+
 if TYPE_CHECKING:
-    from langchain.schema import Document
-    from langchain.schema.embeddings import Embeddings
+    from llama_index.core import Document
+    from llama_index.core.base.embeddings.base import BaseEmbedding
 
 JSON: TypeAlias = Union[Mapping[str, "JSON"], list["JSON"], str, int, float, bool, None]
 PARAMS: TypeAlias = Mapping[str, "JSON"]
@@ -14,5 +14,5 @@ CLASS: TypeAlias = Union[str, PARAMS]
 EMBEDDING: TypeAlias = Sequence[float]
 
 DOCUMENT_MEAN_EMBEDDING: TypeAlias = Union[
-    str, Callable[["Embeddings", Sequence["Document"]], EMBEDDING]
+    str, Callable[["BaseEmbedding", Sequence["Document"]], EMBEDDING]
 ]
