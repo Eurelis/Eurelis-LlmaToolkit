@@ -1,7 +1,9 @@
 from factories.reader_factory import ReaderFactory
 from factories.transformation_factory import TransformationFactory
 from factories.embedding_factory import EmbeddingFactory
+from factories.vectorstore_factory import VectorStoreFactory
 
+from llama_index.core import StorageContext, VectorStoreIndex
 from llama_index.core.ingestion import IngestionPipeline
 
 
@@ -52,3 +54,15 @@ class IndexationWrapper:
         for node in nodes:
             embedding = embed_model.get_text_embedding(node.get_text())
             node.embedding = embedding
+
+        # Vector Store
+        vectorstore_config = self.config["vectorstore"]
+        vector_store = VectorStoreFactory.create_vector_store(vectorstore_config)
+
+        # # Stockage des embeddings et indexation
+        # storage_context = StorageContext.from_defaults(vector_store=vector_store)
+        # index = VectorStoreIndex.from_documents(
+        #     nodes, storage_context=storage_context, show_progress=True
+        # )
+
+        # return index
