@@ -1,10 +1,14 @@
 from llama_index.core import StorageContext, VectorStoreIndex
 from llama_index.core.ingestion import IngestionPipeline
 
-from .factories.embedding_factory import EmbeddingFactory
-from .factories.reader_factory import ReaderFactory
-from .factories.transformation_factory import TransformationFactory
-from .factories.vectorstore_factory import VectorStoreFactory
+from eurelis_llmatoolkit.llamaindex.factories.embedding_factory import EmbeddingFactory
+from eurelis_llmatoolkit.llamaindex.factories.reader_factory import ReaderFactory
+from eurelis_llmatoolkit.llamaindex.factories.transformation_factory import (
+    TransformationFactory,
+)
+from eurelis_llmatoolkit.llamaindex.factories.vectorstore_factory import (
+    VectorStoreFactory,
+)
 
 
 class IndexationWrapper:
