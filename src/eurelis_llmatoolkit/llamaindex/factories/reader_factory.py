@@ -4,7 +4,7 @@ from readers.simple_webpage_reader_adapter import SimpleWebPageReaderAdapter
 
 class ReaderFactory:
     @staticmethod
-    def create_reader(config):
+    def create_reader(config: dict):
         provider = config["provider"]
         if provider == "SitemapReader":
             return SitemapReaderAdapter(config)
