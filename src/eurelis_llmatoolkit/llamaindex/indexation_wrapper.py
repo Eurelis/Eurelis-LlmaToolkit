@@ -1,5 +1,6 @@
 from factories.reader_factory import ReaderFactory
 from factories.transformation_factory import TransformationFactory
+from factories.embedding_factory import EmbeddingFactory
 
 from llama_index.core.ingestion import IngestionPipeline
 
@@ -33,9 +34,6 @@ class IndexationWrapper:
         load_data_params = reader.get_load_data_params(dataset_config)
         documents = reader.load_data(**load_data_params)
 
-        print("### Docs : ")
-        print(documents)
-
         # Charger les transformations
         transformations = [
             TransformationFactory.create_transformation(t_config)
@@ -44,6 +42,13 @@ class IndexationWrapper:
 
         # Créer le pipeline d'ingestion
         pipeline = IngestionPipeline(transformations=transformations)
-        print("#### pipeline")
-        print(pipeline)
-        # nodes = pipeline.run(documents=documents)
+        nodes = pipeline.run(documents=documents)
+
+        # Embedding
+        embed_config = self.config["embeddings"]
+        embed_model = EmbeddingFactory.create_embedding(embed_config)
+
+        # TODO : Vérifier si bonne facon de faire
+        for node in nodes:
+            embedding = embed_model.get_text_embedding(node.get_text())
+            node.embedding = embedding
