@@ -36,7 +36,7 @@ langchain = [
     "sentry-sdk==2.13.0",
 ]
 llamaindex = [
-    "llmaindex==0.11.14",
+    "llma-index==0.11.14",
     "llama-index-readers-web==0.2.3"
 ]
 huggingface = [
