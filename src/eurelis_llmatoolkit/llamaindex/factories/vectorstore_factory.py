@@ -12,12 +12,12 @@ class VectorStoreFactory:
         if provider == "MongoDB":
             client = pymongo.MongoClient(config["url"])
 
-            # TODO : Bug
-            # TODO : ValueError: Must specify MONGODB_URI via env variable if not directly passing in client.
+            # FIXME : ValueError: Must specify MONGODB_URI via env variable if not directly passing in client.
             return MongoDBAtlasVectorSearch(
-                client=client,
+                client,
                 db_name=config["db_name"],
                 collection_name=config["collection_name"],
+                vector_index_name=config["vector_index_name"],
             )
 
         if provider == "Chroma":
