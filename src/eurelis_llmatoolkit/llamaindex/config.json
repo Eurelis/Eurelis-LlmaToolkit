@@ -30,10 +30,16 @@
         "model": "text-embedding-3-small",
         "openai_api_key": "${OPENAI_API_KEY}"
     },
-    "vectorstore": {
+    "_vectorstore": {
         "provider": "MongoDB",
         "url": "mongodb+srv://${EURELIS_MONGO_USER}:${EURELIS_MONGO_PASSWORD}@cluster0.qope0gt.mongodb.net/?retryWrites=true&w=majority",
         "collection_name": "XXX",
         "db_name": "XXX"
+    },
+    "vectorstore": {
+        "provider": "Chroma",
+        "mode": "persistent",
+        "path": "../etc/chroma.db",
+        "collection_name": "XXX"
     }
 }

@@ -1,10 +1,12 @@
 import pymongo
+import chromadb
 from llama_index.vector_stores.mongodb import MongoDBAtlasVectorSearch
+from llama_index.vector_stores.chroma import ChromaVectorStore
 
 
 class VectorStoreFactory:
     @staticmethod
-    def create_vector_store(config):
+    def create_vector_store(config: dict):
         provider = config["provider"]
 
         if provider == "MongoDB":
@@ -17,5 +19,21 @@ class VectorStoreFactory:
                 db_name=config["db_name"],
                 collection_name=config["collection_name"],
             )
+
+        if provider == "Chroma":
+            mode = config.get("mode", "ephemeral")
+
+            if mode == "ephemeral":
+                client = chromadb.Client()
+            elif mode == "persistent":
+                client = chromadb.PersistentClient(config["path"])
+
+            # check if the collection exists
+            if config["collection_name"] in [c.name for c in client.list_collections()]:
+                collection = client.get_collection(config["collection_name"])
+            else:
+                collection = client.create_collection(config["collection_name"])
+
+            return ChromaVectorStore(client=client, chroma_collection=collection)
 
         raise ValueError(f"Vector store provider {provider} non supporté.")
