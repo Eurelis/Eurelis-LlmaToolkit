@@ -1,5 +1,5 @@
-from readers.sitemap_reader_adapter import SitemapReaderAdapter
-from readers.simple_webpage_reader_adapter import SimpleWebPageReaderAdapter
+from ..readers.sitemap_reader_adapter import SitemapReaderAdapter
+from ..readers.simple_webpage_reader_adapter import SimpleWebPageReaderAdapter
 
 
 class ReaderFactory:
