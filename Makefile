@@ -62,6 +62,15 @@ package-upload: package-build
 #
 # Cleaning
 #
-clean:
+clean-src:
 	@echo "***** $@"
 	@source .venv/bin/activate && black src && mypy src
+
+#
+# Testing
+#
+run-tests:
+	@echo "***** $@"
+	@source .venv/bin/activate
+	cd src
+	${PYTHON} -m pytest -p no:warnings
