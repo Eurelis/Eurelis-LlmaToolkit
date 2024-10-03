@@ -50,7 +50,7 @@ solr = [
     "eurelis-langchain-solr-vectorstore==0.0.3"
 ]
 chroma = [
-    "chromadb==0.4.13"
+    "chromadb==0.4.13",
     "llama-index-vector-stores-chroma==0.2.0"
 ]
 sitemap = [
