@@ -51,6 +51,7 @@ solr = [
 ]
 chroma = [
     "chromadb==0.4.13"
+    "llama-index-vector-stores-chroma==0.2.0"
 ]
 sitemap = [
     "lxml==4.9.3",
