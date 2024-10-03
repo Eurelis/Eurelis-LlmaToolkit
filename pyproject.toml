@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eurelis-llmatoolkit"
-version = "1.1.0rc2"
+version = "2.0.0dev1"
 authors = [
   { name="Vincent LAMBERT", email="v.lambert@eurelis.com" },
   { name="Jérôme DIAZ", email="j.diaz@eurelis.com" },
   { name="Nicolas LOISY", email="n.loisy@eurelis.com " }
 ]
-description = "Framework to build and manage IA based applications. Based on Langchain under the hood."
+description = "Framework to build and manage IA based applications. Based on Langchain and LlamaIndex under the hood."
 readme = "README.md"
 requires-python = ">=3.11"
 classifiers = [
@@ -19,6 +19,10 @@ classifiers = [
 ]
 dependencies = [
     "python-dotenv==1.0.0",
+]
+
+[project.optional-dependencies]
+langchain = [
     "langchain==0.2.2",
     "langchain-community==0.2.2",
     "langchain-core>=0.2.0,<0.3.0",
@@ -31,8 +35,10 @@ dependencies = [
     "numpy==1.26.0",
     "sentry-sdk==2.13.0",
 ]
-
-[project.optional-dependencies]
+llamaindex = [
+    "llmaindex==0.11.14",
+    "llama-index-readers-web==0.2.3"
+]
 huggingface = [
     "sentence_transformers==2.2.2",
     "transformers==4.34.1"
@@ -58,7 +64,8 @@ pdf = [
     "cryptography==41.0.7"
 ]
 mongodb = [
-    "pymongo==4.6.1"
+    "pymongo==4.6.1",
+    "llama-index-vector-stores-mongodb==0.3.2"
 ]
 markdown = [
     "markdown==3.5.1"
@@ -69,6 +76,9 @@ selfcheck = [
 ]
 fastapi = [
     "fastapi==0.109.1"
+]
+test = [
+    "pytest==8.3.3",
 ]
 
 [project.urls]
