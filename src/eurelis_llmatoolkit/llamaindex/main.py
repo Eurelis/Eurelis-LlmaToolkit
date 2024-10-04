@@ -1,10 +1,9 @@
-from .config import ConfigLoader
-from .indexation_wrapper import IndexationWrapper
+from .config_loader import ConfigLoader
+from .ingestion_wrapper import IngestionWrapper
 
 # Pour les tests
 if __name__ == "__main__":
 
     config = ConfigLoader.load_config("./eurelis_llmatoolkit/llamaindex/config.json")
-    indexation_wrapper = IndexationWrapper(config)
-    # indexation_wrapper.run_test()
-    indexation_wrapper.run_indexation()
+    ingestion_wrapper = IngestionWrapper(config)
+    ingestion_wrapper.run()
