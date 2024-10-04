@@ -4,13 +4,13 @@
         {
             "id": "sitemap",
             "reader": {
-                "_provider": "SitemapReader",
-                "provider": "SimpleWebPageReader",
-                "sitemap_url": "https://www.eurelis.com/post-sitemap.xml",
-                "_urls": [
+                "provider": "AdvancedSitemapReader",
+                "_provider": "SimpleWebPageReader",
+                "sitemap_url": "https://www.eurelis.com/sitemap.xml",
+                "urls": [
                     "https://www.eurelis.com/blog/potentiel-amplifie-par-ia-opportunites-du-couplage-entre-les-llm-et-les-bdd-vectorielles/"
                 ],
-                "urls": [
+                "_urls": [
                     "https://fr.wikipedia.org/wiki/Alan_Turing"
                 ],
                 "html_to_text": true,

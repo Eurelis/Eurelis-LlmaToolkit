@@ -1,2 +1,4 @@
+from .reader_adapter import ReaderAdapter
 from .sitemap_reader_adapter import SitemapReaderAdapter
+from .advanced_sitemap_reader_adapter import AdvancedSitemapReader
 from .simple_webpage_reader_adapter import SimpleWebPageReaderAdapter

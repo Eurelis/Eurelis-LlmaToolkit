@@ -1,8 +1,9 @@
+from .reader_adapter import ReaderAdapter
 from llama_index.readers.web import SitemapReader
 
 
 # TODO: Pour plus de clareté créer une classe abstraite ReaderAdapter
-class SitemapReaderAdapter:
+class SitemapReaderAdapter(ReaderAdapter):
     def __init__(self, config):
         self.reader = SitemapReader(
             html_to_text=config.get("html_to_text", True),

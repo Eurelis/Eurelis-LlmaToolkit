@@ -1,8 +1,9 @@
+from .reader_adapter import ReaderAdapter
 from llama_index.readers.web import SimpleWebPageReader
 
 
 # TODO: Pour plus de clareté créer une classe abstraite ReaderAdapter
-class SimpleWebPageReaderAdapter:
+class SimpleWebPageReaderAdapter(ReaderAdapter):
     def __init__(self, config):
         self.reader = SimpleWebPageReader(
             html_to_text=config.get("html_to_text", True),
