@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable, Optional
 
 from llama_index.core import Settings, VectorStoreIndex
 from llama_index.core.ingestion import IngestionPipeline
@@ -25,8 +25,8 @@ class IngestionWrapper:
         self._vector_store: "BasePydanticVectorStore" = None
         self._document_store = None
 
-    def run(self):
-        indexes = self._process_datasets()
+    def run(self, dataset_id: Optional[str]):
+        indexes = self._process_datasets(dataset_id)
         return indexes
 
     def _get_vector_store(self):
@@ -53,9 +53,30 @@ class IngestionWrapper:
         # Create your index
         return VectorStoreIndex.from_vector_store(self._get_vector_store())
 
-    def _process_datasets(self):
+    def _list_datasets(self, dataset_id: Optional[str] = None) -> Iterable[dict]:
+        """
+        Getter for the dataset objects
+        Args:
+            dataset_id: optional, if given we will return only the named dataset
+
+        Returns:
+            list of dataset
+        """
+        datasets = self._config.get("dataset", [])
+
+        if not dataset_id:
+            return datasets
+
+        filtered_datasets = [
+            dataset for dataset in datasets if dataset.get("id") == dataset_id
+        ]
+
+        return filtered_datasets
+
+    def _process_datasets(self, dataset_id: Optional[str] = None):
         # On boucle sur chaque dataset dans la configuration
-        for dataset_config in self._config["dataset"]:
+
+        for dataset_config in self._list_datasets(dataset_id):
             self._ingest_dataset(dataset_config)
 
     def _ingest_dataset(self, dataset_config: dict):

@@ -45,10 +45,10 @@ def dataset(ctx: click.Context, id: str):
 @click.pass_context
 def dataset_ingest(ctx: click.Context):
     """Launch ingestion"""
-    id = ctx.obj["dataset_id"]
+    dataset_id = ctx.obj["dataset_id"]
 
     wrapper: IngestionWrapper = ctx.obj["wrapper"]
-    wrapper.run()
+    wrapper.run(dataset_id)
     click.echo(f"End of ingestion !")
 
 
