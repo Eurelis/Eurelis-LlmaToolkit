@@ -14,7 +14,8 @@
                     "https://fr.wikipedia.org/wiki/Alan_Turing"
                 ],
                 "html_to_text": true,
-                "limit": 1
+                "limit": 1,
+                "embed_pdf": true
             },
             "transformations": [
                 {
