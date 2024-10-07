@@ -17,6 +17,7 @@ class AdvancedSitemapReader(SitemapReaderAdapter):
     def __init__(self, config):
         super().__init__(config)
         self.config = config
+        self.headers = {"User-Agent": config.get("user_agent", "EurelisLLMATK/0.1")}
 
     def load_data(self, sitemap_url: str) -> list:
         """Charge les données d'un sitemap
@@ -137,7 +138,7 @@ class AdvancedSitemapReader(SitemapReaderAdapter):
         Returns:
             str: Contenu de la page
         """
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=10, headers=self.headers)
         if response.status_code == 200:
             return response.content
         print(f"Erreur lors de la récupération de {url}: {response.status_code}")

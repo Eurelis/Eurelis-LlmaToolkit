@@ -15,7 +15,8 @@
                 ],
                 "html_to_text": true,
                 "limit": 1,
-                "embed_pdf": true
+                "embed_pdf": true,
+                "user_agent": "EurelisLLMATK/0.1"
             },
             "transformations": [
                 {
