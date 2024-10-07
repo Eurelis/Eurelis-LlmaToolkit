@@ -1,4 +1,5 @@
 import click
+
 from eurelis_llmatoolkit.llamaindex.config_loader import ConfigLoader
 from eurelis_llmatoolkit.llamaindex.ingestion_wrapper import IngestionWrapper
 
@@ -7,7 +8,7 @@ from eurelis_llmatoolkit.llamaindex.ingestion_wrapper import IngestionWrapper
 @click.option(
     "-config",
     type=click.Path(exists=True),
-    default=None,
+    required=True,
     help="Path to the configuration file.",
 )
 @click.pass_context
@@ -19,12 +20,8 @@ def cli(ctx: click.Context, config: str):
         ctx: Click context
         config: Path to the configuration file
     """
-    if config:
-        config_dict = ConfigLoader.load_config(config)
-        ctx.obj["wrapper"] = IngestionWrapper(config_dict)
-    else:
-        click.echo("Configuration file is required.")
-        ctx.exit(1)
+    config_dict = ConfigLoader.load_config(config)
+    ctx.obj["wrapper"] = IngestionWrapper(config_dict)
 
 
 @click.group()
@@ -57,5 +54,3 @@ cli.add_command(dataset)
 
 if __name__ == "__main__":
     cli(obj={})
-
-# python -m eurelis_llmatoolkit.llamaindex.console -config="eurelis_llmatoolkit/llamaindex/config.json" dataset --id="2" ingest
