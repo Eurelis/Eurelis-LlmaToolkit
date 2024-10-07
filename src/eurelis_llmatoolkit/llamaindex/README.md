@@ -9,3 +9,6 @@ pip install llama-index-vector-stores-chroma
 pip install llama-index-storage-docstore-mongodb
 pip install pymongo motor 
 <!-- avec mongo -->
+
+
+pip install click
