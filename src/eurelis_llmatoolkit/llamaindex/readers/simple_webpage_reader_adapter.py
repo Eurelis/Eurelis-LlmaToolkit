@@ -1,8 +1,7 @@
-from .reader_adapter import ReaderAdapter
+from eurelis_llmatoolkit.llamaindex.readers.reader_adapter import ReaderAdapter
 from llama_index.readers.web import SimpleWebPageReader
 
 
-# TODO: Pour plus de clareté créer une classe abstraite ReaderAdapter
 class SimpleWebPageReaderAdapter(ReaderAdapter):
     def __init__(self, config):
         self.reader = SimpleWebPageReader(

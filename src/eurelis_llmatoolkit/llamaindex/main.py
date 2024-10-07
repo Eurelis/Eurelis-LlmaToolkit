@@ -1,5 +1,6 @@
-from .config_loader import ConfigLoader
-from .ingestion_wrapper import IngestionWrapper
+from eurelis_llmatoolkit.llamaindex.config_loader import ConfigLoader
+from eurelis_llmatoolkit.llamaindex.ingestion_wrapper import IngestionWrapper
+
 
 # Pour les tests
 if __name__ == "__main__":

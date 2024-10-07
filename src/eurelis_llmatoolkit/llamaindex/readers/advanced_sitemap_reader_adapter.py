@@ -1,6 +1,8 @@
 import requests
 import xml.etree.ElementTree as ET
-from .sitemap_reader_adapter import SitemapReaderAdapter
+from eurelis_llmatoolkit.llamaindex.readers.sitemap_reader_adapter import (
+    SitemapReaderAdapter,
+)
 
 
 class AdvancedSitemapReader(SitemapReaderAdapter):
