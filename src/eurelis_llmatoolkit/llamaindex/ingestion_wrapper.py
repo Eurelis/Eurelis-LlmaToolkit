@@ -25,7 +25,7 @@ class IngestionWrapper:
         self._vector_store: "BasePydanticVectorStore" = None
         self._document_store = None
 
-    def run(self, dataset_id: Optional[str]):
+    def run(self, dataset_id: Optional[str] = None):
         indexes = self._process_datasets(dataset_id)
         return indexes
 
