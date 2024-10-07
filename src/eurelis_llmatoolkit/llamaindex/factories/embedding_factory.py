@@ -3,7 +3,7 @@ from llama_index.embeddings.openai import OpenAIEmbedding
 
 class EmbeddingFactory:
     @staticmethod
-    def create_embedding(config):
+    def create_embedding(config: dict):
         provider = config["provider"]
 
         if provider == "OpenAI":

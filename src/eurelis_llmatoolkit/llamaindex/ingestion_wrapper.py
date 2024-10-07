@@ -1,8 +1,11 @@
 from typing import TYPE_CHECKING
 
-from llama_index.core import Settings, StorageContext, VectorStoreIndex
+from llama_index.core import Settings, VectorStoreIndex
 from llama_index.core.ingestion import IngestionPipeline
 
+from eurelis_llmatoolkit.llamaindex.factories.documentstore_factory import (
+    DocumentStoreFactory,
+)
 from eurelis_llmatoolkit.llamaindex.factories.embedding_factory import EmbeddingFactory
 from eurelis_llmatoolkit.llamaindex.factories.reader_factory import ReaderFactory
 from eurelis_llmatoolkit.llamaindex.factories.transformation_factory import (
@@ -20,6 +23,7 @@ class IngestionWrapper:
     def __init__(self, config: dict):
         self._config: dict = config
         self._vector_store: "BasePydanticVectorStore" = None
+        self._document_store = None
 
     def run(self):
         indexes = self._process_datasets()
@@ -32,6 +36,18 @@ class IngestionWrapper:
         vectorstore_config = self._config["vectorstore"]
         self._vector_store = VectorStoreFactory.create_vector_store(vectorstore_config)
         return self._vector_store
+
+    def _get_document_store(self):
+        if self._document_store is not None:
+            return self._document_store
+
+        documentstore_config = self._config.get("documentstore")
+        if documentstore_config:
+            self._document_store = DocumentStoreFactory.create_document_store(
+                documentstore_config
+            )
+
+        return self._document_store
 
     def get_vector_store_index(self):
         # Create your index
@@ -79,11 +95,19 @@ class IngestionWrapper:
         transformations.append(embedding_model)
 
         #
+        # DOCUMENT STORE
+        #
+        # Optionnellement, définir un document store pour gérer les documents
+        document_store = self._get_document_store()
+
+        #
         # INGESTION PIPELINE
         #
         # Créer le pipeline d'ingestion
         pipeline = IngestionPipeline(
-            transformations=transformations, vector_store=vector_store
+            transformations=transformations,
+            vector_store=vector_store,
+            docstore=document_store,
         )
         # TODO: définir le show_progress via une variable d'environnement
         pipeline.run(documents=documents, show_progress=True)
