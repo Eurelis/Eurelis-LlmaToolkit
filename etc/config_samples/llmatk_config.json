@@ -27,7 +27,7 @@
             ],
             "acronyms": {
                 "provider": "JSONFileAcronymTransformer",
-                "path": "../etc/config_sample/acronyms.json"
+                "path": "../etc/config_samples/acronyms.json"
             }
         }
     ],

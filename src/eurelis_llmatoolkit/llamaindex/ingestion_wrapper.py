@@ -102,6 +102,14 @@ class IngestionWrapper:
         ]
 
         #
+        # ACRONYMS
+        #
+        # Ajouter le traitement des acronymes en premier
+        transformations.insert(
+            0, TransformationFactory.create_transformation(dataset_config["acronyms"])
+        )
+
+        #
         # VECTOR STORE
         #
         # Récupérer le vector store
