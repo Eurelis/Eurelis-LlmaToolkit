@@ -8,15 +8,12 @@ from bs4 import BeautifulSoup
 from llama_index.core.schema import Document
 from pypdf import PdfReader
 
-from eurelis_llmatoolkit.llamaindex.readers.sitemap_reader_adapter import (
-    SitemapReaderAdapter,
-)
+from eurelis_llmatoolkit.llamaindex.readers.reader_adapter import ReaderAdapter
 
 
-class AdvancedSitemapReader(SitemapReaderAdapter):
+class AdvancedSitemapReader(ReaderAdapter):
     def __init__(self, config):
         super().__init__(config)
-        self.config = config
         self.headers = {"User-Agent": config.get("user_agent", "EurelisLLMATK/0.1")}
 
     def load_data(self, sitemap_url: str) -> list:
@@ -91,7 +88,12 @@ class AdvancedSitemapReader(SitemapReaderAdapter):
             if self.config.get("include_pdfs", False):
                 page_text += self._process_pdfs(page, url)
 
-            return Document(text=page_text, extra_info={"Source": str(url)})
+            if self.config.get("html_to_text", True):
+                import html2text
+
+                page_text = html2text.html2text(page_text)
+
+            return Document(text=page_text, extra_info={"Source": str(url)}, doc_id=url)
 
         except Exception as e:
             print(f"Erreur lors de la récupération de {url}: {e}")
