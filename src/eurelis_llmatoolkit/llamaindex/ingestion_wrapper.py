@@ -53,14 +53,16 @@ class IngestionWrapper:
         # Create your index
         return VectorStoreIndex.from_vector_store(self._get_vector_store())
 
-    def _list_datasets(self, dataset_id: Optional[str] = None) -> Iterable[dict]:
+    def _filter_datasets(self, dataset_id: Optional[str] = None) -> Iterable[dict]:
         """
-        Getter for the dataset objects
+        Retrieve all datasets or filter by dataset ID if provided.
+
         Args:
-            dataset_id: optional, if given we will return only the named dataset
+            dataset_id: Optional, if provided, only returns datasets that match the given ID.
 
         Returns:
-            list of dataset
+            A list of all datasets if no dataset_id is provided, otherwise a list of datasets
+            filtered by the dataset_id.
         """
         datasets = self._config.get("dataset", [])
 
@@ -76,7 +78,7 @@ class IngestionWrapper:
     def _process_datasets(self, dataset_id: Optional[str] = None):
         # On boucle sur chaque dataset dans la configuration
 
-        for dataset_config in self._list_datasets(dataset_id):
+        for dataset_config in self._filter_datasets(dataset_id):
             self._ingest_dataset(dataset_config)
 
     def _ingest_dataset(self, dataset_config: dict):
