@@ -12,19 +12,23 @@ from eurelis_llmatoolkit.llamaindex.readers.reader_adapter import ReaderAdapter
 
 
 class AdvancedSitemapReader(ReaderAdapter):
+    required_params = ["sitemap_url"]  # Liste des paramètres requis
+
     def __init__(self, config):
         super().__init__(config)
         self.headers = {"User-Agent": config.get("user_agent", "EurelisLLMATK/0.1")}
 
-    def load_data(self, sitemap_url: str) -> list:
+    def load_data(self) -> list:
         """Charge les données d'un sitemap
 
         Args:
-            sitemap_url (str): URL du sitemap
 
         Returns:
             list: Liste des données du sitemap
         """
+        load_params = self._get_load_data_params()
+        sitemap_url = load_params["sitemap_url"]
+
         sitemap_content = self._fetch_url(sitemap_url)
         root = ET.fromstring(sitemap_content)
 

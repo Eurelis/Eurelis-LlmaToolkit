@@ -87,10 +87,7 @@ class IngestionWrapper:
         #
         # Charger le reader pour extraire les données
         reader_adapter = ReaderFactory.create_reader(dataset_config["reader"])
-
-        # Obtenir les paramètres de chargement depuis le reader
-        load_data_params = reader_adapter.get_load_data_params(dataset_config)
-        documents = reader_adapter.load_data(**load_data_params)
+        documents = reader_adapter.load_data()
 
         #
         # NODE PARSER
