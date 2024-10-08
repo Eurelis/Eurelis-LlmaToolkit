@@ -1,0 +1,21 @@
+{
+    "default": {
+        "MMA": "Methyl Methacrylate adhesive",
+        "GRP": "Glass Reinforced Plastic",
+        "C&C": "Consumer & Construction (Division of Bostik)",
+        "PVC": "Polyvinyl Chloride",
+        "PSA": "Pressure Sensitive Adhesive",
+        "REACH": "Registration, Evaluation, Authorization, and Restriction of Chemicals",
+        "RoHS": "Restriction of Hazardous Substances",
+        "CoCs": "Certificates of Compliance",
+        "MSDS": "Material Safety Data Sheet",
+        "ABS": "Acrylonitrile Butadiene Styrene",
+        "EVA": "Ethylene-Vinyl Acetate",
+        "RFQ": "Request for Quotation",
+        "EPS": "Expanded Polystyrene",
+        "PCB": "Printed Circuit Board",
+        "PU": "Polyurethane",
+        "SDS": "Safety Data Sheets",
+        "TDS": "Technical Data Sheet"
+    }
+}

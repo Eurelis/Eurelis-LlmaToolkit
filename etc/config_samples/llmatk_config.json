@@ -24,7 +24,11 @@
                     "chunk_size": 768,
                     "chunk_overlap": 56
                 }
-            ]
+            ],
+            "acronyms": {
+                "provider": "JSONFileAcronymTransformer",
+                "path": "../etc/config_sample/acronyms.json"
+            }
         }
     ],
     "embeddings": {
