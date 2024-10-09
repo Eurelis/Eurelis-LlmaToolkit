@@ -77,7 +77,7 @@ def dataset_cache(ctx: click.Context):
             click.echo(f"Dataset configuration missing 'id': {dataset_config}")
             continue
 
-        documents = wrapper._get_documents(dataset_config, use_cache=True)
+        documents = wrapper._get_documents(dataset_config, use_cache=False)
 
         # Générer le cache
         wrapper._generate_cache(dataset_id, documents)
