@@ -1,4 +1,6 @@
 import io
+import logging
+import re
 import xml.etree.ElementTree as ET
 from typing import Optional
 
@@ -18,7 +20,7 @@ class AdvancedSitemapReader(ReaderAdapter):
         super().__init__(config)
         self.headers = {"User-Agent": config.get("user_agent", "EurelisLLMATK/0.1")}
 
-    def load_data(self) -> list:
+    def load_data(self, url: Optional[str] = None) -> list:
         """Charge les données d'un sitemap
 
         Args:
@@ -26,10 +28,11 @@ class AdvancedSitemapReader(ReaderAdapter):
         Returns:
             list: Liste des données du sitemap
         """
-        load_params = self._get_load_data_params()
-        sitemap_url = load_params["sitemap_url"]
+        if url is None:
+            load_params = self._get_load_data_params()
+            url = load_params["sitemap_url"]
 
-        sitemap_content = self._fetch_url(sitemap_url)
+        sitemap_content = self._fetch_url(url)
         root = ET.fromstring(sitemap_content)
 
         # on vérifie si le sitemap est un sitemap index ou un sitemap
@@ -37,7 +40,7 @@ class AdvancedSitemapReader(ReaderAdapter):
             return self._process_sitemap_index(root)
         if root.tag.endswith("urlset"):
             return self._process_urlset(root)
-        raise ValueError(f"Format de sitemap non supporté pour l'URL: {sitemap_url}")
+        raise ValueError(f"Format de sitemap non supporté pour l'URL: {url}")
 
     def _process_sitemap_index(self, root: ET.Element) -> list:
         """Récupère les données de tous les sitemaps référencés dans un sitemap index
@@ -66,8 +69,14 @@ class AdvancedSitemapReader(ReaderAdapter):
         """
         all_data = []
 
+        url_include_filters = self.config.get("url_include_filters", None)
+
         for url in root.findall(".//{*}url"):
             loc = url.find("{*}loc").text
+            if url_include_filters and not any(
+                re.match(regexp_pattern, loc) for regexp_pattern in url_include_filters
+            ):
+                continue
             page_data = self._process_page(loc)
             all_data.append(page_data)
 
@@ -84,7 +93,6 @@ class AdvancedSitemapReader(ReaderAdapter):
         """
         try:
             response = self._fetch_url(url)
-            print(f"Processing page {url}")
 
             page = BeautifulSoup(response, "html.parser")
             page_text = page.get_text()
