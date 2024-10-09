@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Iterable, Optional
+from typing import TYPE_CHECKING, Iterable, List, Optional
 
 from llama_index.core import Settings, VectorStoreIndex
 from llama_index.core.ingestion import IngestionPipeline
@@ -29,6 +29,14 @@ class IngestionWrapper:
     def run(self, dataset_id: Optional[str] = None):
         indexes = self._process_datasets(dataset_id)
         return indexes
+
+    def load_documents(self, dataset_config: dict):
+        """Load data from the specified dataset configuration using the reader."""
+        reader_adapter = ReaderFactory.create_reader(
+            dataset_config["reader"],
+            f"{self._config['project']}/{dataset_config['id']}",
+        )
+        return reader_adapter.load_data()
 
     def _get_vector_store(self):
         if self._vector_store is not None:
@@ -88,21 +96,17 @@ class IngestionWrapper:
         cache.to_cache(dataset_name, documents)
 
     def _ingest_dataset(self, dataset_config: dict):
+        """
+        Ingest the dataset using the provided configuration.
+
+        Args:
+            dataset_config (dict): Configuration for the dataset.
+        """
         #
         # READER
         #
         # Charger le reader pour extraire les données
-        reader_adapter = ReaderFactory.create_reader(
-            dataset_config["reader"],
-            f"{self._config['project']}/{dataset_config['id']}",
-        )
-        documents = reader_adapter.load_data()
-
-        #
-        # CACHE
-        #
-        # Génération d'un cache après Reader/Scrapping
-        self._generate_cache(dataset_config["id"], documents)
+        documents = self.load_documents(dataset_config)
 
         #
         # NODE PARSER

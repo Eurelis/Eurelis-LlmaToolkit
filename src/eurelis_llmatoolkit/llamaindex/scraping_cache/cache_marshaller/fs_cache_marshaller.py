@@ -18,6 +18,9 @@ class FSCacheMarshaller:
             dataset_name (str): Le nom du dataset.
             documents (list): La liste des documents à sérialiser.
         """
+        if dataset_name is None:
+            raise ValueError("dataset_name cannot be None")
+
         cache_base_path = self.base_dir / dataset_name
 
         for document in documents:
