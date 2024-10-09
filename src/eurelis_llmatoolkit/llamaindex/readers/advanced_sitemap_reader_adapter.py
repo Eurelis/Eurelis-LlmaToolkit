@@ -18,7 +18,7 @@ class AdvancedSitemapReader(ReaderAdapter):
         super().__init__(config)
         self.headers = {"User-Agent": config.get("user_agent", "EurelisLLMATK/0.1")}
 
-    def load_data(self) -> list:
+    def load_data(self, sitemap_url: str | None = None) -> list:
         """Charge les données d'un sitemap
 
         Args:
@@ -27,7 +27,9 @@ class AdvancedSitemapReader(ReaderAdapter):
             list: Liste des données du sitemap
         """
         load_params = self._get_load_data_params()
-        sitemap_url = load_params["sitemap_url"]
+
+        if sitemap_url is None:
+            sitemap_url = load_params["sitemap_url"]
 
         sitemap_content = self._fetch_url(sitemap_url)
         root = ET.fromstring(sitemap_content)
