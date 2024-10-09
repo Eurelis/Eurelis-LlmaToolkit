@@ -86,7 +86,10 @@ class IngestionWrapper:
         # READER
         #
         # Charger le reader pour extraire les données
-        reader_adapter = ReaderFactory.create_reader(dataset_config["reader"])
+        reader_adapter = ReaderFactory.create_reader(
+            dataset_config["reader"],
+            f"{self._config['project']}/{dataset_config['id']}",
+        )
         documents = reader_adapter.load_data()
 
         #

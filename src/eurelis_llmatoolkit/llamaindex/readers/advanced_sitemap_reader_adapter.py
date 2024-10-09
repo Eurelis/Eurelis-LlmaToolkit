@@ -16,9 +16,10 @@ from eurelis_llmatoolkit.llamaindex.readers.reader_adapter import ReaderAdapter
 class AdvancedSitemapReader(ReaderAdapter):
     required_params = ["sitemap_url"]  # Liste des paramètres requis
 
-    def __init__(self, config):
+    def __init__(self, config: dict, namespace: str = "default"):
         super().__init__(config)
-        self.headers = {"User-Agent": config.get("user_agent", "EurelisLLMATK/0.1")}
+        self._headers = {"User-Agent": config.get("user_agent", "EurelisLLMATK/0.1")}
+        self._namespace = namespace
 
     def load_data(self, url: Optional[str] = None) -> list:
         """Charge les données d'un sitemap
@@ -78,6 +79,13 @@ class AdvancedSitemapReader(ReaderAdapter):
             ):
                 continue
             page_data = self._process_page(loc)
+            if page_data:
+                metadatas = {
+                    "source": loc,
+                    "namespace": self._namespace,
+                    "lastmod": url.find("{*}lastmod").text,
+                }
+                page_data.extra_info = metadatas
             all_data.append(page_data)
 
         return all_data
@@ -105,7 +113,7 @@ class AdvancedSitemapReader(ReaderAdapter):
 
                 page_text = html2text.html2text(page_text)
 
-            return Document(text=page_text, extra_info={"Source": str(url)}, doc_id=url)
+            return Document(text=page_text, doc_id=url)
 
         except Exception as e:
             print(f"Erreur lors de la récupération de {url}: {e}")
@@ -152,7 +160,7 @@ class AdvancedSitemapReader(ReaderAdapter):
         Returns:
             str: Contenu de la page
         """
-        response = requests.get(url, timeout=10, headers=self.headers)
+        response = requests.get(url, timeout=10, headers=self._headers)
         if response.status_code == 200:
             return response.content
         print(f"Erreur lors de la récupération de {url}: {response.status_code}")
