@@ -1,12 +1,17 @@
-from .reader_factory import ReaderFactory
-from .transformation_factory import TransformationFactory
-from .embedding_factory import EmbeddingFactory
-
-from .vectorstore_factory import VectorStoreFactory
+from eurelis_llmatoolkit.llamaindex.factories.cache_factory import CacheFactory
+from eurelis_llmatoolkit.llamaindex.factories.embedding_factory import EmbeddingFactory
+from eurelis_llmatoolkit.llamaindex.factories.reader_factory import ReaderFactory
+from eurelis_llmatoolkit.llamaindex.factories.transformation_factory import (
+    TransformationFactory,
+)
+from eurelis_llmatoolkit.llamaindex.factories.vectorstore_factory import (
+    VectorStoreFactory,
+)
 
 __all__ = [
+    "CacheFactory",
+    "EmbeddingFactory",
     "ReaderFactory",
     "TransformationFactory",
-    "EmbeddingFactory",
     "VectorStoreFactory",
 ]
