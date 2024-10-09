@@ -39,13 +39,16 @@ def dataset(ctx: click.Context, id: str):
 
 
 @dataset.command("ingest")
+@click.option(
+    "--from_cache", is_flag=True, default=False, help="Load documents from cache."
+)
 @click.pass_context
-def dataset_ingest(ctx: click.Context):
+def dataset_ingest(ctx: click.Context, from_cache: bool):
     """Launch ingestion"""
     dataset_id = ctx.obj["dataset_id"]
 
     wrapper: IngestionWrapper = ctx.obj["wrapper"]
-    wrapper.run(dataset_id)
+    wrapper.run(dataset_id=dataset_id, use_cache=from_cache)
     click.echo(f"End of ingestion!")
 
 

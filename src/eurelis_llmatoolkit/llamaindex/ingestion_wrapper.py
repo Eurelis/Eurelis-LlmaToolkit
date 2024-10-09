@@ -26,8 +26,8 @@ class IngestionWrapper:
         self._vector_store: "BasePydanticVectorStore" = None
         self._document_store = None
 
-    def run(self, dataset_id: Optional[str] = None):
-        indexes = self._process_datasets(dataset_id)
+    def run(self, dataset_id: Optional[str] = None, use_cache: bool = False):
+        indexes = self._process_datasets(dataset_id, use_cache)
         return indexes
 
     def _load_documents_from_reader(self, dataset_config: dict) -> List[Document]:
@@ -90,10 +90,12 @@ class IngestionWrapper:
 
         return filtered_datasets
 
-    def _process_datasets(self, dataset_id: Optional[str] = None):
+    def _process_datasets(
+        self, dataset_id: Optional[str] = None, use_cache: bool = False
+    ):
         """Process all datasets or a specific dataset based on the dataset ID."""
         for dataset_config in self._filter_datasets(dataset_id):
-            self._ingest_dataset(dataset_config)
+            self._ingest_dataset(dataset_config, use_cache)
 
     def _generate_cache(self, dataset_name: str, documents: list):
         cache_config = self._config.get("scraping_cache", [])
