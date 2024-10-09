@@ -30,13 +30,19 @@ class IngestionWrapper:
         indexes = self._process_datasets(dataset_id)
         return indexes
 
-    def load_documents(self, dataset_config: dict):
-        """Load data from the specified dataset configuration using the reader."""
+    def _load_documents_from_reader(self, dataset_config: dict) -> List[Document]:
+        """Load documents using the appropriate reader based on the dataset configuration."""
         reader_adapter = ReaderFactory.create_reader(
             dataset_config["reader"],
             f"{self._config['project']}/{dataset_config['id']}",
         )
         return reader_adapter.load_data()
+
+    def _load_documents_from_cache(self, dataset_config: dict) -> List[Document]:
+        """Load documents from cache if the cache is available."""
+        cache_config = self._config.get("scraping_cache", [])
+        cache = CacheFactory.create_cache(cache_config)
+        return cache.load_data(dataset_config["id"])
 
     def _get_vector_store(self):
         if self._vector_store is not None:
@@ -59,7 +65,7 @@ class IngestionWrapper:
         return self._document_store
 
     def get_vector_store_index(self):
-        # Create your index
+        """Create your index"""
         return VectorStoreIndex.from_vector_store(self._get_vector_store())
 
     def _filter_datasets(self, dataset_id: Optional[str] = None) -> Iterable[dict]:
@@ -85,8 +91,7 @@ class IngestionWrapper:
         return filtered_datasets
 
     def _process_datasets(self, dataset_id: Optional[str] = None):
-        # On boucle sur chaque dataset dans la configuration
-
+        """Process all datasets or a specific dataset based on the dataset ID."""
         for dataset_config in self._filter_datasets(dataset_id):
             self._ingest_dataset(dataset_config)
 
@@ -95,25 +100,49 @@ class IngestionWrapper:
         cache = CacheFactory.create_cache(cache_config)
         cache.to_cache(dataset_name, documents)
 
-    def _get_documents(self, dataset_config: dict, from_cache: bool) -> List[Document]:
+    def _get_documents(self, dataset_config: dict, use_cache: bool) -> List[Document]:
         """
-        Retourne les documents soit à partir du cache, soit en utilisant le reader.
+        Get documents from either cache or reader based on the configuration.
 
         Args:
-            dataset_config (dict): La configuration du dataset.
-            from_cache (bool): Indique si les documents doivent être chargés à partir du cache.
+            dataset_config (dict): The configuration for the dataset.
+            use_cache (bool): Whether to use cached data or read from source.
 
         Returns:
-            List[Document]: La liste des documents récupérés.
+            List[Document]: List of retrieved documents.
         """
-        if from_cache:
-            cache_config = self._config.get("scraping_cache", [])
-            cache = CacheFactory.create_cache(cache_config)
-            return cache.load_data(dataset_config["id"])
-        else:
-            return self.load_documents(dataset_config)
+        return (
+            self._load_documents_from_cache(dataset_config)
+            if use_cache
+            else self._load_documents_from_reader(dataset_config)
+        )
 
-    def _ingest_dataset(self, dataset_config: dict, from_cache: bool = False):
+    def _get_transformations(self, dataset_config: dict) -> List:
+        """
+        Retrieve transformations and embeddings for the ingestion pipeline.
+
+        Args:
+            dataset_config (dict): The dataset configuration that specifies the transformations.
+        """
+        # Transformations
+        transformations = [
+            TransformationFactory.create_transformation(t_config)
+            for t_config in dataset_config["transformations"]
+        ]
+
+        # Acronym (first transformation)
+        transformations.insert(
+            0, TransformationFactory.create_transformation(dataset_config["acronyms"])
+        )
+
+        # Embedding (last transformation)
+        embedding_config = self._config["embeddings"]
+        embedding_model = EmbeddingFactory.create_embedding(embedding_config)
+        transformations.append(embedding_model)
+
+        return transformations
+
+    def _ingest_dataset(self, dataset_config: dict, use_cache: bool = False):
         """
         Ingest the dataset using the provided configuration.
 
@@ -124,40 +153,19 @@ class IngestionWrapper:
         # READER / CACHE
         #
         # Récupérer les documents à partir du cache ou via le reader
-        documents = self._get_documents(dataset_config, from_cache)
+        documents = self._get_documents(dataset_config, use_cache)
 
         #
-        # NODE PARSER
+        # ACRONYMS & NODE PARSER & EMBEDDINGS
         #
-        # Charger les transformations
-        transformations = [
-            TransformationFactory.create_transformation(t_config)
-            for t_config in dataset_config["transformations"]
-        ]
-
-        #
-        # ACRONYMS
-        #
-        # Ajouter le traitement des acronymes en premier
-        transformations.insert(
-            0, TransformationFactory.create_transformation(dataset_config["acronyms"])
-        )
+        # Transformations
+        transformations = self._get_transformations(dataset_config)
 
         #
         # VECTOR STORE
         #
         # Récupérer le vector store
         vector_store = self._get_vector_store()
-
-        #
-        # EMBEDDINGS
-        #
-        # Charger le modèle d'embedding
-        embedding_config = self._config["embeddings"]
-        embedding_model = EmbeddingFactory.create_embedding(embedding_config)
-
-        # Définir le modèle d'embedding dans les transformations
-        transformations.append(embedding_model)
 
         #
         # DOCUMENT STORE
