@@ -103,6 +103,10 @@ class AdvancedSitemapReader(ReaderAdapter):
             response = self._fetch_url(url)
 
             page = BeautifulSoup(response, "html.parser")
+
+            if self.config.get("parser_remove", None):
+                self._remove_excluded_elements(page, self.config["parser_remove"])
+
             page_text = page.get_text()
 
             if self.config.get("include_pdfs", False):
@@ -118,6 +122,23 @@ class AdvancedSitemapReader(ReaderAdapter):
         except Exception as e:
             print(f"Erreur lors de la récupération de {url}: {e}")
             return None
+
+    def _remove_excluded_elements(self, page: BeautifulSoup, remove_list: list):
+        """Supprime les éléments dans parser_remove du contenu HTML
+
+        Args:
+            page (BeautifulSoup): Page à traiter
+            remove_list (list): Liste des éléments à supprimer
+        """
+        for remove in remove_list:
+            nodes = []
+            if isinstance(remove, str):
+                nodes = page.find_all(remove)
+            elif isinstance(remove, dict):
+                nodes = page.find_all(**remove)
+
+            for node in nodes:
+                node.extract()
 
     def _process_pdfs(self, page: BeautifulSoup, url: str) -> str:
         """Récupère le texte des PDFs inclus dans une page
