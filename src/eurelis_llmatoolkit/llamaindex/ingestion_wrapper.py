@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Iterable, List, Optional
 
-from llama_index.core import Settings, VectorStoreIndex
+from llama_index.core import Document, VectorStoreIndex
 from llama_index.core.ingestion import IngestionPipeline
 
 from eurelis_llmatoolkit.llamaindex.factories.cache_factory import CacheFactory
@@ -95,7 +95,25 @@ class IngestionWrapper:
         cache = CacheFactory.create_cache(cache_config)
         cache.to_cache(dataset_name, documents)
 
-    def _ingest_dataset(self, dataset_config: dict):
+    def _get_documents(self, dataset_config: dict, from_cache: bool) -> List[Document]:
+        """
+        Retourne les documents soit à partir du cache, soit en utilisant le reader.
+
+        Args:
+            dataset_config (dict): La configuration du dataset.
+            from_cache (bool): Indique si les documents doivent être chargés à partir du cache.
+
+        Returns:
+            List[Document]: La liste des documents récupérés.
+        """
+        if from_cache:
+            cache_config = self._config.get("scraping_cache", [])
+            cache = CacheFactory.create_cache(cache_config)
+            return cache.load_data(dataset_config["id"])
+        else:
+            return self.load_documents(dataset_config)
+
+    def _ingest_dataset(self, dataset_config: dict, from_cache: bool = False):
         """
         Ingest the dataset using the provided configuration.
 
@@ -103,10 +121,10 @@ class IngestionWrapper:
             dataset_config (dict): Configuration for the dataset.
         """
         #
-        # READER
+        # READER / CACHE
         #
-        # Charger le reader pour extraire les données
-        documents = self.load_documents(dataset_config)
+        # Récupérer les documents à partir du cache ou via le reader
+        documents = self._get_documents(dataset_config, from_cache)
 
         #
         # NODE PARSER

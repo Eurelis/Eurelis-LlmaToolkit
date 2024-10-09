@@ -1,11 +1,13 @@
 from pathlib import Path
-from urllib.parse import urlparse
 from typing import List
-from llama_index.core import Document
+from urllib.parse import urlparse
 import json
 
+from llama_index.core import Document
+from llama_index.core.readers.base import BaseReader
 
-class FSCacheMarshaller:
+
+class FSCacheMarshaller(BaseReader):
     def __init__(self, cache_config):
         self.base_dir = Path(cache_config["base_dir"]).resolve()
 
@@ -42,11 +44,27 @@ class FSCacheMarshaller:
             with open(full_cache_path.with_suffix(".json"), "w", encoding="utf-8") as f:
                 json.dump(document_data, f, ensure_ascii=False, indent=4)
 
+    def load_data(self, dataset_name: str) -> List[Document]:
+        """
+        Retourne les documents désérialisés à partir des fichiers de cache.
+        """
+        cache_base_path = self.base_dir / dataset_name
+        documents = []
+
+        # Parcourir tous les fichiers JSON dans le répertoire
+        for json_file in cache_base_path.rglob("*.json"):
+            with open(json_file, "r", encoding="utf-8") as f:
+                document_data = json.load(f)
+                # Désérialiser le document JSON en objet Document
+                document = Document.from_embedchain_format(document_data)
+                documents.append(document)
+
+        return documents
+
     @staticmethod
     def _define_cache_path(doc_id: str) -> Path:
         """
         Définit le chemin du cache en fonction de l'URL du document.
-        Utilise le domaine et le chemin de l'URL pour créer une arborescence.
 
         Args:
             doc_id (str): L'URL du document.
@@ -63,6 +81,4 @@ class FSCacheMarshaller:
         )
 
         # Combine le netloc (domaine) et le chemin relatif
-        cache_path = Path(parsed_result.netloc) / relative_path
-
-        return cache_path
+        return Path(parsed_result.netloc) / relative_path
