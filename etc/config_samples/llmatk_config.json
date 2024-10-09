@@ -5,18 +5,36 @@
             "id": "sitemap",
             "reader": {
                 "provider": "AdvancedSitemapReader",
-                "_provider": "SimpleWebPageReader",
                 "sitemap_url": "https://www.eurelis.com/sitemap.xml",
-                "urls": [
-                    "https://www.eurelis.com/blog/potentiel-amplifie-par-ia-opportunites-du-couplage-entre-les-llm-et-les-bdd-vectorielles/"
-                ],
-                "_urls": [
-                    "https://fr.wikipedia.org/wiki/Alan_Turing"
-                ],
                 "html_to_text": true,
                 "limit": 1,
                 "embed_pdf": true,
-                "user_agent": "EurelisLLMATK/0.1"
+                "user_agent": "EurelisLLMATK/0.1",
+                "url_include_filters": [
+                    "^https:\\/\\/www\\.eurelis\\.com\\/blog.*"
+                ]
+            },
+            "transformations": [
+                {
+                    "provider": "SentenceSplitter",
+                    "chunk_size": 768,
+                    "chunk_overlap": 56
+                }
+            ],
+            "acronyms": {
+                "provider": "JSONFileAcronymTransformer",
+                "path": "../etc/config_samples/acronyms.json"
+            }
+        },
+        {
+            "id": "url",
+            "reader": {
+                "provider": "SimpleWebPageReader",
+                "urls": [
+                    "https://www.eurelis.com/blog/potentiel-amplifie-par-ia-opportunites-du-couplage-entre-les-llm-et-les-bdd-vectorielles/"
+                ],
+                "html_to_text": true,
+                "limit": 1
             },
             "transformations": [
                 {
@@ -31,6 +49,10 @@
             }
         }
     ],
+    "scraping_cache": {
+        "provider": "FSCache",
+        "base_dir": "../etc/no-commit/scraping_cache"
+    },
     "embeddings": {
         "provider": "OpenAI",
         "model": "text-embedding-3-small",
@@ -53,9 +75,5 @@
         "provider": "MongoDB",
         "url": "${MONGO_CONNECTION_STRING}",
         "db_name": "${MONGO_DB_NAME}"
-    },
-    "scraping_cache": {
-        "provider": "FSCache",
-        "base_dir": "../etc/no-commit/scraping_cache"
     }
 }

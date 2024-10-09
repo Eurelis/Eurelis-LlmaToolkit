@@ -1,4 +1,6 @@
 import io
+import logging
+import re
 import xml.etree.ElementTree as ET
 from typing import Optional
 
@@ -14,11 +16,12 @@ from eurelis_llmatoolkit.llamaindex.readers.reader_adapter import ReaderAdapter
 class AdvancedSitemapReader(ReaderAdapter):
     required_params = ["sitemap_url"]  # Liste des paramètres requis
 
-    def __init__(self, config):
+    def __init__(self, config: dict, namespace: str = "default"):
         super().__init__(config)
-        self.headers = {"User-Agent": config.get("user_agent", "EurelisLLMATK/0.1")}
+        self._headers = {"User-Agent": config.get("user_agent", "EurelisLLMATK/0.1")}
+        self._namespace = namespace
 
-    def load_data(self, sitemap_url: str | None = None) -> list:
+    def load_data(self, url: Optional[str] = None) -> list:
         """Charge les données d'un sitemap
 
         Args:
@@ -26,12 +29,11 @@ class AdvancedSitemapReader(ReaderAdapter):
         Returns:
             list: Liste des données du sitemap
         """
-        load_params = self._get_load_data_params()
+        if url is None:
+            load_params = self._get_load_data_params()
+            url = load_params["sitemap_url"]
 
-        if sitemap_url is None:
-            sitemap_url = load_params["sitemap_url"]
-
-        sitemap_content = self._fetch_url(sitemap_url)
+        sitemap_content = self._fetch_url(url)
         root = ET.fromstring(sitemap_content)
 
         # on vérifie si le sitemap est un sitemap index ou un sitemap
@@ -39,7 +41,7 @@ class AdvancedSitemapReader(ReaderAdapter):
             return self._process_sitemap_index(root)
         if root.tag.endswith("urlset"):
             return self._process_urlset(root)
-        raise ValueError(f"Format de sitemap non supporté pour l'URL: {sitemap_url}")
+        raise ValueError(f"Format de sitemap non supporté pour l'URL: {url}")
 
     def _process_sitemap_index(self, root: ET.Element) -> list:
         """Récupère les données de tous les sitemaps référencés dans un sitemap index
@@ -68,9 +70,22 @@ class AdvancedSitemapReader(ReaderAdapter):
         """
         all_data = []
 
+        url_include_filters = self.config.get("url_include_filters", None)
+
         for url in root.findall(".//{*}url"):
             loc = url.find("{*}loc").text
+            if url_include_filters and not any(
+                re.match(regexp_pattern, loc) for regexp_pattern in url_include_filters
+            ):
+                continue
             page_data = self._process_page(loc)
+            if page_data:
+                metadatas = {
+                    "source": loc,
+                    "namespace": self._namespace,
+                    "lastmod": url.find("{*}lastmod").text,
+                }
+                page_data.extra_info = metadatas
             all_data.append(page_data)
 
         return all_data
@@ -86,7 +101,6 @@ class AdvancedSitemapReader(ReaderAdapter):
         """
         try:
             response = self._fetch_url(url)
-            print(f"Processing page {url}")
 
             page = BeautifulSoup(response, "html.parser")
             page_text = page.get_text()
@@ -99,7 +113,7 @@ class AdvancedSitemapReader(ReaderAdapter):
 
                 page_text = html2text.html2text(page_text)
 
-            return Document(text=page_text, extra_info={"Source": str(url)}, doc_id=url)
+            return Document(text=page_text, doc_id=url)
 
         except Exception as e:
             print(f"Erreur lors de la récupération de {url}: {e}")
@@ -146,7 +160,7 @@ class AdvancedSitemapReader(ReaderAdapter):
         Returns:
             str: Contenu de la page
         """
-        response = requests.get(url, timeout=10, headers=self.headers)
+        response = requests.get(url, timeout=10, headers=self._headers)
         if response.status_code == 200:
             return response.content
         print(f"Erreur lors de la récupération de {url}: {response.status_code}")

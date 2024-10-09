@@ -11,13 +11,13 @@ from eurelis_llmatoolkit.llamaindex.readers.simple_webpage_reader_adapter import
 
 class ReaderFactory:
     @staticmethod
-    def create_reader(config: dict):
+    def create_reader(config: dict, namespace: str):
         provider = config["provider"]
         if provider == "SitemapReader":
             return SitemapReaderAdapter(config)
         if provider == "SimpleWebPageReader":
             return SimpleWebPageReaderAdapter(config)
         if provider == "AdvancedSitemapReader":
-            return AdvancedSitemapReader(config)
+            return AdvancedSitemapReader(config, namespace)
 
         raise ValueError(f"Reader provider {provider} non supporté.")
