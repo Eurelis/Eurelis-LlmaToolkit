@@ -31,6 +31,10 @@
             }
         }
     ],
+    "scraping_cache": {
+        "provider": "FSCache",
+        "base_dir": "../etc/no-commit/scraping_cache"
+    },
     "embeddings": {
         "provider": "OpenAI",
         "model": "text-embedding-3-small",
