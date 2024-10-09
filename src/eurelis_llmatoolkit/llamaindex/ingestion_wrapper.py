@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Iterable, Optional
 from llama_index.core import Settings, VectorStoreIndex
 from llama_index.core.ingestion import IngestionPipeline
 
+from eurelis_llmatoolkit.llamaindex.factories.cache_factory import CacheFactory
 from eurelis_llmatoolkit.llamaindex.factories.documentstore_factory import (
     DocumentStoreFactory,
 )
@@ -81,6 +82,11 @@ class IngestionWrapper:
         for dataset_config in self._filter_datasets(dataset_id):
             self._ingest_dataset(dataset_config)
 
+    def _generate_cache(self, dataset_name: str, documents: list):
+        cache_config = self._config.get("scraping_cache", [])
+        cache = CacheFactory.create_cache(cache_config)
+        cache.to_cache(dataset_name, documents)
+
     def _ingest_dataset(self, dataset_config: dict):
         #
         # READER
@@ -88,6 +94,12 @@ class IngestionWrapper:
         # Charger le reader pour extraire les données
         reader_adapter = ReaderFactory.create_reader(dataset_config["reader"])
         documents = reader_adapter.load_data()
+
+        #
+        # CACHE
+        #
+        # Génération d'un cache après Reader/Scrapping
+        self._generate_cache(dataset_config["id"], documents)
 
         #
         # NODE PARSER

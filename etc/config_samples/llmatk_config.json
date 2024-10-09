@@ -53,5 +53,9 @@
         "provider": "MongoDB",
         "url": "${MONGO_CONNECTION_STRING}",
         "db_name": "${MONGO_DB_NAME}"
+    },
+    "scraping_cache": {
+        "provider": "FSCache",
+        "base_dir": "../etc/no-commit/scraping_cache"
     }
 }
