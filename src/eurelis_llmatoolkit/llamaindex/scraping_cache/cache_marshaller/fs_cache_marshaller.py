@@ -1,14 +1,16 @@
+import json
 from pathlib import Path
 from typing import List
 from urllib.parse import urlparse
-import json
 
 from llama_index.core import Document
-from llama_index.core.readers.base import BaseReader
+
+from eurelis_llmatoolkit.llamaindex.readers.abstract_fs_reader import AbstractFSReader
 
 
-class FSCacheMarshaller(BaseReader):
+class FSCacheMarshaller(AbstractFSReader):
     def __init__(self, cache_config):
+        super().__init__(cache_config)
         self.base_dir = Path(cache_config["base_dir"]).resolve()
 
     def to_cache(self, dataset_name: str, documents: List[Document]):
@@ -44,22 +46,15 @@ class FSCacheMarshaller(BaseReader):
             with open(full_cache_path.with_suffix(".json"), "w", encoding="utf-8") as f:
                 json.dump(document_data, f, ensure_ascii=False, indent=4)
 
-    def load_data(self, dataset_name: str) -> List[Document]:
-        """
-        Retourne les documents désérialisés à partir des fichiers de cache.
-        """
-        cache_base_path = self.base_dir / dataset_name
-        documents = []
+    def _process_file(self, path: Path) -> Document:
+        with open(path, "r", encoding="utf-8") as f:
+            content = json.load(f)
+            print(content)
+            return Document.from_embedchain_format(content)
 
-        # Parcourir tous les fichiers JSON dans le répertoire
-        for json_file in cache_base_path.rglob("*.json"):
-            with open(json_file, "r", encoding="utf-8") as f:
-                document_data = json.load(f)
-                # Désérialiser le document JSON en objet Document
-                document = Document.from_embedchain_format(document_data)
-                documents.append(document)
-
-        return documents
+    def load_data(self, dataset_name: str = None, *args, **kwargs) -> List[Document]:
+        self._file_dir = f"{self._config['base_dir']}/{dataset_name}"
+        return super().load_data(*args, **kwargs)
 
     @staticmethod
     def _define_cache_path(doc_id: str) -> Path:

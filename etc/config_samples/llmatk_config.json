@@ -78,7 +78,7 @@
             "id": "txt",
             "reader": {
                 "provider": "TXTFileReader",
-                "path": "../etc/data_sample/",
+                "base_dir": "../etc/data_sample/",
                 "glob": "*.txt"
             },
             "transformations": [
