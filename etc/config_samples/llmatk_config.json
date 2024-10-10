@@ -92,6 +92,25 @@
                 "provider": "JSONFileAcronymTransformer",
                 "path": "../etc/config_samples/acronyms.json"
             }
+        },
+        {
+            "id": "pdf",
+            "reader": {
+                "provider": "PDFFileReader",
+                "base_dir": "../etc/data_sample/",
+                "glob": "*.pdf"
+            },
+            "transformations": [
+                {
+                    "provider": "SentenceSplitter",
+                    "chunk_size": 768,
+                    "chunk_overlap": 56
+                }
+            ],
+            "acronyms": {
+                "provider": "JSONFileAcronymTransformer",
+                "path": "../etc/config_samples/acronyms.json"
+            }
         }
     ],
     "scraping_cache": {

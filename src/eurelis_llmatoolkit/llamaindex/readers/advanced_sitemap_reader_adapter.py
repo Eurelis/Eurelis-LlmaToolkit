@@ -1,5 +1,4 @@
 import io
-import logging
 import re
 import xml.etree.ElementTree as ET
 from typing import Optional

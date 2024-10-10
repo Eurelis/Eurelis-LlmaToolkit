@@ -1,6 +1,7 @@
 from eurelis_llmatoolkit.llamaindex.readers.advanced_sitemap_reader_adapter import (
     AdvancedSitemapReader,
 )
+from eurelis_llmatoolkit.llamaindex.readers.pdf_file_reader import PDFFileReader
 from eurelis_llmatoolkit.llamaindex.readers.sitemap_reader_adapter import (
     SitemapReaderAdapter,
 )
@@ -22,5 +23,7 @@ class ReaderFactory:
             return AdvancedSitemapReader(config, namespace)
         if provider == "TXTFileReader":
             return TXTFileReader(config, namespace)
+        if provider == "PDFFileReader":
+            return PDFFileReader(config, namespace)
 
         raise ValueError(f"Reader provider {provider} non supporté.")

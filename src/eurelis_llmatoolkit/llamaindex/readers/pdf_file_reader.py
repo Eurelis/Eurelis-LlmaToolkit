@@ -2,11 +2,12 @@ import os
 from pathlib import Path
 
 from llama_index.core.schema import Document
+from pypdf import PdfReader
 
 from eurelis_llmatoolkit.llamaindex.readers.abstract_fs_reader import AbstractFSReader
 
 
-class TXTFileReader(AbstractFSReader):
+class PDFFileReader(AbstractFSReader):
     def __init__(self, config: dict, namespace: str = None):
         super().__init__(config)
         self._namespace = namespace
@@ -21,8 +22,13 @@ class TXTFileReader(AbstractFSReader):
             Document: Un objet Document.
         """
 
-        with open(path, "r", encoding="utf-8") as f:
-            content = f.read()
+        with open(path, "rb") as f:
+            pdf = PdfReader(f)
+
+            content = ""
+
+            for page in pdf.pages:
+                content += f"{page.extract_text()}\n\n"
 
             relative_path = os.path.relpath(path, self._config["base_dir"])
 
