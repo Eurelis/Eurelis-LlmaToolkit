@@ -56,10 +56,6 @@ class TXTFileReader(ReaderAdapter):
                     "lastmod": last_modified_formatted,
                 }
 
-                print(f"Content: {content}")
-                print(f"Metadata: {metadata}")
-                print(f"Doc ID: {relative_path}")
-
                 document = Document(
                     text=content, metadata=metadata, doc_id=relative_path
                 )
