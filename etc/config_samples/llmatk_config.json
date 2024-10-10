@@ -73,6 +73,25 @@
                 "provider": "JSONFileAcronymTransformer",
                 "path": "../etc/config_samples/acronyms.json"
             }
+        },
+        {
+            "id": "txt",
+            "reader": {
+                "provider": "TXTFileReader",
+                "path": "../etc/data_sample/",
+                "glob": "*.txt"
+            },
+            "transformations": [
+                {
+                    "provider": "SentenceSplitter",
+                    "chunk_size": 768,
+                    "chunk_overlap": 56
+                }
+            ],
+            "acronyms": {
+                "provider": "JSONFileAcronymTransformer",
+                "path": "../etc/config_samples/acronyms.json"
+            }
         }
     ],
     "scraping_cache": {

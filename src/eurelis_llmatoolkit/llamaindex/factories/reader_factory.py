@@ -7,6 +7,7 @@ from eurelis_llmatoolkit.llamaindex.readers.sitemap_reader_adapter import (
 from eurelis_llmatoolkit.llamaindex.readers.simple_webpage_reader_adapter import (
     SimpleWebPageReaderAdapter,
 )
+from eurelis_llmatoolkit.llamaindex.readers.txt_file_reader import TXTFileReader
 
 
 class ReaderFactory:
@@ -19,5 +20,7 @@ class ReaderFactory:
             return SimpleWebPageReaderAdapter(config)
         if provider == "AdvancedSitemapReader":
             return AdvancedSitemapReader(config, namespace)
+        if provider == "TXTFileReader":
+            return TXTFileReader(config, namespace)
 
         raise ValueError(f"Reader provider {provider} non supporté.")
