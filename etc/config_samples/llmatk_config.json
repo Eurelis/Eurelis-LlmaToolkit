@@ -122,6 +122,11 @@
         "model": "text-embedding-3-small",
         "openai_api_key": "${OPENAI_API_KEY}"
     },
+    "_embeddings": {
+        "provider": "HuggingFace",
+        "model": "sangmini/msmarco-cotmae-MiniLM-L12_en-ko-ja",
+        "cache_folder": "${EMBEDDINGS_CACHE_FOLDER}"
+    },
     "vectorstore": {
         "provider": "MongoDB",
         "url": "${MONGO_CONNECTION_STRING}",

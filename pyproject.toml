@@ -41,7 +41,8 @@ llamaindex = [
 ]
 huggingface = [
     "sentence_transformers==2.2.2",
-    "transformers==4.34.1"
+    "transformers==4.34.1",
+    "llama-index-vector-stores-huggingface==0.3.1",
 ]
 openai = [
     "langchain-openai==0.1.8",
