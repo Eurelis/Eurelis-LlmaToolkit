@@ -132,9 +132,12 @@ class IngestionWrapper:
         ]
 
         # Acronym (first transformation)
-        transformations.insert(
-            0, TransformationFactory.create_transformation(dataset_config["acronyms"])
-        )
+        acronyms = dataset_config.get("acronyms", None)
+        if acronyms:
+            transformations.insert(
+                0,
+                TransformationFactory.create_transformation(dataset_config["acronyms"]),
+            )
 
         # Embedding (last transformation)
         embedding_config = self._config["embeddings"]
