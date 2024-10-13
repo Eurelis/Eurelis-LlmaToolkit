@@ -27,8 +27,7 @@ class IngestionWrapper:
         self._document_store = None
 
     def run(self, dataset_id: Optional[str] = None, use_cache: bool = False):
-        indexes = self._process_datasets(dataset_id, use_cache)
-        return indexes
+        self._process_datasets(dataset_id, use_cache)
 
     def _load_documents_from_reader(self, dataset_config: dict) -> List[Document]:
         """Load documents using the appropriate reader based on the dataset configuration."""
