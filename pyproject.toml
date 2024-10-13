@@ -40,8 +40,8 @@ llamaindex = [
     "llama-index-readers-web==0.2.3"
 ]
 huggingface = [
-    "sentence_transformers==2.2.2",
-    "transformers==4.34.1",
+    "sentence_transformers==3.2.0",
+    "transformers==4.45.2",
     "llama-index-embeddings-huggingface==0.3.1",
 ]
 openai = [
