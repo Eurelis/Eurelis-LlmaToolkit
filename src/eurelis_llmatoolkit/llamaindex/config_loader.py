@@ -6,10 +6,10 @@ from dotenv import load_dotenv
 
 
 class ConfigLoader:
-    load_dotenv()
 
     @staticmethod
     def load_config(config_path):
+        load_dotenv()
         with open(config_path, "r") as file:
             config = json.load(file)
         return ConfigLoader._replace_env_variables(config)
