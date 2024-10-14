@@ -49,7 +49,6 @@ class FSCacheMarshaller(AbstractFSReader):
     def _process_file(self, path: Path) -> Document:
         with open(path, "r", encoding="utf-8") as f:
             content = json.load(f)
-            print(content)
             return Document.from_embedchain_format(content)
 
     def load_data(self, dataset_name: str = None, *args, **kwargs) -> List[Document]:
