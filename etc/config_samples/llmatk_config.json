@@ -78,6 +78,7 @@
             "id": "txt",
             "reader": {
                 "provider": "TXTFileReader",
+                "_provider": "eurelis_llmatoolkit.llamaindex.readers.TXTFileReader",
                 "base_dir": "../etc/data_sample/",
                 "glob": "*.txt"
             },
