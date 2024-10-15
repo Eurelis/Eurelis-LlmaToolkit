@@ -84,12 +84,12 @@ class AdvancedSitemapReader(ReaderAdapter):
                     "namespace": self._namespace,
                     "lastmod": url.find("{*}lastmod").text,
                 }
-                doc = Document(text=page_data, metadata=metadatas, doc_id=loc)
-                all_data.append(doc)
+                page_data.metadata.update(metadatas)
+                all_data.append(page_data)
 
         return all_data
 
-    def _process_page(self, url: str) -> str:
+    def _process_page(self, url: str) -> Optional[Document]:
         """Récupère les données d'une page en incluant les PDFs dans la page
 
         Args:
@@ -116,7 +116,7 @@ class AdvancedSitemapReader(ReaderAdapter):
 
                 page_text = html2text.html2text(page_text)
 
-            return page_text
+            return Document(text=page_text, doc_id=url)
 
         except Exception as e:
             print(f"Erreur lors de la récupération de {url}: {e}")
