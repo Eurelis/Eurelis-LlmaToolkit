@@ -93,4 +93,4 @@ test = [
 package-dir = {"" = "src"}
 
 [project.scripts]
-llmatoolkit = "eurelis_llmatoolkit.langchain.console:main_cli"
+llmatoolkit = "eurelis_llmatoolkit.llamaindex.console:main_cli"
