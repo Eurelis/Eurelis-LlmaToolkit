@@ -1,29 +1,23 @@
-from eurelis_llmatoolkit.llamaindex.readers.advanced_sitemap_reader_adapter import (
-    AdvancedSitemapReader,
-)
-from eurelis_llmatoolkit.llamaindex.readers.pdf_file_reader import PDFFileReader
-from eurelis_llmatoolkit.llamaindex.readers.sitemap_reader_adapter import (
-    SitemapReaderAdapter,
-)
-from eurelis_llmatoolkit.llamaindex.readers.simple_webpage_reader_adapter import (
-    SimpleWebPageReaderAdapter,
-)
-from eurelis_llmatoolkit.llamaindex.readers.txt_file_reader import TXTFileReader
+import importlib
+import inspect
 
 
 class ReaderFactory:
     @staticmethod
     def create_reader(config: dict, namespace: str):
-        provider = config["provider"]
-        if provider == "SitemapReader":
-            return SitemapReaderAdapter(config)
-        if provider == "SimpleWebPageReader":
-            return SimpleWebPageReaderAdapter(config)
-        if provider == "AdvancedSitemapReader":
-            return AdvancedSitemapReader(config, namespace)
-        if provider == "TXTFileReader":
-            return TXTFileReader(config, namespace)
-        if provider == "PDFFileReader":
-            return PDFFileReader(config, namespace)
+        provider_path = config["provider"]
 
-        raise ValueError(f"Reader provider {provider} non supporté.")
+        if provider_path.count(".") == 0:
+            raise ValueError("Reader provider path must contain one dot")
+
+        module_name, class_name = provider_path.rsplit(".", 1)
+
+        module = importlib.import_module(module_name)
+
+        reader_class = getattr(module, class_name)
+
+        init_params = inspect.signature(reader_class.__init__)
+
+        if "namespace" in init_params.parameters:
+            return reader_class(config, namespace)
+        return reader_class(config)
