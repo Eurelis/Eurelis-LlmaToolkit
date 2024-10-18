@@ -1,15 +1,12 @@
-import pymongo
-import chromadb
-from llama_index.vector_stores.mongodb import MongoDBAtlasVectorSearch
-from llama_index.vector_stores.chroma import ChromaVectorStore
-
-
 class VectorStoreFactory:
     @staticmethod
     def create_vector_store(config: dict):
         provider = config["provider"]
 
         if provider == "MongoDB":
+            import pymongo
+            from llama_index.vector_stores.mongodb import MongoDBAtlasVectorSearch
+
             client = pymongo.MongoClient(config["url"])
 
             # FIXME : ValueError: Must specify MONGODB_URI via env variable if not directly passing in client.
@@ -21,6 +18,9 @@ class VectorStoreFactory:
             )
 
         if provider == "Chroma":
+            import chromadb
+            from llama_index.vector_stores.chroma import ChromaVectorStore
+
             mode = config.get("mode", "ephemeral")
 
             if mode == "ephemeral":
