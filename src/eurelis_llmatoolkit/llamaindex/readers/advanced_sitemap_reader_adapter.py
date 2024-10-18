@@ -1,5 +1,6 @@
 import io
 import re
+import time
 import xml.etree.ElementTree as ET
 from typing import Optional
 
@@ -71,6 +72,8 @@ class AdvancedSitemapReader(ReaderAdapter):
 
         url_include_filters = self.config.get("url_include_filters", None)
 
+        requests_per_second = self.config.get("requests_per_second", -1)
+
         for url in root.findall(".//{*}url"):
             loc = url.find("{*}loc").text
             if url_include_filters and not any(
@@ -86,6 +89,9 @@ class AdvancedSitemapReader(ReaderAdapter):
                 }
                 page_data.metadata.update(metadatas)
                 all_data.append(page_data)
+
+            if requests_per_second > 0:
+                time.sleep(1 / requests_per_second)
 
         return all_data
 
