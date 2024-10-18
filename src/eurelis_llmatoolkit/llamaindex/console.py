@@ -89,3 +89,7 @@ cli.add_command(dataset)
 
 if __name__ == "__main__":
     cli(obj={})
+
+
+def main_cli():
+    cli(obj={})
