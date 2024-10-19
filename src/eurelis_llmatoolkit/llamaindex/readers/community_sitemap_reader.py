@@ -1,8 +1,11 @@
-from eurelis_llmatoolkit.llamaindex.readers.reader_adapter import ReaderAdapter
 from llama_index.readers.web import SitemapReader
 
+from eurelis_llmatoolkit.llamaindex.readers.abstract_reader_adapter import (
+    AbstractReaderAdapter,
+)
 
-class SitemapReaderAdapter(ReaderAdapter):
+
+class CommunitySitemapReader(AbstractReaderAdapter):
     required_params = ["sitemap_url"]  # Liste des paramètres requis
 
     def __init__(self, config):

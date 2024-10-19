@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class ReaderAdapter(ABC):
+class AbstractReaderAdapter(ABC):
     required_params = []
 
     def __init__(self, config):

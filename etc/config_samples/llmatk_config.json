@@ -4,7 +4,7 @@
         {
             "id": "sitemap",
             "reader": {
-                "provider": "eurelis_llmatoolkit.llamaindex.readers.AdvancedSitemapReader",
+                "provider": "AdvancedSitemapReader",
                 "sitemap_url": "https://www.eurelis.com/sitemap.xml",
                 "html_to_text": true,
                 "limit": 1,

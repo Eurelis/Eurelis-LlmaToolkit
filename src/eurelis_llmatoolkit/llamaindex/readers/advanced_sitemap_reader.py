@@ -10,10 +10,12 @@ from bs4 import BeautifulSoup
 from llama_index.core.schema import Document
 from pypdf import PdfReader
 
-from eurelis_llmatoolkit.llamaindex.readers.reader_adapter import ReaderAdapter
+from eurelis_llmatoolkit.llamaindex.readers.abstract_reader_adapter import (
+    AbstractReaderAdapter,
+)
 
 
-class AdvancedSitemapReader(ReaderAdapter):
+class AdvancedSitemapReader(AbstractReaderAdapter):
     required_params = ["sitemap_url"]  # Liste des paramètres requis
 
     def __init__(self, config: dict, namespace: str = "default"):

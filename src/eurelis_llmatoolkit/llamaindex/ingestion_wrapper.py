@@ -32,8 +32,8 @@ class IngestionWrapper:
     def _load_documents_from_reader(self, dataset_config: dict) -> List[Document]:
         """Load documents using the appropriate reader based on the dataset configuration."""
         reader_adapter = ReaderFactory.create_reader(
-            dataset_config["reader"],
             f"{self._config['project']}/{dataset_config['id']}",
+            dataset_config["reader"],
         )
         return reader_adapter.load_data()
 
@@ -45,7 +45,7 @@ class IngestionWrapper:
 
     def _get_vector_store(self):
         if self._vector_store is not None:
-            return self._vector_store
+            return self._vector_sto
 
         vectorstore_config = self._config["vectorstore"]
         self._vector_store = VectorStoreFactory.create_vector_store(vectorstore_config)

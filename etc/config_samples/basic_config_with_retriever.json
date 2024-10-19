@@ -1,0 +1,47 @@
+{
+    "project": "llamaindex",
+    "dataset": [
+        {
+            "id": "url",
+            "reader": {
+                "provider": "CommunitySimpleWebPageReader",
+                "urls": [
+                    "https://www.eurelis.com/blog/potentiel-amplifie-par-ia-opportunites-du-couplage-entre-les-llm-et-les-bdd-vectorielles/"
+                ],
+                "html_to_text": true,
+                "limit": 1
+            },
+            "transformations": [
+                {
+                    "provider": "SentenceSplitter",
+                    "chunk_size": 768,
+                    "chunk_overlap": 56
+                }
+            ]
+        }
+    ],
+    "chat_engine": {
+        "chat_mode": "context",
+        "retriever": {
+            "provider": "VectorIndexRetriever",
+            "similarity_top_k": 10
+        },
+        "memory": {
+            "provider": "ChatMemoryBuffer",
+            "token_limit": 1500
+        },
+        "system_prompt": [
+            "You are a chatbot, able to have normal interactions, as well as talk"
+        ]
+    },
+    "embeddings": {
+        "provider": "HuggingFace",
+        "model": "sangmini/msmarco-cotmae-MiniLM-L12_en-ko-ja",
+        "cache_folder": "${BASE_CACHE_FOLDER}/huggingface"
+    },
+    "vectorstore": {
+        "provider": "Chroma",
+        "collection_name": "llamaindex",
+        "mode": "ephemeral"
+    }
+}

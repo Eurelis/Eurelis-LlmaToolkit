@@ -1,8 +1,11 @@
-from eurelis_llmatoolkit.llamaindex.readers.reader_adapter import ReaderAdapter
 from llama_index.readers.web import SimpleWebPageReader
 
+from eurelis_llmatoolkit.llamaindex.readers.abstract_reader_adapter import (
+    AbstractReaderAdapter,
+)
 
-class SimpleWebPageReaderAdapter(ReaderAdapter):
+
+class CommunitySimpleWebPageReader(AbstractReaderAdapter):
     required_params = ["urls"]  # Liste des paramètres requis
 
     def __init__(self, config):
