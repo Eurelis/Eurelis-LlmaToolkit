@@ -75,4 +75,4 @@ class FSCacheMarshaller(AbstractFSReader):
         )
 
         # Combine le netloc (domaine) et le chemin relatif
-        return Path(parsed_result.netloc) / relative_path
+        return Path(parsed_result.netloc) / Path(*relative_path.parts[1:])
