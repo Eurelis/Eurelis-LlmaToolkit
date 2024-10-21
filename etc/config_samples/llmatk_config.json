@@ -149,5 +149,9 @@
     "llm": {
         "provider": "OpenAI",
         "model": "gpt-4o"
+    },
+    "memory": {
+        "provider": "ChatMemoryBuffer",
+        "token_limit": 1500
     }
 }

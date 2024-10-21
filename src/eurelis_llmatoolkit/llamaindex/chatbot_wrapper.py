@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, Optional
 from llama_index.core import VectorStoreIndex
 from llama_index.core.chat_engine.types import ChatMode
-from llama_index.core.memory import ChatMemoryBuffer
 from llama_index.core.retrievers import VectorIndexRetriever
 from llama_index.core.storage import StorageContext
 from llama_index.core.query_engine import RetrieverQueryEngine
@@ -10,6 +9,7 @@ from eurelis_llmatoolkit.llamaindex.factories.documentstore_factory import (
     DocumentStoreFactory,
 )
 from eurelis_llmatoolkit.llamaindex.factories.embedding_factory import EmbeddingFactory
+from eurelis_llmatoolkit.llamaindex.factories.memory_factory import MemoryFactory
 from eurelis_llmatoolkit.llamaindex.factories.vectorstore_factory import (
     VectorStoreFactory,
 )
@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from llama_index.core.embeddings import BaseEmbedding
     from llama_index.core.vector_stores.types import BasePydanticVectorStore
     from llama_index.core.base.llms.base import BaseLLM
+    from llama_index.core.memory import BaseMemory
 
 
 class ChatbotWrapper:
@@ -34,7 +35,7 @@ class ChatbotWrapper:
         self._embedding_model: "BaseEmbedding" = None
         self._llm: "BaseLLM" = None
         self._query_engine: Optional[RetrieverQueryEngine] = None
-        self._memory: Optional[ChatMemoryBuffer] = None
+        self._memory: "BaseMemory" = None
         self._chat_engine = None
 
     def run(self):
@@ -72,17 +73,17 @@ class ChatbotWrapper:
 
     def _get_memory(self):
         """
-        Creates a ChatMemoryBuffer with a token limit.
+        Creates a BaseMemory.
 
         Returns:
-            ChatMemoryBuffer: The configured memory buffer.
+            BaseMemory: The configured memory.
         """
         if self._memory is not None:
             return self._memory
 
-        # Initialize ChatMemoryBuffer with a token limit of 1500
-        self._memory = ChatMemoryBuffer.from_defaults(token_limit=1500)
-
+        memory_config = self._config.get("memory")
+        if memory_config:
+            self._memory = MemoryFactory.create_memory(memory_config)
         return self._memory
 
     def _get_vector_store(self):
@@ -249,13 +250,13 @@ class ChatbotWrapper:
         index = self._get_index()
         memory = self._get_memory()
 
+        # TODO : System_prompt en config
         # Create the chat engine with the specified configuration
         self._chat_engine = index.as_chat_engine(
             chat_mode=ChatMode.CONTEXT,
             memory=memory,
             system_prompt=(
                 "You are a chatbot, able to have normal interactions, as well as talk "
-                "about an essay discussing Paul Graham's life."
             ),
         )
 
