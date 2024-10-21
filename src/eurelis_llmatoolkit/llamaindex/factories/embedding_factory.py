@@ -20,4 +20,4 @@ class EmbeddingFactory:
                 cache_folder=config["cache_folder"],
             )
 
-        raise ValueError(f"Embedding provider {provider} non supporté.")
+        raise ValueError(f"Embedding provider {provider} is not supported.")

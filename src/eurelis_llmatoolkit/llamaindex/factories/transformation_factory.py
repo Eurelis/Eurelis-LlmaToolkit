@@ -17,4 +17,4 @@ class TransformationFactory:
             )
         if provider == "JSONFileAcronymTransformer":
             return JSONFileAcronymTransformer(config)
-        raise ValueError(f"Transformation provider {provider} non supporté.")
+        raise ValueError(f"Transformation provider {provider} is not supported.")

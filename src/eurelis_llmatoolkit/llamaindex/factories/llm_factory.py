@@ -20,4 +20,4 @@ class LLMFactory:
         if provider == "OpenAI":
             return OpenAI(model=config.get("model", "gpt-4o"))
 
-        raise ValueError(f"LLM provider {provider} non supporté.")
+        raise ValueError(f"LLM provider {provider} is not supported.")

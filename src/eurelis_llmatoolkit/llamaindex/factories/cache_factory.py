@@ -11,4 +11,4 @@ class CacheFactory:
         if provider == "FSCache":
             return FSCacheMarshaller(cache_config)
 
-        raise ValueError(f"Cache provider {provider} non supporté.")
+        raise ValueError(f"Cache provider {provider} is not supported.")

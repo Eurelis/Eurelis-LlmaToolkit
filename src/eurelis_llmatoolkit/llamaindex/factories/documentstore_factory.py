@@ -12,4 +12,4 @@ class DocumentStoreFactory:
                 db_name=config["db_name"],
             )
 
-        raise ValueError(f"Document store provider {provider} non supporté.")
+        raise ValueError(f"Document store provider {provider} is not supported.")

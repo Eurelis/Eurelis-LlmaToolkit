@@ -36,4 +36,4 @@ class VectorStoreFactory:
 
             return ChromaVectorStore(client=client, chroma_collection=collection)
 
-        raise ValueError(f"Vector store provider {provider} non supporté.")
+        raise ValueError(f"Vector store provider {provider} is not supported.")
