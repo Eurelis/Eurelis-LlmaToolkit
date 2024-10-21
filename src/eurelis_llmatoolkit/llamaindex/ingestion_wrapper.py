@@ -45,7 +45,7 @@ class IngestionWrapper:
 
     def _get_vector_store(self):
         if self._vector_store is not None:
-            return self._vector_sto
+            return self._vector_store
 
         vectorstore_config = self._config["vectorstore"]
         self._vector_store = VectorStoreFactory.create_vector_store(vectorstore_config)

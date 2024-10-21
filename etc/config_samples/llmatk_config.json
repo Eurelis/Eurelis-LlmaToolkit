@@ -55,7 +55,7 @@
         {
             "id": "url",
             "reader": {
-                "provider": "eurelis_llmatoolkit.llamaindex.readers.SimpleWebPageReader",
+                "provider": "eurelis_llmatoolkit.llamaindex.readers.CommunitySimpleWebPageReader",
                 "urls": [
                     "https://www.eurelis.com/blog/potentiel-amplifie-par-ia-opportunites-du-couplage-entre-les-llm-et-les-bdd-vectorielles/"
                 ],
