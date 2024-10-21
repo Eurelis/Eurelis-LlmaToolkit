@@ -153,5 +153,9 @@
     "memory": {
         "provider": "ChatMemoryBuffer",
         "token_limit": 1500
+    },
+    "retriever": {
+        "provider": "VectorIndexRetriever",
+        "similarity_top_k": 10
     }
 }

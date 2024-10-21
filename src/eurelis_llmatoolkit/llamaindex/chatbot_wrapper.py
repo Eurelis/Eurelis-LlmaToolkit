@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, Optional
 from llama_index.core import VectorStoreIndex
 from llama_index.core.chat_engine.types import ChatMode
-from llama_index.core.retrievers import VectorIndexRetriever
 from llama_index.core.storage import StorageContext
 from llama_index.core.query_engine import RetrieverQueryEngine
 
@@ -10,6 +9,7 @@ from eurelis_llmatoolkit.llamaindex.factories.documentstore_factory import (
 )
 from eurelis_llmatoolkit.llamaindex.factories.embedding_factory import EmbeddingFactory
 from eurelis_llmatoolkit.llamaindex.factories.memory_factory import MemoryFactory
+from eurelis_llmatoolkit.llamaindex.factories.retriever_factory import RetrieverFactory
 from eurelis_llmatoolkit.llamaindex.factories.vectorstore_factory import (
     VectorStoreFactory,
 )
@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from llama_index.core.vector_stores.types import BasePydanticVectorStore
     from llama_index.core.base.llms.base import BaseLLM
     from llama_index.core.memory import BaseMemory
+    from llama_index.core.retrievers import BaseRetriever
 
 
 class ChatbotWrapper:
@@ -31,7 +32,7 @@ class ChatbotWrapper:
         self._document_store = None
         self._storage_context: Optional[StorageContext] = None
         self._index: Optional[VectorStoreIndex] = None
-        self._retriever: Optional[VectorIndexRetriever] = None
+        self._retriever: "BaseRetriever" = None
         self._embedding_model: "BaseEmbedding" = None
         self._llm: "BaseLLM" = None
         self._query_engine: Optional[RetrieverQueryEngine] = None
@@ -180,10 +181,10 @@ class ChatbotWrapper:
 
     def _get_retriever(self):
         """
-        Creates a VectorIndexRetriever using the index and embedding model.
+        Creates a Retriever using the index and embedding model.
 
         Returns:
-            VectorIndexRetriever: The configured retriever.
+            Retriever: The configured retriever.
         """
         if self._retriever is not None:
             return self._retriever
@@ -191,13 +192,11 @@ class ChatbotWrapper:
         index = self._get_index()
         embedding_model = self._get_embedding_model()
 
-        # Create the retriever with a specified number of results
-        self._retriever = VectorIndexRetriever(
-            index=index,
-            similarity_top_k=10,  # TODO Utiliser une VAR d'ENV
-            filter=None,
-            embedding_model=embedding_model,
-        )
+        retriever_config = self._config.get("retriever")
+        if retriever_config:
+            self._retriever = RetrieverFactory.create_retriever(
+                retriever_config, index=index, embedding_model=embedding_model
+            )
 
         return self._retriever
 
