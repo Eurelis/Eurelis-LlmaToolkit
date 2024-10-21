@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Iterable, List, Optional
 from llama_index.core import Document, VectorStoreIndex
 from llama_index.core.ingestion import IngestionPipeline
 
+from eurelis_llmatoolkit.llamaindex.abstract_wrapper import AbstractWrapper
 from eurelis_llmatoolkit.llamaindex.factories.cache_factory import CacheFactory
 from eurelis_llmatoolkit.llamaindex.factories.documentstore_factory import (
     DocumentStoreFactory,
@@ -20,14 +21,33 @@ if TYPE_CHECKING:
     from llama_index.core.vector_stores.types import BasePydanticVectorStore
 
 
-class IngestionWrapper:
-    def __init__(self, config: dict):
-        self._config: dict = config
-        self._vector_store: "BasePydanticVectorStore" = None
-        self._document_store = None
-
+class IngestionWrapper(AbstractWrapper):
     def run(self, dataset_id: Optional[str] = None, use_cache: bool = False):
         self._process_datasets(dataset_id, use_cache)
+
+    def generate_cache(self, dataset_id: Optional[str] = None):
+        # Récupérer la configuration des datasets
+        datasets = list(
+            self._filter_datasets(dataset_id)
+        )  # Convertir l'iterable en liste
+
+        if not datasets:
+            print(f"No dataset found with ID: {dataset_id}")
+            return
+
+        # Parcourir tous les datasets et générer le cache
+        for dataset_config in datasets:
+            # Vérifier que l'ID du dataset n'est pas None
+            dataset_id = dataset_config.get("id")
+            if dataset_id is None:
+                print(f"Dataset configuration missing 'id': {dataset_config}")
+                continue
+
+            documents = self._get_documents(dataset_config, use_cache=False)
+
+            # Générer le cache
+            self._generate_cache(dataset_id, documents)
+            print(f"Cache generated for dataset ID: {dataset_id}!")
 
     def _load_documents_from_reader(self, dataset_config: dict) -> List[Document]:
         """Load documents using the appropriate reader based on the dataset configuration."""
@@ -42,52 +62,6 @@ class IngestionWrapper:
         cache_config = self._config.get("scraping_cache", [])
         cache = CacheFactory.create_cache(cache_config)
         return cache.load_data(dataset_config["id"])
-
-    def _get_vector_store(self):
-        if self._vector_store is not None:
-            return self._vector_store
-
-        vectorstore_config = self._config["vectorstore"]
-        self._vector_store = VectorStoreFactory.create_vector_store(vectorstore_config)
-        return self._vector_store
-
-    def _get_document_store(self):
-        if self._document_store is not None:
-            return self._document_store
-
-        documentstore_config = self._config.get("documentstore")
-        if documentstore_config:
-            self._document_store = DocumentStoreFactory.create_document_store(
-                documentstore_config
-            )
-
-        return self._document_store
-
-    def get_vector_store_index(self):
-        """Create your index"""
-        return VectorStoreIndex.from_vector_store(self._get_vector_store())
-
-    def _filter_datasets(self, dataset_id: Optional[str] = None) -> Iterable[dict]:
-        """
-        Retrieve all datasets or filter by dataset ID if provided.
-
-        Args:
-            dataset_id: Optional, if provided, only returns datasets that match the given ID.
-
-        Returns:
-            A list of all datasets if no dataset_id is provided, otherwise a list of datasets
-            filtered by the dataset_id.
-        """
-        datasets = self._config.get("dataset", [])
-
-        if not dataset_id:
-            return datasets
-
-        filtered_datasets = [
-            dataset for dataset in datasets if dataset.get("id") == dataset_id
-        ]
-
-        return filtered_datasets
 
     def _process_datasets(
         self, dataset_id: Optional[str] = None, use_cache: bool = False

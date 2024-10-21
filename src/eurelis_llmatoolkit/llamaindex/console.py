@@ -59,29 +59,8 @@ def dataset_cache(ctx: click.Context):
     dataset_id = ctx.obj["dataset_id"]
 
     wrapper: IngestionWrapper = ctx.obj["wrapper"]
-
-    # Récupérer la configuration des datasets
-    datasets = list(
-        wrapper._filter_datasets(dataset_id)
-    )  # Convertir l'iterable en liste
-
-    if not datasets:
-        click.echo(f"No dataset found with ID: {dataset_id}")
-        return
-
-    # Parcourir tous les datasets et générer le cache
-    for dataset_config in datasets:
-        # Vérifier que l'ID du dataset n'est pas None
-        dataset_id = dataset_config.get("id")
-        if dataset_id is None:
-            click.echo(f"Dataset configuration missing 'id': {dataset_config}")
-            continue
-
-        documents = wrapper._get_documents(dataset_config, use_cache=False)
-
-        # Générer le cache
-        wrapper._generate_cache(dataset_id, documents)
-        click.echo(f"Cache generated for dataset ID: {dataset_id}!")
+    wrapper.generate_cache(dataset_id)
+    click.echo(f"End of cache generation!")
 
 
 # Register the dataset group under the main CLI
