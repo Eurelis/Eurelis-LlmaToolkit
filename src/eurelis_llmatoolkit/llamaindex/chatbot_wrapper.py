@@ -1,35 +1,26 @@
 from typing import TYPE_CHECKING, Optional
 from llama_index.core import VectorStoreIndex
-from llama_index.core.chat_engine.types import ChatMode
 from llama_index.core.storage import StorageContext
 from llama_index.core.query_engine import RetrieverQueryEngine
 
-from eurelis_llmatoolkit.llamaindex.factories.documentstore_factory import (
-    DocumentStoreFactory,
-)
+from eurelis_llmatoolkit.llamaindex.abstract_wrapper import AbstractWrapper
 from eurelis_llmatoolkit.llamaindex.factories.embedding_factory import EmbeddingFactory
 from eurelis_llmatoolkit.llamaindex.factories.memory_factory import MemoryFactory
 from eurelis_llmatoolkit.llamaindex.factories.retriever_factory import RetrieverFactory
-from eurelis_llmatoolkit.llamaindex.factories.vectorstore_factory import (
-    VectorStoreFactory,
-)
 from eurelis_llmatoolkit.llamaindex.factories.llm_factory import (
     LLMFactory,
 )
 
 if TYPE_CHECKING:
     from llama_index.core.embeddings import BaseEmbedding
-    from llama_index.core.vector_stores.types import BasePydanticVectorStore
     from llama_index.core.base.llms.base import BaseLLM
     from llama_index.core.memory import BaseMemory
     from llama_index.core.retrievers import BaseRetriever
 
 
-class ChatbotWrapper:
+class ChatbotWrapper(AbstractWrapper):
     def __init__(self, config: dict):
-        self._config: dict = config
-        self._vector_store: "BasePydanticVectorStore" = None
-        self._document_store = None
+        super().__init__(config)
         self._storage_context: Optional[StorageContext] = None
         self._index: Optional[VectorStoreIndex] = None
         self._retriever: "BaseRetriever" = None
@@ -39,10 +30,14 @@ class ChatbotWrapper:
         self._memory: "BaseMemory" = None
         self._chat_engine = None
 
-    def run(self):
+    def run(self, dataset_id: Optional[str] = None, use_cache: bool = False):
         """
         Runs the chatbot by initializing the vector store, storage context,
         index, retriever, query engine, and memory.
+
+        Args:
+            dataset_id: Optional, ID of the dataset to process.
+            use_cache: Optional, flag to indicate if caching should be used.
         """
         vector_store = self._get_vector_store()
         storage_context = self._get_storage_context()
@@ -53,6 +48,7 @@ class ChatbotWrapper:
         query_engine = self._get_query_engine(retriever, llm)
         chat_engine = self._get_chat_engine()
 
+        # Debug prints
         # print(f"VectorStore initialized: {vector_store}")
         # print(f"StorageContext initialized: {storage_context}")
         # print(f"Index initialized: {index}")
@@ -86,41 +82,6 @@ class ChatbotWrapper:
         if memory_config:
             self._memory = MemoryFactory.create_memory(memory_config)
         return self._memory
-
-    def _get_vector_store(self):
-        """
-        Retrieves the vector store from the configuration.
-
-        Returns:
-            BasePydanticVectorStore: The configured vector store.
-        """
-        if self._vector_store is not None:
-            return self._vector_store
-
-        vectorstore_config = self._config.get("vectorstore")
-        if vectorstore_config:
-            self._vector_store = VectorStoreFactory.create_vector_store(
-                vectorstore_config
-            )
-        return self._vector_store
-
-    def _get_document_store(self):
-        """
-        Retrieves the document store from the configuration.
-
-        Returns:
-            DocumentStore: The configured document store.
-        """
-        if self._document_store is not None:
-            return self._document_store
-
-        documentstore_config = self._config.get("documentstore")
-        if documentstore_config:
-            self._document_store = DocumentStoreFactory.create_document_store(
-                documentstore_config
-            )
-
-        return self._document_store
 
     def _get_storage_context(self):
         """
