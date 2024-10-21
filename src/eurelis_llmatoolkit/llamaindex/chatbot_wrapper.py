@@ -53,14 +53,14 @@ class ChatbotWrapper:
         query_engine = self._get_query_engine(retriever, llm)
         chat_engine = self._get_chat_engine()
 
-        print(f"VectorStore initialized: {vector_store}")
-        print(f"StorageContext initialized: {storage_context}")
-        print(f"Index initialized: {index}")
-        print(f"Retriever initialized: {retriever}")
-        print(f"LLM initialized: {llm}")
-        print(f"Memory initialized: {memory}")
-        print(f"QueryEngine initialized: {query_engine}")
-        print(f"ChatEngine initialized: {chat_engine}")
+        # print(f"VectorStore initialized: {vector_store}")
+        # print(f"StorageContext initialized: {storage_context}")
+        # print(f"Index initialized: {index}")
+        # print(f"Retriever initialized: {retriever}")
+        # print(f"LLM initialized: {llm}")
+        # print(f"Memory initialized: {memory}")
+        # print(f"QueryEngine initialized: {query_engine}")
+        # print(f"ChatEngine initialized: {chat_engine}")
 
         # FIXME : Empty Response
         response = chat_engine.chat("Hello!")
@@ -69,8 +69,8 @@ class ChatbotWrapper:
         response = chat_engine.chat("What is Drupal about?")
         print(response)
 
-        response = chat_engine.chat("Can you tell me more?")
-        print(response)
+        # response = chat_engine.chat("Can you tell me more?")
+        # print(response)
 
     def _get_memory(self):
         """
@@ -249,14 +249,23 @@ class ChatbotWrapper:
         index = self._get_index()
         memory = self._get_memory()
 
-        # TODO : System_prompt en config
         # Create the chat engine with the specified configuration
+        chat_mode = self._config.get("chat_mode")
+        system_prompt_list = self._config.get("system_prompt")
+
+        if isinstance(system_prompt_list, list):
+            system_prompt = "\n".join(system_prompt_list)
+        elif isinstance(system_prompt_list, str):
+            system_prompt = system_prompt_list
+        else:
+            raise ValueError(
+                "The 'system_prompt' should be either a list of strings or a single string."
+            )
+
         self._chat_engine = index.as_chat_engine(
-            chat_mode=ChatMode.CONTEXT,
+            chat_mode=chat_mode,
             memory=memory,
-            system_prompt=(
-                "You are a chatbot, able to have normal interactions, as well as talk "
-            ),
+            system_prompt=system_prompt,
         )
 
         return self._chat_engine

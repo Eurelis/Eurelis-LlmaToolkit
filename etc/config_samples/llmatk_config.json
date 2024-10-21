@@ -157,5 +157,9 @@
     "retriever": {
         "provider": "VectorIndexRetriever",
         "similarity_top_k": 10
-    }
+    },
+    "system_prompt": [
+        "You are a chatbot, able to have normal interactions, as well as talk"
+    ],
+    "chat_mode": "context"
 }

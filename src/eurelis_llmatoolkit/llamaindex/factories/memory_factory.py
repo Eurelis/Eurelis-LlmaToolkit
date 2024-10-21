@@ -11,5 +11,5 @@ class MemoryFactory:
         # Check for built-in memory
         #
         if provider == "ChatMemoryBuffer":
-            return ChatMemoryBuffer.from_defaults(config["token_limit"])
+            return ChatMemoryBuffer.from_defaults(token_limit=config["token_limit"])
         raise ValueError(f"Memory provider {provider} is not supported.")
