@@ -1,5 +1,9 @@
 # Changelog
 
+## 2024-10-22 - v2.0.0dev1
+
+* 1st integration with LlmaIndex
+
 ## 2024-09-30 - v1.1.0rc2
 
 * MongoDb RecordManager

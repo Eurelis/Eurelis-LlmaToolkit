@@ -8,7 +8,7 @@
 [![GitHub star chart](https://img.shields.io/github/stars/langchain-ai/langchain?style=social)](https://star-history.com/#Eurelis/Eurelis-KB-Framework)
 [![X (formerly Twitter) URL](https://img.shields.io/twitter/url?url=https%3A%2F%2Fx.com%2FAgence_Eurelis&label=Follow%20%40Eurelis)](https://x.com/Agence_Eurelis)
 
-Framework to build and manage IA based applications. Based on Langchain under the hood.
+Framework to build and manage IA based applications. Based on Langchain and LlamaIndex under the hood.
 Reboot de la librairie [Eurelis-KB-Framework](https://github.com/Eurelis/Eurelis-KB-Framework).
 
 ## General information
