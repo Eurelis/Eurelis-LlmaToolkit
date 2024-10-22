@@ -22,6 +22,7 @@ def cli(ctx: click.Context, config: str):
     """
     config_dict = ConfigLoader.load_config(config)
     ctx.obj["wrapper"] = IngestionWrapper(config_dict)
+    ctx.obj["search_wrapper"] = SearchWrapper(config_dict)
 
 
 @click.group()
@@ -61,6 +62,28 @@ def dataset_cache(ctx: click.Context):
     wrapper: IngestionWrapper = ctx.obj["wrapper"]
     wrapper.generate_cache(dataset_id)
     click.echo(f"End of cache generation!")
+
+
+@dataset.command("search_nodes")
+@click.option("--query", required=True, help="Search query")
+@click.pass_context
+def dataset_search_nodes(ctx: click.Context, query: str):
+    """Search the vector store"""
+    wrapper: SearchWrapper = ctx.obj["search_wrapper"]
+    results = wrapper.search_nodes(query)
+    for result in results:
+        click.echo(result)
+
+
+@dataset.command("search_documents")
+@click.option("--query", required=True, help="Search query")
+@click.pass_context
+def dataset_search_nodes(ctx: click.Context, query: str):
+    """Search the vector store"""
+    wrapper: SearchWrapper = ctx.obj["search_wrapper"]
+    results = wrapper.search_documents(query)
+    for result in results:
+        click.echo(result)
 
 
 # Register the dataset group under the main CLI

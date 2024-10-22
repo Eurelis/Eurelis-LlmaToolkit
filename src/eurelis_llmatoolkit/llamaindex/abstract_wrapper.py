@@ -1,18 +1,15 @@
-from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Iterable, List, Optional
+from abc import ABC
+from typing import TYPE_CHECKING, Iterable, Optional
 
-from llama_index.core import Document, VectorStoreIndex
-from llama_index.core.ingestion import IngestionPipeline
+from llama_index.core import VectorStoreIndex
+from llama_index.core.embeddings import BaseEmbedding
+from llama_index.core.storage import StorageContext
 
-from eurelis_llmatoolkit.llamaindex.factories.cache_factory import CacheFactory
 from eurelis_llmatoolkit.llamaindex.factories.documentstore_factory import (
     DocumentStoreFactory,
 )
 from eurelis_llmatoolkit.llamaindex.factories.embedding_factory import EmbeddingFactory
-from eurelis_llmatoolkit.llamaindex.factories.reader_factory import ReaderFactory
-from eurelis_llmatoolkit.llamaindex.factories.transformation_factory import (
-    TransformationFactory,
-)
+from eurelis_llmatoolkit.llamaindex.factories.retriever_factory import RetrieverFactory
 from eurelis_llmatoolkit.llamaindex.factories.vectorstore_factory import (
     VectorStoreFactory,
 )
@@ -26,10 +23,6 @@ class AbstractWrapper(ABC):
         self._config: dict = config
         self._vector_store: "BasePydanticVectorStore" = None
         self._document_store = None
-
-    @abstractmethod
-    def run(self, dataset_id: Optional[str] = None, use_cache: bool = False):
-        """Run the wrapper process for the given dataset_id."""
 
     def _get_vector_store(self):
         if self._vector_store is not None:
@@ -51,9 +44,28 @@ class AbstractWrapper(ABC):
 
         return self._document_store
 
-    def get_vector_store_index(self):
+    def _get_embeddings(self):
+        embedding_config = self._config["embeddings"]
+        embedding_model = EmbeddingFactory.create_embedding(embedding_config)
+        return embedding_model
+
+    def _get_retriever(
+        self,
+        config: dict,
+        index: Optional[VectorStoreIndex] = None,
+        embedding_model: Optional[BaseEmbedding] = None,
+    ):
+        retriever_config = config["retriever"]
+        retriever = RetrieverFactory.create_retriever(
+            retriever_config, index=index, embedding_model=embedding_model
+        )
+        return retriever
+
+    def _get_vector_store_index(self, storage_context: Optional[StorageContext] = None):
         """Create your index"""
-        return VectorStoreIndex.from_vector_store(self._get_vector_store())
+        return VectorStoreIndex.from_vector_store(
+            self._vector_store, storage_context=storage_context
+        )
 
     def _filter_datasets(self, dataset_id: Optional[str] = None) -> Iterable[dict]:
         """

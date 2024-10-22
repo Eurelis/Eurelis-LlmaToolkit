@@ -1,20 +1,13 @@
-from typing import TYPE_CHECKING, Iterable, List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
-from llama_index.core import Document, VectorStoreIndex
+from llama_index.core import Document
 from llama_index.core.ingestion import IngestionPipeline
 
 from eurelis_llmatoolkit.llamaindex.abstract_wrapper import AbstractWrapper
 from eurelis_llmatoolkit.llamaindex.factories.cache_factory import CacheFactory
-from eurelis_llmatoolkit.llamaindex.factories.documentstore_factory import (
-    DocumentStoreFactory,
-)
-from eurelis_llmatoolkit.llamaindex.factories.embedding_factory import EmbeddingFactory
 from eurelis_llmatoolkit.llamaindex.factories.reader_factory import ReaderFactory
 from eurelis_llmatoolkit.llamaindex.factories.transformation_factory import (
     TransformationFactory,
-)
-from eurelis_llmatoolkit.llamaindex.factories.vectorstore_factory import (
-    VectorStoreFactory,
 )
 
 if TYPE_CHECKING:
@@ -114,9 +107,7 @@ class IngestionWrapper(AbstractWrapper):
             )
 
         # Embedding (last transformation)
-        embedding_config = self._config["embeddings"]
-        embedding_model = EmbeddingFactory.create_embedding(embedding_config)
-        transformations.append(embedding_model)
+        transformations.append(self._get_embeddings())
 
         return transformations
 

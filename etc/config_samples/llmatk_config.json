@@ -114,6 +114,12 @@
             }
         }
     ],
+    "search_engine": {
+        "retriever": {
+            "provider": "VectorIndexRetriever",
+            "similarity_top_k": 10
+        }
+    },
     "scraping_cache": {
         "provider": "FSCache",
         "base_dir": "../etc/no-commit/scraping_cache"
