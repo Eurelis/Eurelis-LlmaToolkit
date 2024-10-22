@@ -161,5 +161,9 @@
     "system_prompt": [
         "You are a chatbot, able to have normal interactions, as well as talk"
     ],
-    "chat_mode": "context"
+    "chat_mode": "context",
+    "conversation_manager": {
+        "provider": "JSONConversationManager",
+        "persist_conversation_path": "../etc/no-commit/conversation_history.json"
+    }
 }

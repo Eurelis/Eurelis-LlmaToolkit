@@ -4,6 +4,9 @@ from llama_index.core.storage import StorageContext
 from llama_index.core.query_engine import RetrieverQueryEngine
 
 from eurelis_llmatoolkit.llamaindex.abstract_wrapper import AbstractWrapper
+from eurelis_llmatoolkit.llamaindex.factories.conversation_manager_factory import (
+    ConversationManagerFactory,
+)
 from eurelis_llmatoolkit.llamaindex.factories.embedding_factory import EmbeddingFactory
 from eurelis_llmatoolkit.llamaindex.factories.memory_factory import MemoryFactory
 from eurelis_llmatoolkit.llamaindex.factories.retriever_factory import RetrieverFactory
@@ -29,46 +32,40 @@ class ChatbotWrapper(AbstractWrapper):
         self._query_engine: Optional[RetrieverQueryEngine] = None
         self._memory: "BaseMemory" = None
         self._chat_engine = None
+        self._conversation_manager = None
 
-    def run(self, dataset_id: Optional[str] = None, use_cache: bool = False):
+    def run(
+        self,
+        conversation_id: str,
+        dataset_id: Optional[str] = None,
+        use_cache: bool = False,
+    ):
         """
         Runs the chatbot by initializing the vector store, storage context,
         index, retriever, query engine, and memory.
 
         Args:
+            conversation_id: str, ID of the current conversation.
             dataset_id: Optional, ID of the dataset to process.
             use_cache: Optional, flag to indicate if caching should be used.
         """
-        vector_store = self._get_vector_store()
-        storage_context = self._get_storage_context()
-        index = self._get_index()
-        retriever = self._get_retriever()
-        llm = self._get_llm()
+        # Création d'un chat_engine pour avoir une conversation avec id
+        chat_engine = self._get_chat_engine(chat_store_key=conversation_id)
+
+        # Pour sauver et restaurer la conversation
         memory = self._get_memory()
-        query_engine = self._get_query_engine(retriever, llm)
-        chat_engine = self._get_chat_engine()
-
-        # Debug prints
-        # print(f"VectorStore initialized: {vector_store}")
-        # print(f"StorageContext initialized: {storage_context}")
-        # print(f"Index initialized: {index}")
-        # print(f"Retriever initialized: {retriever}")
-        # print(f"LLM initialized: {llm}")
-        # print(f"Memory initialized: {memory}")
-        # print(f"QueryEngine initialized: {query_engine}")
-        # print(f"ChatEngine initialized: {chat_engine}")
-
-        # FIXME : Empty Response
-        response = chat_engine.chat("Hello!")
-        print(response)
+        conversation_manager = self._get_conversation_manager(memory)
+        conversation_manager.load_history()
 
         response = chat_engine.chat("What is Drupal about?")
         print(response)
+        response = chat_engine.chat("What is IA about?")
+        print(response)
 
-        # response = chat_engine.chat("Can you tell me more?")
-        # print(response)
+        # Sauvegarder les conversations
+        conversation_manager.save_history()
 
-    def _get_memory(self):
+    def _get_memory(self, chat_store_key: str | None = None):
         """
         Creates a BaseMemory.
 
@@ -79,8 +76,8 @@ class ChatbotWrapper(AbstractWrapper):
             return self._memory
 
         memory_config = self._config.get("memory")
-        if memory_config:
-            self._memory = MemoryFactory.create_memory(memory_config)
+        if memory_config and chat_store_key is not None:
+            self._memory = MemoryFactory.create_memory(memory_config, chat_store_key)
         return self._memory
 
     def _get_storage_context(self):
@@ -197,7 +194,7 @@ class ChatbotWrapper(AbstractWrapper):
 
         return self._query_engine
 
-    def _get_chat_engine(self):
+    def _get_chat_engine(self, chat_store_key: str):
         """
         Creates a chat engine using the index, chat mode, memory, and system prompt.
 
@@ -208,7 +205,7 @@ class ChatbotWrapper(AbstractWrapper):
             return self._chat_engine
 
         index = self._get_index()
-        memory = self._get_memory()
+        memory = self._get_memory(chat_store_key)
 
         # Create the chat engine with the specified configuration
         chat_mode = self._config.get("chat_mode")
@@ -230,3 +227,30 @@ class ChatbotWrapper(AbstractWrapper):
         )
 
         return self._chat_engine
+
+    def _get_conversation_manager(self, memory=None):
+        """
+        Get or create a conversation manager.
+
+        If a conversation manager already exists, return it. If not, and if
+        a configuration is available, create one using the provided memory.
+
+        Args:
+            memory (Optional[BaseChatStoreMemory]): Memory instance for initializing
+            the conversation manager, if needed.
+
+        Returns:
+            ConversationManager: The conversation manager instance.
+        """
+        if self._conversation_manager is not None:
+            return self._conversation_manager
+
+        conversation_manager_config = self._config.get("conversation_manager")
+        if conversation_manager_config and memory is not None:
+            self._conversation_manager = (
+                ConversationManagerFactory.create_conversation_manager(
+                    conversation_manager_config, memory
+                )
+            )
+
+        return self._conversation_manager
