@@ -2,6 +2,7 @@ import click
 
 from eurelis_llmatoolkit.llamaindex.config_loader import ConfigLoader
 from eurelis_llmatoolkit.llamaindex.ingestion_wrapper import IngestionWrapper
+from eurelis_llmatoolkit.llamaindex.search_wrapper import SearchWrapper
 
 
 @click.group()
