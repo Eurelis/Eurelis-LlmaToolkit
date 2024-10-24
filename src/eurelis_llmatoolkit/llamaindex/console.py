@@ -65,10 +65,22 @@ def dataset_cache(ctx: click.Context):
     click.echo(f"End of cache generation!")
 
 
-@dataset.command("search_nodes")
+@click.group()
+@click.pass_context
+def search(ctx: click.Context):
+    """
+    Group of commands for dataset management.
+
+    Args:
+        ctx: Click context
+        id: Dataset ID
+    """
+
+
+@search.command("nodes")
 @click.option("--query", required=True, help="Search query")
 @click.pass_context
-def dataset_search_nodes(ctx: click.Context, query: str):
+def search_nodes(ctx: click.Context, query: str):
     """Search the vector store"""
     wrapper: SearchWrapper = ctx.obj["search_wrapper"]
     results = wrapper.search_nodes(query)
@@ -76,10 +88,10 @@ def dataset_search_nodes(ctx: click.Context, query: str):
         click.echo(result)
 
 
-@dataset.command("search_documents")
+@search.command("documents")
 @click.option("--query", required=True, help="Search query")
 @click.pass_context
-def dataset_search_nodes(ctx: click.Context, query: str):
+def search_docs(ctx: click.Context, query: str):
     """Search the vector store"""
     wrapper: SearchWrapper = ctx.obj["search_wrapper"]
     results = wrapper.search_documents(query)
@@ -89,6 +101,7 @@ def dataset_search_nodes(ctx: click.Context, query: str):
 
 # Register the dataset group under the main CLI
 cli.add_command(dataset)
+cli.add_command(search)
 
 if __name__ == "__main__":
     cli(obj={})
