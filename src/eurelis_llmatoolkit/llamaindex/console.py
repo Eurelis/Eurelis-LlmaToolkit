@@ -66,8 +66,9 @@ def dataset_cache(ctx: click.Context):
 
 
 @click.group()
+@click.option("--query", required=True, help="Search query")
 @click.pass_context
-def search(ctx: click.Context):
+def search(ctx: click.Context, query: str):
     """
     Group of commands for dataset management.
 
@@ -75,25 +76,26 @@ def search(ctx: click.Context):
         ctx: Click context
         id: Dataset ID
     """
+    ctx.obj["query"] = query
 
 
 @search.command("nodes")
-@click.option("--query", required=True, help="Search query")
 @click.pass_context
-def search_nodes(ctx: click.Context, query: str):
+def search_nodes(ctx: click.Context):
     """Search the vector store"""
     wrapper: SearchWrapper = ctx.obj["search_wrapper"]
+    query = ctx.obj["query"]
     results = wrapper.search_nodes(query)
     for result in results:
         click.echo(result)
 
 
 @search.command("documents")
-@click.option("--query", required=True, help="Search query")
 @click.pass_context
-def search_docs(ctx: click.Context, query: str):
+def search_docs(ctx: click.Context):
     """Search the vector store"""
     wrapper: SearchWrapper = ctx.obj["search_wrapper"]
+    query = ctx.obj["query"]
     results = wrapper.search_documents(query)
     for result in results:
         click.echo(result)
