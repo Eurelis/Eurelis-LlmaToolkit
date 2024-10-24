@@ -6,7 +6,7 @@ class RetrieverFactory:
     def create_retriever(
         config: dict,
         index=None,
-        filter=None,
+        filters=None,
         embedding_model=None,
     ):
         provider = config.get("provider")
@@ -21,7 +21,7 @@ class RetrieverFactory:
             return VectorIndexRetriever(
                 index=index,
                 similarity_top_k=config.get("similarity_top_k", 10),  # Default to 10
-                filters=filter,
+                filters=filters,
                 embed_model=embedding_model,
             )
 

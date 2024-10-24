@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Iterable, Optional
 from llama_index.core import VectorStoreIndex
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.storage import StorageContext
+from llama_index.core.vector_stores.types import MetadataFilters
 
 from eurelis_llmatoolkit.llamaindex.factories.documentstore_factory import (
     DocumentStoreFactory,
@@ -53,11 +54,15 @@ class AbstractWrapper(ABC):
         self,
         config: dict,
         index: Optional[VectorStoreIndex] = None,
+        filters: Optional[MetadataFilters] = None,
         embedding_model: Optional[BaseEmbedding] = None,
     ):
         retriever_config = config["retriever"]
         retriever = RetrieverFactory.create_retriever(
-            retriever_config, index=index, embedding_model=embedding_model
+            retriever_config,
+            index=index,
+            filters=filters,
+            embedding_model=embedding_model,
         )
         return retriever
 

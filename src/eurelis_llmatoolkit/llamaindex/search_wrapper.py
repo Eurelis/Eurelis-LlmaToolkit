@@ -2,6 +2,7 @@ from llama_index.core.schema import NodeWithScore
 from llama_index.core.storage import StorageContext
 
 from eurelis_llmatoolkit.llamaindex.abstract_wrapper import AbstractWrapper
+from llama_index.core.vector_stores.types import MetadataFilters
 
 
 class SearchWrapper(AbstractWrapper):
@@ -58,7 +59,7 @@ class SearchWrapper(AbstractWrapper):
         results = self._retriever.retrieve(query)
         return results
 
-    def _initialize_retriever(self):
+    def _initialize_retriever(self, filters: MetadataFilters = None):
         # Récupération du vector store
         vector_store = self._get_vector_store()
 
@@ -80,5 +81,6 @@ class SearchWrapper(AbstractWrapper):
         self._retriever = self._get_retriever(
             self._config["search_engine"],
             index=vector_store_index,
+            filters=filters,
             embedding_model=embedding_model,
         )
