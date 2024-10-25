@@ -42,7 +42,11 @@ class SearchWrapper(AbstractWrapper):
                         "node": node,
                     }
 
-        return [doc["node"] for doc in documents.values()]
+        return sorted(
+            [doc["node"] for doc in documents.values()],
+            key=lambda x: x.score,
+            reverse=True,
+        )
 
     def search_nodes(self, query: str) -> list[NodeWithScore]:
         """
