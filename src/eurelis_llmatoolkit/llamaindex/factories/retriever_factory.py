@@ -1,4 +1,4 @@
-from llama_index.core.retrievers import VectorIndexRetriever
+import importlib
 
 
 class RetrieverFactory:
@@ -15,6 +15,8 @@ class RetrieverFactory:
         # Check for built-in Retriever
         #
         if provider == "VectorIndexRetriever":
+            from llama_index.core.retrievers import VectorIndexRetriever
+
             if index is None:
                 raise ValueError("VectorIndexRetriever requires a valid 'index'.")
 
@@ -25,4 +27,24 @@ class RetrieverFactory:
                 embed_model=embedding_model,
             )
 
-        raise ValueError(f"Retriever provider '{provider}' is not supported.")
+        #
+        # If the provider is a custom retriever
+        #
+        if provider.count(".") == 0:
+            raise ValueError(
+                "Provider attribute must reference a standard Retriever short name or a fully qualified class path"
+            )
+
+        module_name, class_name = provider.rsplit(".", 1)
+
+        module = importlib.import_module(module_name)
+
+        retriever_class = getattr(module, class_name)
+
+        return retriever_class(
+            index=index,
+            similarity_top_k=config.get("similarity_top_k", 10),
+            filters=filters,
+            embed_model=embedding_model,
+            config=config,
+        )
