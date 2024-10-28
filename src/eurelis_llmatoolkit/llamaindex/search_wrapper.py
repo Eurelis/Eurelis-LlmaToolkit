@@ -64,7 +64,10 @@ class SearchWrapper(AbstractWrapper):
         """
         self._initialize_retriever()
         # recherche dans l'index
-        results = self._retriever.retrieve(query, extract_filters=extract_filters)
+        if getattr(self._retriever, "supports_extract_filters", False):
+            results = self._retriever.retrieve(query, extract_filters=extract_filters)
+        else:
+            results = self._retriever.retrieve(query)
         return results
 
     def _initialize_retriever(self, filters: MetadataFilters = None):
