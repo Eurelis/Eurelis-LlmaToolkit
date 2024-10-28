@@ -48,13 +48,37 @@ class IngestionWrapper(AbstractWrapper):
             f"{self._config['project']}/{dataset_config['id']}",
             dataset_config["reader"],
         )
-        return reader_adapter.load_data()
+        documents = reader_adapter.load_data()
+
+        # Add project metadata
+        return self.add_project_metadata(documents, self._config["project"])
 
     def _load_documents_from_cache(self, dataset_config: dict) -> List[Document]:
         """Load documents from cache if the cache is available."""
         cache_config = self._config.get("scraping_cache", [])
         cache = CacheFactory.create_cache(cache_config)
-        return cache.load_data(dataset_config["id"])
+        documents = cache.load_data(dataset_config["id"])
+
+        # Add project metadata
+        return self.add_project_metadata(documents, self._config["project"])
+
+    def add_project_metadata(
+        self, documents: List[Document], project: str
+    ) -> List[Document]:
+        """Add project metadata to each document in the list.
+
+        Args:
+            documents (List[Document]): List of documents to be processed.
+            project (str): Project name to add as metadata.
+
+        Returns:
+            List[Document]: List of documents with added project metadata.
+        """
+        for doc in documents:
+            if not hasattr(doc, "metadata"):
+                doc.metadata = {}
+            doc.metadata["project"] = project
+        return documents
 
     def _process_datasets(
         self, dataset_id: Optional[str] = None, use_cache: bool = False
