@@ -68,7 +68,7 @@
             },
             "metadata": {
                 "provider": "MetadataTransformer",
-                "metadatas": {
+                "metadata": {
                     "agent_name": "eurelis"
                 }
             },

@@ -9,7 +9,7 @@ class MetadataTransformer(NodeParser):
         Initialize class with metadata from configuration file.
         """
         super().__init__()
-        self._metadatas: dict[str, Any] = config.get("metadatas", {})
+        self._metadata: dict[str, Any] = config.get("metadata", {})
 
     def _parse_nodes(
         self,
@@ -29,9 +29,9 @@ class MetadataTransformer(NodeParser):
 
         for node in nodes:
             if hasattr(node, "metadata"):
-                node.metadata.update(self._metadatas)
+                node.metadata.update(self._metadata)
             else:
-                node.metadata = self._metadatas.copy()
+                node.metadata = self._metadata.copy()
 
             updated_nodes.append(node)
 
