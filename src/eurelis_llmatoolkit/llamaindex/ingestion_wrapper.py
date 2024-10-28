@@ -51,7 +51,7 @@ class IngestionWrapper(AbstractWrapper):
         documents = reader_adapter.load_data()
 
         # Add project metadata
-        return self.add_project_metadata(documents, self._config["project"])
+        return self._add_project_metadata(documents, self._config["project"])
 
     def _load_documents_from_cache(self, dataset_config: dict) -> List[Document]:
         """Load documents from cache if the cache is available."""
@@ -60,9 +60,9 @@ class IngestionWrapper(AbstractWrapper):
         documents = cache.load_data(dataset_config["id"])
 
         # Add project metadata
-        return self.add_project_metadata(documents, self._config["project"])
+        return self._add_project_metadata(documents, self._config["project"])
 
-    def add_project_metadata(
+    def _add_project_metadata(
         self, documents: List[Document], project: str
     ) -> List[Document]:
         """Add project metadata to each document in the list.
