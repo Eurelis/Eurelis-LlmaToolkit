@@ -12,7 +12,7 @@ class SearchWrapper(AbstractWrapper):
         super().__init__(config)
         self._retriever = None
 
-    def search_documents(self, query: str) -> list[dict]:
+    def search_documents(self, query: str, extract_filters: bool = False) -> list[dict]:
         """
         Search the index for the given query and return the results.
 
@@ -23,7 +23,9 @@ class SearchWrapper(AbstractWrapper):
             List of documents
         """
         # recherche dans l'index
-        results: list[NodeWithScore] = self.search_nodes(query)
+        results: list[NodeWithScore] = self.search_nodes(
+            query, extract_filters=extract_filters
+        )
 
         # tri des noeuds par document
         documents = {}
@@ -48,7 +50,9 @@ class SearchWrapper(AbstractWrapper):
             reverse=True,
         )
 
-    def search_nodes(self, query: str) -> list[NodeWithScore]:
+    def search_nodes(
+        self, query: str, extract_filters: bool = False
+    ) -> list[NodeWithScore]:
         """
         Search the index for the given query and return the results.
 
@@ -60,7 +64,7 @@ class SearchWrapper(AbstractWrapper):
         """
         self._initialize_retriever()
         # recherche dans l'index
-        results = self._retriever.retrieve(query)
+        results = self._retriever.retrieve(query, extract_filters=extract_filters)
         return results
 
     def _initialize_retriever(self, filters: MetadataFilters = None):
