@@ -116,7 +116,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
 
             page_text = page.get_text()
 
-            if self.config.get("include_pdfs", False):
+            if self.config.get("embed_pdf", False):
                 page_text += self._process_pdfs(page, url)
 
             if self.config.get("html_to_text", True):
