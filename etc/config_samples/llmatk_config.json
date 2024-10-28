@@ -62,17 +62,23 @@
                 "html_to_text": true,
                 "limit": 1
             },
+            "acronyms": {
+                "provider": "JSONFileAcronymTransformer",
+                "path": "../etc/config_samples/acronyms.json"
+            },
+            "metadata": {
+                "provider": "MetadataTransformer",
+                "metadatas": {
+                    "agent_name": "eurelis"
+                }
+            },
             "transformations": [
                 {
                     "provider": "SentenceSplitter",
                     "chunk_size": 768,
                     "chunk_overlap": 56
                 }
-            ],
-            "acronyms": {
-                "provider": "JSONFileAcronymTransformer",
-                "path": "../etc/config_samples/acronyms.json"
-            }
+            ]
         },
         {
             "id": "txt",

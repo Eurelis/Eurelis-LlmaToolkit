@@ -98,12 +98,20 @@ class IngestionWrapper(AbstractWrapper):
             for t_config in dataset_config["transformations"]
         ]
 
-        # Acronym (first transformation)
+        # First transformations
+        # Acronym
         acronyms = dataset_config.get("acronyms", None)
         if acronyms:
             transformations.insert(
                 0,
                 TransformationFactory.create_transformation(dataset_config["acronyms"]),
+            )
+        # Metadata
+        metadata = dataset_config.get("metadata", None)
+        if metadata:
+            transformations.insert(
+                0,
+                TransformationFactory.create_transformation(dataset_config["metadata"]),
             )
 
         # Embedding (last transformation)

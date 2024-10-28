@@ -3,6 +3,9 @@ from llama_index.core.node_parser import SentenceSplitter
 from eurelis_llmatoolkit.llamaindex.transformers.json_file_acronym_transformer import (
     JSONFileAcronymTransformer,
 )
+from eurelis_llmatoolkit.llamaindex.transformers.metadata_transformer import (
+    MetadataTransformer,
+)
 
 
 class TransformationFactory:
@@ -17,4 +20,6 @@ class TransformationFactory:
             )
         if provider == "JSONFileAcronymTransformer":
             return JSONFileAcronymTransformer(config)
+        if provider == "MetadataTransformer":
+            return MetadataTransformer(config)
         raise ValueError(f"Transformation provider {provider} is not supported.")
