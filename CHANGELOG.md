@@ -1,5 +1,10 @@
 # Changelog
 
+## 2024-10-29 - v2.0.0dev2
+
+* Improved ingestion pipeline & chatbot wrapper
+* Custom retriever
+
 ## 2024-10-22 - v2.0.0dev1
 
 * 1st integration with LlmaIndex
