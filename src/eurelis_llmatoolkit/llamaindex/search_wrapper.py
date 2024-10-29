@@ -1,8 +1,6 @@
 from llama_index.core.schema import NodeWithScore
-from llama_index.core.storage import StorageContext
 
 from eurelis_llmatoolkit.llamaindex.abstract_wrapper import AbstractWrapper
-from llama_index.core.vector_stores.types import MetadataFilters
 
 
 class SearchWrapper(AbstractWrapper):
@@ -62,36 +60,10 @@ class SearchWrapper(AbstractWrapper):
         Returns:
             List of NodeWithScore
         """
-        self._initialize_retriever()
+        retriever = self._get_retriever(self._config["search_engine"])
         # recherche dans l'index
-        if getattr(self._retriever, "supports_extract_filters", False):
-            results = self._retriever.retrieve(query, extract_filters=extract_filters)
+        if getattr(retriever, "supports_extract_filters", False):
+            results = retriever.retrieve(query, extract_filters=extract_filters)
         else:
-            results = self._retriever.retrieve(query)
+            results = retriever.retrieve(query)
         return results
-
-    def _initialize_retriever(self, filters: MetadataFilters = None):
-        # Récupération du vector store
-        vector_store = self._get_vector_store()
-
-        # Récupération du document store
-        document_store = self._get_document_store()
-
-        # Création du contexte de stockage
-        storage_context = StorageContext.from_defaults(
-            vector_store=vector_store, docstore=document_store
-        )
-
-        # Création de l'index
-        vector_store_index = self._get_vector_store_index(storage_context)
-
-        # Récupération du modèle d'embedding
-        embedding_model = self._get_embeddings()
-
-        # Création du retriever
-        self._retriever = self._get_retriever(
-            self._config["search_engine"],
-            index=vector_store_index,
-            filters=filters,
-            embedding_model=embedding_model,
-        )

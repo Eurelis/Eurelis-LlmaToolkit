@@ -17,13 +17,18 @@ from eurelis_llmatoolkit.llamaindex.factories.vectorstore_factory import (
 
 if TYPE_CHECKING:
     from llama_index.core.vector_stores.types import BasePydanticVectorStore
+    from llama_index.core.retrievers import BaseRetriever
 
 
 class AbstractWrapper(ABC):
     def __init__(self, config: dict):
         self._config: dict = config
         self._vector_store: "BasePydanticVectorStore" = None
-        self._document_store = None
+        self._document_store: Optional["BasePydanticVectorStore"] = None
+        self._storage_context: Optional[StorageContext] = None
+        self._vector_store_index: Optional[VectorStoreIndex] = None
+        self._retriever: "BaseRetriever" = None
+        self._embedding_model: "BaseEmbedding" = None
 
     def _get_vector_store(self):
         if self._vector_store is not None:
@@ -45,32 +50,74 @@ class AbstractWrapper(ABC):
 
         return self._document_store
 
+    def _get_storage_context(self):
+        """
+        Creates a StorageContext using the vector store and document store.
+
+        Returns:
+            StorageContext: The configured storage context.
+        """
+        if self._storage_context is not None:
+            return self._storage_context
+
+        # Get the vector store and document store
+        vector_store = self._get_vector_store()
+        document_store = self._get_document_store()
+
+        # Create the StorageContext
+        self._storage_context = StorageContext.from_defaults(
+            vector_store=vector_store, docstore=document_store
+        )
+
+        return self._storage_context
+
     def _get_embeddings(self):
+        if self._embedding_model is not None:
+            return self._embedding_model
+
         embedding_config = self._config["embeddings"]
-        embedding_model = EmbeddingFactory.create_embedding(embedding_config)
-        return embedding_model
+        self._embedding_model = EmbeddingFactory.create_embedding(embedding_config)
+
+        return self._embedding_model
 
     def _get_retriever(
         self,
         config: dict,
-        index: Optional[VectorStoreIndex] = None,
         filters: Optional[MetadataFilters] = None,
-        embedding_model: Optional[BaseEmbedding] = None,
     ):
-        retriever_config = config["retriever"]
-        retriever = RetrieverFactory.create_retriever(
-            retriever_config,
-            index=index,
-            filters=filters,
-            embedding_model=embedding_model,
-        )
-        return retriever
+        if self._retriever is not None:
+            return self._retriever
 
-    def _get_vector_store_index(self, storage_context: Optional[StorageContext] = None):
+        retriever_config = config.get("retriever")
+
+        if retriever_config:
+            index = self._get_vector_store_index()
+
+            embedding_model = self._get_embeddings()
+
+            self._retriever = RetrieverFactory.create_retriever(
+                retriever_config,
+                index=index,
+                filters=filters,
+                embedding_model=embedding_model,
+            )
+
+        return self._retriever
+
+    def _get_vector_store_index(self):
         """Create your index"""
-        return VectorStoreIndex.from_vector_store(
-            self._vector_store, storage_context=storage_context
+        if self._vector_store_index is not None:
+            return self._vector_store_index
+
+        vector_store = self._get_vector_store()
+
+        storage_context = self._get_storage_context()
+
+        self._vector_store_index = VectorStoreIndex.from_vector_store(
+            vector_store, storage_context=storage_context
         )
+
+        return self._vector_store_index
 
     def _filter_datasets(self, dataset_id: Optional[str] = None) -> Iterable[dict]:
         """

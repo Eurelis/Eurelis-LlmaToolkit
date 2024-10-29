@@ -1,33 +1,23 @@
 from typing import TYPE_CHECKING, Optional
-from llama_index.core import VectorStoreIndex
-from llama_index.core.storage import StorageContext
 from llama_index.core.query_engine import RetrieverQueryEngine
 
 from eurelis_llmatoolkit.llamaindex.abstract_wrapper import AbstractWrapper
 from eurelis_llmatoolkit.llamaindex.factories.conversation_manager_factory import (
     ConversationManagerFactory,
 )
-from eurelis_llmatoolkit.llamaindex.factories.embedding_factory import EmbeddingFactory
 from eurelis_llmatoolkit.llamaindex.factories.memory_factory import MemoryFactory
-from eurelis_llmatoolkit.llamaindex.factories.retriever_factory import RetrieverFactory
 from eurelis_llmatoolkit.llamaindex.factories.llm_factory import (
     LLMFactory,
 )
 
 if TYPE_CHECKING:
-    from llama_index.core.embeddings import BaseEmbedding
     from llama_index.core.base.llms.base import BaseLLM
     from llama_index.core.memory import BaseMemory
-    from llama_index.core.retrievers import BaseRetriever
 
 
 class ChatbotWrapper(AbstractWrapper):
     def __init__(self, config: dict):
         super().__init__(config)
-        self._storage_context: Optional[StorageContext] = None
-        self._index: Optional[VectorStoreIndex] = None
-        self._retriever: "BaseRetriever" = None
-        self._embedding_model: "BaseEmbedding" = None
         self._llm: "BaseLLM" = None
         self._query_engine: Optional[RetrieverQueryEngine] = None
         self._memory: "BaseMemory" = None
@@ -80,84 +70,6 @@ class ChatbotWrapper(AbstractWrapper):
             self._memory = MemoryFactory.create_memory(memory_config, chat_store_key)
         return self._memory
 
-    def _get_storage_context(self):
-        """
-        Creates a StorageContext using the vector store and document store.
-
-        Returns:
-            StorageContext: The configured storage context.
-        """
-        if self._storage_context is not None:
-            return self._storage_context
-
-        # Get the vector store and document store
-        vector_store = self._get_vector_store()
-        document_store = self._get_document_store()
-
-        # Create the StorageContext
-        self._storage_context = StorageContext.from_defaults(
-            vector_store=vector_store, docstore=document_store
-        )
-
-        return self._storage_context
-
-    def _get_index(self):
-        """
-        Creates a VectorStoreIndex using the vector store and storage context.
-
-        Returns:
-            VectorStoreIndex: The configured index.
-        """
-        if self._index is not None:
-            return self._index
-
-        storage_context = self._get_storage_context()
-        vector_store = self._get_vector_store()
-
-        # Create the index using the vector store and storage context
-        self._index = VectorStoreIndex.from_vector_store(
-            vector_store, storage_context=storage_context
-        )
-
-        return self._index
-
-    def _get_embedding_model(self):
-        """
-        Retrieves the embedding model from the configuration.
-
-        Returns:
-            BaseEmbedding: The configured embedding model.
-        """
-        if self._embedding_model is not None:
-            return self._embedding_model
-
-        embedding_config = self._config.get("embeddings")
-        if embedding_config:
-            self._embedding_model = EmbeddingFactory.create_embedding(embedding_config)
-
-        return self._embedding_model
-
-    def _get_retriever(self):
-        """
-        Creates a Retriever using the index and embedding model.
-
-        Returns:
-            Retriever: The configured retriever.
-        """
-        if self._retriever is not None:
-            return self._retriever
-
-        index = self._get_index()
-        embedding_model = self._get_embedding_model()
-
-        retriever_config = self._config.get("retriever")
-        if retriever_config:
-            self._retriever = RetrieverFactory.create_retriever(
-                retriever_config, index=index, embedding_model=embedding_model
-            )
-
-        return self._retriever
-
     def _get_llm(self):
         """
         Retrieves the language model (LLM) from the configuration.
@@ -204,7 +116,7 @@ class ChatbotWrapper(AbstractWrapper):
         if self._chat_engine is not None:
             return self._chat_engine
 
-        index = self._get_index()
+        index = self._get_vector_store_index()
         memory = self._get_memory(chat_store_key)
 
         # Create the chat engine with the specified configuration
