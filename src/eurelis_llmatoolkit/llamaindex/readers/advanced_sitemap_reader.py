@@ -2,7 +2,7 @@ import io
 import re
 import time
 import xml.etree.ElementTree as ET
-from typing import Optional
+from typing import List, Optional
 
 import requests
 import requests.compat
@@ -104,7 +104,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
             url (str): URL de la page
 
         Returns:
-            str: Contenu de la page
+            Document: Contenu de la page
         """
         try:
             response = self._fetch_url(url)
@@ -117,7 +117,9 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
             page_text = page.get_text()
 
             if self.config.get("embed_pdf", False):
-                page_text += self._process_pdfs(page, url)
+                pdf_urls = self._find_pdf_urls(page, url)
+                for pdf_url in pdf_urls:
+                    page_text += f"\n{self._process_pdf(pdf_url)}"
 
             if self.config.get("html_to_text", True):
                 import html2text
@@ -129,6 +131,51 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         except Exception as e:
             print(f"Erreur lors de la récupération de {url}: {e}")
             return None
+
+    def _find_pdf_urls(self, page: BeautifulSoup, url: str) -> List[str]:
+        """Récupère les URLs des PDFs inclus dans une page
+
+        Args:
+            page (BeautifulSoup): Page à traiter
+
+        Returns:
+            List[str]: Liste des URLs des PDFs
+        """
+        pdf_links = set()
+        for link in page.find_all("a", href=True):
+            if link["href"].endswith(".pdf"):
+                pdf_links.add(requests.compat.urljoin(url, link["href"]))
+        return list(pdf_links)
+
+    def _process_pdf(self, pdf_url: str) -> str:
+        """Récupère le contenu d'un PDF
+
+        Args:
+            pdf_url (str): URL du PDF
+
+        Returns:
+            str: Contenu du PDF
+        """
+        try:
+            pdf_response = self._fetch_url(pdf_url)
+            temp_obj = io.BytesIO(pdf_response)
+            pdf_file = PdfReader(temp_obj)
+
+            title = (
+                pdf_file.metadata.get("title", "PDF Document")
+                if pdf_file.metadata
+                else None
+            )  # Titre du PDF ou titre par défaut
+            pdf_content = ""
+
+            for pdf_page in pdf_file.pages:
+                pdf_content += pdf_page.extract_text() + "\n"
+
+            return f"---------- {title} ----------\n{pdf_content}"
+
+        except Exception as e:
+            print(f"Erreur lors de la récupération de {pdf_url}: {e}")
+            return ""
 
     def _remove_excluded_elements(self, page: BeautifulSoup, remove_list: list):
         """Supprime les éléments dans parser_remove du contenu HTML
@@ -146,38 +193,6 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
 
             for node in nodes:
                 node.extract()
-
-    def _process_pdfs(self, page: BeautifulSoup, url: str) -> str:
-        """Récupère le texte des PDFs inclus dans une page
-
-        Args:
-            page (BeautifulSoup): Page à traiter
-            url (str): URL de la page
-            page_text (str): Texte de la page
-
-        Returns:
-            str: Texte de la page avec les PDFs inclus
-        """
-        pdf_links = set()
-        page_text = ""
-        for link in page.find_all("a", href=True):
-            if link["href"].endswith(".pdf"):
-                pdf_links.add(requests.compat.urljoin(url, link["href"]))
-
-        for pdf_link in pdf_links:
-            try:
-                pdf_response = self._fetch_url(pdf_link)
-
-                temp_obj = io.BytesIO(pdf_response)
-                pdf_file = PdfReader(temp_obj)
-
-                for pdf_page in pdf_file.pages:
-                    page_text += f"{pdf_page.extract_text()}\n\n"
-
-            except Exception as e:
-                print(f"Erreur lors de la récupération de {pdf_link}: {e}")
-
-        return page_text
 
     def _fetch_url(self, url: str) -> Optional[str]:
         """Récupère le contenu d'une URL
