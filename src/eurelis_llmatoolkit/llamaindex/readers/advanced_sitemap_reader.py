@@ -166,6 +166,9 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
                 if pdf_file.metadata
                 else None
             )  # Titre du PDF ou titre par défaut
+            if isinstance(title, bytes):
+                title = title.decode("utf-8")
+
             pdf_content = ""
 
             for pdf_page in pdf_file.pages:
