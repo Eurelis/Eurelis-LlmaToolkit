@@ -58,21 +58,24 @@ class FSCacheMarshaller(AbstractFSReader):
     @staticmethod
     def _define_cache_path(doc_id: str) -> Path:
         """
-        Définit le chemin du cache en fonction de l'URL du document.
+        Définit le chemin du cache en fonction de l'URL ou du chemin du document.
 
         Args:
-            doc_id (str): L'URL du document.
+            doc_id (str): L'URL ou le chemin du document.
 
         Returns:
             Path: Le chemin relatif où le document sera mis en cache.
         """
-        # Analyser l'URL pour obtenir le domaine et le chemin
-        parsed_result = urlparse(doc_id)
+        # Vérifie si le doc_id est une URL ou un chemin de fichier local
+        if "://" in doc_id:
+            # Analyser l'URL pour obtenir le domaine et le chemin
+            parsed_result = urlparse(doc_id)
 
-        # Créer le chemin relatif à partir du netloc et du path
-        relative_path = (
-            Path(parsed_result.path) if parsed_result.path else Path("index")
-        )
-
-        # Combine le netloc (domaine) et le chemin relatif
-        return Path(parsed_result.netloc) / Path(*relative_path.parts[1:])
+            # Créer le chemin relatif à partir du netloc et du path de l'URL
+            relative_path = (
+                Path(parsed_result.path) if parsed_result.path else Path("index")
+            )
+            return Path(parsed_result.netloc) / Path(*relative_path.parts[1:])
+        else:
+            # Pour les chemins locaux, on utilise Path normalement
+            return Path(doc_id)
