@@ -27,6 +27,7 @@ class ChatbotWrapper(AbstractWrapper):
     def run(
         self,
         conversation_id: str,
+        message: str,
         dataset_id: Optional[str] = None,
         use_cache: bool = False,
     ):
@@ -47,13 +48,11 @@ class ChatbotWrapper(AbstractWrapper):
         conversation_manager = self._get_conversation_manager(memory)
         conversation_manager.load_history()
 
-        response = chat_engine.chat("What is Drupal about?")
-        print(response)
-        response = chat_engine.chat("What is IA about?")
-        print(response)
+        response = chat_engine.chat(message)
 
         # Sauvegarder les conversations
         conversation_manager.save_history()
+        return response
 
     def _get_memory(self, chat_store_key: str | None = None):
         """

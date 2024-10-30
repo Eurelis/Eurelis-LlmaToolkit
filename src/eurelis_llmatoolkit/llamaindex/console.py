@@ -1,5 +1,6 @@
 import click
 
+from eurelis_llmatoolkit.llamaindex.chatbot_wrapper import ChatbotWrapper
 from eurelis_llmatoolkit.llamaindex.config_loader import ConfigLoader
 from eurelis_llmatoolkit.llamaindex.ingestion_wrapper import IngestionWrapper
 from eurelis_llmatoolkit.llamaindex.search_wrapper import SearchWrapper
@@ -24,6 +25,7 @@ def cli(ctx: click.Context, config: str):
     config_dict = ConfigLoader.load_config(config)
     ctx.obj["wrapper"] = IngestionWrapper(config_dict)
     ctx.obj["search_wrapper"] = SearchWrapper(config_dict)
+    ctx.obj["chatbot_wrapper"] = ChatbotWrapper(config_dict)
 
 
 @click.group()
@@ -74,7 +76,7 @@ def search(ctx: click.Context, query: str):
 
     Args:
         ctx: Click context
-        id: Dataset ID
+        query: Search query
     """
     ctx.obj["query"] = query
 
@@ -101,9 +103,37 @@ def search_docs(ctx: click.Context):
         click.echo(result)
 
 
+@click.group()
+@click.option("--query", required=True, help="Chat query")
+@click.option("--id_conversation", required=True, help="ID de la conversation")
+@click.pass_context
+def chatbot(ctx: click.Context, query: str, id_conversation: str):
+    """
+    Group of commands for chatbot management.
+
+    Args:
+        ctx: Click context
+        query: Chat query
+    """
+    ctx.obj["query"] = query
+    ctx.obj["id_conversation"] = id_conversation
+
+
+@chatbot.command("chat")
+@click.pass_context
+def chat(ctx: click.Context):
+    """Chat with chatbot"""
+    wrapper: ChatbotWrapper = ctx.obj["chatbot_wrapper"]
+    query = ctx.obj["query"]
+    id_conversation = ctx.obj["id_conversation"]
+    result = wrapper.run(id_conversation, query)
+    click.echo(result)
+
+
 # Register the dataset group under the main CLI
 cli.add_command(dataset)
 cli.add_command(search)
+cli.add_command(chatbot)
 
 if __name__ == "__main__":
     cli(obj={})
