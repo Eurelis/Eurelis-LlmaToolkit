@@ -128,7 +128,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
 
             return Document(
                 text=page_text,
-                metadata=self._get_metadata(url, page_text),
+                metadata=self._get_metadata(url, page),
                 doc_id=url,
             )
 
@@ -201,13 +201,13 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
             for node in nodes:
                 node.extract()
 
-    def _get_metadata(self, url: str, page_text: str) -> dict:
+    def _get_metadata(self, url: str, page: BeautifulSoup) -> dict:
         """
         Génère un dictionnaire de métadonnées
 
         Args:
             url (str): L'URL de la page à traiter.
-            page_text (str): Le contenu de la page.
+            page (BeautifulSoup): Le contenu de la page.
 
         Returns:
             dict: Dictionnaire contenant les métadonnées extraites.
