@@ -2,8 +2,8 @@ import os
 from pathlib import Path
 
 from llama_index.core.schema import Document
-from pypdf import PdfReader
 
+import pymupdf
 from eurelis_llmatoolkit.llamaindex.readers.abstract_fs_reader import AbstractFSReader
 
 
@@ -21,21 +21,17 @@ class PDFFileReader(AbstractFSReader):
         Returns:
             Document: Un objet Document.
         """
+        pdf = pymupdf.open(path)
+        content = ""
 
-        with open(path, "rb") as f:
-            pdf = PdfReader(f)
+        for page in pdf:
+            content += f"{page.get_text()}\n\n"
 
-            content = ""
+        relative_path = os.path.relpath(path, self._config["base_dir"])
 
-            for page in pdf.pages:
-                content += f"{page.extract_text()}\n\n"
-
-            relative_path = os.path.relpath(path, self._config["base_dir"])
-
-            document = Document(
-                text=content,
-                metadata=self._get_metadatas(path, relative_path),
-                doc_id=relative_path,
-            )
-
+        document = Document(
+            text=content,
+            metadata=self._get_metadatas(path, relative_path),
+            doc_id=relative_path,
+        )
         return document

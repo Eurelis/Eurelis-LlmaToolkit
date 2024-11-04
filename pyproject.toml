@@ -66,6 +66,9 @@ pdf = [
     "pypdf==3.16.4",
     "cryptography==41.0.7"
 ]
+pdf_llamaindex = [
+    "pymupdf==1.24.13"
+]
 mongodb = [
     "pymongo==4.9.2",
     "llama-index-vector-stores-mongodb==0.3.2",

@@ -1,4 +1,3 @@
-import io
 import re
 import time
 import xml.etree.ElementTree as ET
@@ -8,7 +7,7 @@ import requests
 import requests.compat
 from bs4 import BeautifulSoup
 from llama_index.core.schema import Document
-from pypdf import PdfReader
+import pymupdf
 
 from eurelis_llmatoolkit.llamaindex.readers.abstract_reader_adapter import (
     AbstractReaderAdapter,
@@ -162,8 +161,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         """
         try:
             pdf_response = self._fetch_url(pdf_url)
-            temp_obj = io.BytesIO(pdf_response)
-            pdf_file = PdfReader(temp_obj)
+            pdf_file = pymupdf.open(stream=pdf_response)
 
             title = (
                 pdf_file.metadata.get("title", "PDF Document")
@@ -175,8 +173,8 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
 
             pdf_content = ""
 
-            for pdf_page in pdf_file.pages:
-                pdf_content += pdf_page.extract_text() + "\n"
+            for pdf_page in pdf_file:
+                pdf_content += pdf_page.get_text() + "\n"
 
             return f"---------- {title} ----------\n{pdf_content}"
 
