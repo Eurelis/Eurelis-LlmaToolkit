@@ -1,4 +1,5 @@
 from llama_index.core.schema import NodeWithScore
+from llama_index.core.vector_stores import MetadataFilter
 
 from eurelis_llmatoolkit.llamaindex.abstract_wrapper import AbstractWrapper
 
@@ -9,6 +10,24 @@ class SearchWrapper(AbstractWrapper):
     def __init__(self, config: dict):
         super().__init__(config)
         self._retriever = None
+
+    def get_filters_formatted(self) -> list:
+        """Return the filters formatted."""
+        filters = []
+
+        if self._retriever is not None and self._retriever._filters is not None:
+            for meta_filter in self._retriever._filters.filters:
+                meta_filter: MetadataFilter
+
+                filters.append(
+                    {
+                        "metadata": meta_filter.key,
+                        "value": meta_filter.value,
+                        "operator": meta_filter.operator,
+                    }
+                )
+
+        return filters
 
     def search_documents(self, query: str, extract_filters: bool = False) -> list[dict]:
         """
