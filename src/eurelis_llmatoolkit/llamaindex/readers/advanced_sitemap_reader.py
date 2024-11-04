@@ -126,7 +126,11 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
 
                 page_text = html2text.html2text(page_text)
 
-            return Document(text=page_text, doc_id=url)
+            return Document(
+                text=page_text,
+                metadata=self._get_metadata(url, page_text),
+                doc_id=url,
+            )
 
         except Exception as e:
             print(f"Erreur lors de la récupération de {url}: {e}")
@@ -196,6 +200,19 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
 
             for node in nodes:
                 node.extract()
+
+    def _get_metadata(self, url: str, page_text: str) -> dict:
+        """
+        Génère un dictionnaire de métadonnées
+
+        Args:
+            url (str): L'URL de la page à traiter.
+            page_text (str): Le contenu de la page.
+
+        Returns:
+            dict: Dictionnaire contenant les métadonnées extraites.
+        """
+        return {}
 
     def _fetch_url(self, url: str) -> Optional[str]:
         """Récupère le contenu d'une URL
