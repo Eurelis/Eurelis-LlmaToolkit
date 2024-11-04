@@ -171,6 +171,10 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
             if isinstance(title, bytes):
                 title = title.decode("utf-8")
 
+            # Vérifie si le titre est vide ou ne contient que des espaces
+            if title is None or not title.strip():
+                title = "PDF Document"  # Valeur par défaut
+
             pdf_content = ""
 
             for pdf_page in pdf_file:
