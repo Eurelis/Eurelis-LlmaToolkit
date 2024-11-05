@@ -45,6 +45,15 @@
                     "provider": "SentenceSplitter",
                     "chunk_size": 768,
                     "chunk_overlap": 56
+                },
+                {
+                    "provider": "NodeLMMTransformer",
+                    "prompt": "You are receiving a messages that you have to understand the meaning and generate only three questions related to the main topic of the message.",
+                    "keep_origin_node" : true,
+                    "mode" : "QAndA",
+                    "llm_provider": "OpenAI",
+                    "llm_model": "gpt-4o",
+                    "llm_api_key": "${OPENAI_API_KEY}"
                 }
             ],
             "acronyms": {
@@ -150,7 +159,7 @@
     "_vectorstore": {
         "provider": "Chroma",
         "mode": "persistent",
-        "path": "../etc/chroma.db",
+        "path": "../etc/no-commit/chroma.db",
         "collection_name": "XXX"
     },
     "documentstore": {

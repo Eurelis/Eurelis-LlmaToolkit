@@ -6,6 +6,9 @@ from eurelis_llmatoolkit.llamaindex.transformers.json_file_acronym_transformer i
 from eurelis_llmatoolkit.llamaindex.transformers.metadata_transformer import (
     MetadataTransformer,
 )
+from eurelis_llmatoolkit.llamaindex.transformers.node_llm_transformer import (
+    NodeLLMTransformer,
+)
 
 
 class TransformationFactory:
@@ -22,4 +25,6 @@ class TransformationFactory:
             return JSONFileAcronymTransformer(config)
         if provider == "MetadataTransformer":
             return MetadataTransformer(config)
+        if provider == "NodeLLMTransformer":
+            return NodeLLMTransformer(config)
         raise ValueError(f"Transformation provider {provider} is not supported.")
