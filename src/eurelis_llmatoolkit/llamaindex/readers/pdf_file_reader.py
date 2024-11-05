@@ -3,7 +3,6 @@ from pathlib import Path
 
 from llama_index.core.schema import Document
 
-import pymupdf
 from eurelis_llmatoolkit.llamaindex.readers.abstract_fs_reader import AbstractFSReader
 
 
@@ -21,6 +20,8 @@ class PDFFileReader(AbstractFSReader):
         Returns:
             Document: Un objet Document.
         """
+        import pymupdf
+
         pdf = pymupdf.open(path)
         content = ""
 

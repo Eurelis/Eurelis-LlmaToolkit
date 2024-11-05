@@ -7,7 +7,7 @@ import requests
 import requests.compat
 from bs4 import BeautifulSoup
 from llama_index.core.schema import Document
-import pymupdf
+
 
 from eurelis_llmatoolkit.llamaindex.readers.abstract_reader_adapter import (
     AbstractReaderAdapter,
@@ -159,6 +159,8 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             str: Contenu du PDF
         """
+        import pymupdf
+
         try:
             pdf_response = self._fetch_url(pdf_url)
             pdf_file = pymupdf.open(stream=pdf_response)
