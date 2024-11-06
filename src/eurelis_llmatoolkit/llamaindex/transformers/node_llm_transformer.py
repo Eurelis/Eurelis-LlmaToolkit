@@ -1,5 +1,6 @@
 import copy
 from typing import List, Any, Sequence, Union
+import uuid
 from llama_index.core.node_parser import NodeParser
 from llama_index.core.schema import BaseNode
 from eurelis_llmatoolkit.llamaindex.factories.llm_factory import LLMFactory
@@ -42,12 +43,11 @@ class NodeLLMTransformer(NodeParser):
         for node in nodes:
             original_content = node.get_content()
 
-            # Generate content from LLM based on the node's original content
             generated_content = self._generate_content_from_llm(original_content)
             processed_content = self._process_llm_response(generated_content)
 
             if processed_content:
-                # Create one or more new nodes based on the processed response
+                # Créer un ou plusieurs nouveaux noeuds avec la réponse du LLM
                 new_nodes = self._create_transformed_nodes(
                     node, processed_content, original_content
                 )
@@ -138,13 +138,19 @@ class NodeLLMTransformer(NodeParser):
             else generated_content
         )
         transformed_nodes = []
+
+        # Conserver le noeud d'origine si True
         if self._keep_origin_node:
             transformed_nodes.append(original_node)
 
         # Crée un nouveau noeud pour chaque élément de contenu généré
         for content in contents:
-            new_node = copy.deepcopy(original_node)
+            new_node: BaseNode = copy.deepcopy(original_node)
+            new_node.id_ = str(uuid.uuid4())
+
             new_node.set_content(value=content)
+
+            # Ajouter les métadonnées spécifiques sur le nouveau noeud
             self._add_generated_metadata(new_node, original_content)
             transformed_nodes.append(new_node)
 
