@@ -55,7 +55,7 @@
                     "llm_model": "gpt-4o",
                     "llm_api_key": "${OPENAI_API_KEY}",
                     "_llm_provider": "Anthropic",
-                    "_llm_model": "claude-3-sonnet-20240229",
+                    "_llm_model": "claude-3-5-sonnet-20241022",
                     "_llm_api_key": "${ANTHROPIC_API_KEY}"
                 }
             ],
@@ -176,7 +176,7 @@
     },
     "_llm": {
         "provider": "Anthropic",
-        "model": "claude-3-sonnet-20240229"
+        "model": "claude-3-5-sonnet-20241022"
     },
     "memory": {
         "provider": "ChatMemoryBuffer",

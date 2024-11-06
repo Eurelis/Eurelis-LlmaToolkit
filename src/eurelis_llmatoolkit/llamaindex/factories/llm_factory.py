@@ -20,6 +20,6 @@ class LLMFactory:
         if provider == "Anthropic":
             from llama_index.llms.anthropic import Anthropic
 
-            return Anthropic(model=config.get("model", "claude-3-sonnet-20240229"))
+            return Anthropic(model=config.get("model", "claude-3-5-sonnet-20241022"))
 
         raise ValueError(f"LLM provider {provider} is not supported.")
