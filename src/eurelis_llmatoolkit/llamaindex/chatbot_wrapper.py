@@ -52,6 +52,8 @@ class ChatbotWrapper(AbstractWrapper):
 
         # Sauvegarder les conversations
         conversation_manager.save_history()
+
+        # Si EmptyResponse est retourné, vérifier la création de vector_index dans la BDD vectorielle
         return response
 
     def _get_memory(self, chat_store_key: str | None = None):
@@ -115,6 +117,7 @@ class ChatbotWrapper(AbstractWrapper):
         if self._chat_engine is not None:
             return self._chat_engine
 
+        llm = self._get_llm()
         index = self._get_vector_store_index()
         memory = self._get_memory(chat_store_key)
 
@@ -131,8 +134,10 @@ class ChatbotWrapper(AbstractWrapper):
                 "The 'system_prompt' should be either a list of strings or a single string."
             )
 
+        # Par défaut, utilise le LLM d'OPENAI si non précisé
         self._chat_engine = index.as_chat_engine(
             chat_mode=chat_mode,
+            llm=llm,
             memory=memory,
             system_prompt=system_prompt,
         )
