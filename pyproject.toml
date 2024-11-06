@@ -67,7 +67,8 @@ pdf = [
     "cryptography==41.0.7"
 ]
 pdf_llamaindex = [
-    "pymupdf==1.24.13"
+    "pymupdf==1.24.13",
+    "pymupdf4llm==0.0.17"
 ]
 mongodb = [
     "pymongo==4.9.2",

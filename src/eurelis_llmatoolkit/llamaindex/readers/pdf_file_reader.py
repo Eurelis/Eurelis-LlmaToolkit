@@ -21,17 +21,17 @@ class PDFFileReader(AbstractFSReader):
             Document: Un objet Document.
         """
         import pymupdf
+        import pymupdf4llm
 
         pdf = pymupdf.open(path)
-        content = ""
 
-        for page in pdf:
-            content += f"{page.get_text()}\n\n"
+        # Extraction au format MD
+        pdf_md_text = pymupdf4llm.to_markdown(pdf)
 
         relative_path = os.path.relpath(path, self._config["base_dir"])
 
         document = Document(
-            text=content,
+            text=pdf_md_text,
             metadata=self._get_metadatas(path, relative_path),
             doc_id=relative_path,
         )

@@ -160,6 +160,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
             str: Contenu du PDF
         """
         import pymupdf
+        import pymupdf4llm
 
         try:
             pdf_response = self._fetch_url(pdf_url)
@@ -177,12 +178,10 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
             if title is None or not title.strip():
                 title = "PDF Document"  # Valeur par défaut
 
-            pdf_content = ""
+            # Extraction au format MD
+            pdf_md_text = pymupdf4llm.to_markdown(pdf_file)
 
-            for pdf_page in pdf_file:
-                pdf_content += pdf_page.get_text() + "\n"
-
-            return f"---------- {title} ----------\n{pdf_content}"
+            return f"---------- {title} ----------\n{pdf_md_text}"
 
         except Exception as e:
             print(f"Erreur lors de la récupération de {pdf_url}: {e}")
