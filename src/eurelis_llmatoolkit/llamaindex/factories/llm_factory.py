@@ -1,8 +1,3 @@
-from llama_index.llms.openai import (
-    OpenAI,
-)
-
-
 class LLMFactory:
     @staticmethod
     def create_llm(config: dict):
@@ -18,6 +13,13 @@ class LLMFactory:
 
         provider = config["provider"]
         if provider == "OpenAI":
+            from llama_index.llms.openai import OpenAI
+
             return OpenAI(model=config.get("model", "gpt-4o"))
+
+        if provider == "Anthropic":
+            from llama_index.llms.anthropic import Anthropic
+
+            return Anthropic(model=config.get("model", "claude-3-sonnet-20240229"))
 
         raise ValueError(f"LLM provider {provider} is not supported.")

@@ -48,6 +48,9 @@ huggingface = [
 openai = [
     "langchain-openai==0.1.8",
 ]
+anthropic = [
+    "anthropic==0.39.0"
+]
 solr = [
     "eurelis-langchain-solr-vectorstore==0.0.3"
 ]

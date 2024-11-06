@@ -53,7 +53,10 @@
                     "mode" : "QAndA",
                     "llm_provider": "OpenAI",
                     "llm_model": "gpt-4o",
-                    "llm_api_key": "${OPENAI_API_KEY}"
+                    "llm_api_key": "${OPENAI_API_KEY}",
+                    "_llm_provider": "Anthropic",
+                    "_llm_model": "claude-3-sonnet-20240229",
+                    "_llm_api_key": "${ANTHROPIC_API_KEY}"
                 }
             ],
             "acronyms": {
@@ -162,14 +165,13 @@
         "path": "../etc/no-commit/chroma.db",
         "collection_name": "XXX"
     },
-    "documentstore": {
-        "provider": "MongoDB",
-        "url": "${MONGO_CONNECTION_STRING}",
-        "db_name": "${MONGO_DB_NAME}"
-    },
     "llm": {
         "provider": "OpenAI",
         "model": "gpt-4o"
+    },
+    "_llm": {
+        "provider": "Anthropic",
+        "model": "claude-3-sonnet-20240229"
     },
     "memory": {
         "provider": "ChatMemoryBuffer",
