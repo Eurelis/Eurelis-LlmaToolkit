@@ -30,4 +30,4 @@ class MemoryPersistenceFactory:
 
         reader_class = getattr(module, class_name)
 
-        return reader_class(memory_persistence_config)
+        return reader_class(memory_persistence_config, memory)
