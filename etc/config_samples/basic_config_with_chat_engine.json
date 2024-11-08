@@ -30,6 +30,10 @@
             "provider": "ChatMemoryBuffer",
             "token_limit": 1500
         },
+        "memory_persistence": {
+            "provider": "JSONPersistenceHandler",
+            "persist_conversation_path": "etc/no-commit/conversation_history.json"
+        },
         "system_prompt": [
             "You are a chatbot, able to have normal interactions, as well as talk"
         ]

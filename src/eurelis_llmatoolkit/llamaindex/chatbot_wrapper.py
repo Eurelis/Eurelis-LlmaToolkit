@@ -2,8 +2,8 @@ from typing import TYPE_CHECKING, Optional
 from llama_index.core.query_engine import RetrieverQueryEngine
 
 from eurelis_llmatoolkit.llamaindex.abstract_wrapper import AbstractWrapper
-from eurelis_llmatoolkit.llamaindex.factories.conversation_manager_factory import (
-    ConversationManagerFactory,
+from eurelis_llmatoolkit.llamaindex.factories.memory_persistence_factory import (
+    MemoryPersistenceFactory,
 )
 from eurelis_llmatoolkit.llamaindex.factories.memory_factory import MemoryFactory
 from eurelis_llmatoolkit.llamaindex.factories.llm_factory import (
@@ -22,7 +22,7 @@ class ChatbotWrapper(AbstractWrapper):
         self._query_engine: Optional[RetrieverQueryEngine] = None
         self._memory: "BaseMemory" = None
         self._chat_engine = None
-        self._conversation_manager = None
+        self._memory_persistence = None
 
     def run(
         self,
@@ -45,13 +45,13 @@ class ChatbotWrapper(AbstractWrapper):
 
         # Pour sauver et restaurer la conversation
         memory = self._get_memory()
-        conversation_manager = self._get_conversation_manager(memory)
-        conversation_manager.load_history()
+        memory_persistence = self._get_memory_persistence(memory)
+        memory_persistence.load_history()
 
         response = chat_engine.chat(message)
 
         # Sauvegarder les conversations
-        conversation_manager.save_history()
+        memory_persistence.save_history()
 
         # Si EmptyResponse est retourné, vérifier la création de vector_index dans la BDD vectorielle
         return response
@@ -66,7 +66,7 @@ class ChatbotWrapper(AbstractWrapper):
         if self._memory is not None:
             return self._memory
 
-        memory_config = self._config.get("memory")
+        memory_config = self._config["chat_engine"].get("memory")
         if memory_config and chat_store_key is not None:
             self._memory = MemoryFactory.create_memory(memory_config, chat_store_key)
         return self._memory
@@ -144,29 +144,31 @@ class ChatbotWrapper(AbstractWrapper):
 
         return self._chat_engine
 
-    def _get_conversation_manager(self, memory=None):
+    def _get_memory_persistence(self, memory=None):
         """
-        Get or create a conversation manager.
+        Get or create a memory persistence.
 
-        If a conversation manager already exists, return it. If not, and if
+        If a memory persistence already exists, return it. If not, and if
         a configuration is available, create one using the provided memory.
 
         Args:
             memory (Optional[BaseChatStoreMemory]): Memory instance for initializing
-            the conversation manager, if needed.
+            the memory persistence, if needed.
 
         Returns:
-            ConversationManager: The conversation manager instance.
+            MemoryPersistence: The memory persistence instance.
         """
-        if self._conversation_manager is not None:
-            return self._conversation_manager
+        if self._memory_persistence is not None:
+            return self._memory_persistence
 
-        conversation_manager_config = self._config.get("conversation_manager")
-        if conversation_manager_config and memory is not None:
-            self._conversation_manager = (
-                ConversationManagerFactory.create_conversation_manager(
-                    conversation_manager_config, memory
+        memory_persistence_config = self._config["chat_engine"].get(
+            "memory_persistence"
+        )
+        if memory_persistence_config and memory is not None:
+            self._memory_persistence = (
+                MemoryPersistenceFactory.create_memory_persistence(
+                    memory_persistence_config, memory
                 )
             )
 
-        return self._conversation_manager
+        return self._memory_persistence

@@ -1,6 +1,6 @@
 from eurelis_llmatoolkit.llamaindex.factories.cache_factory import CacheFactory
-from eurelis_llmatoolkit.llamaindex.factories.conversation_manager_factory import (
-    ConversationManagerFactory,
+from eurelis_llmatoolkit.llamaindex.factories.memory_persistence_factory import (
+    MemoryPersistenceFactory,
 )
 from eurelis_llmatoolkit.llamaindex.factories.embedding_factory import EmbeddingFactory
 from eurelis_llmatoolkit.llamaindex.factories.llm_factory import LLMFactory
@@ -16,7 +16,7 @@ from eurelis_llmatoolkit.llamaindex.factories.vectorstore_factory import (
 
 __all__ = [
     "CacheFactory",
-    "ConversationManagerFactory",
+    "MemoryPersistenceFactory",
     "EmbeddingFactory",
     "LLMFactory",
     "MemoryFactory",
