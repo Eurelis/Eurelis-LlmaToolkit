@@ -47,7 +47,7 @@
                     "chunk_overlap": 56
                 },
                 {
-                    "provider": "NodeLMMTransformer",
+                    "provider": "LLMNodeTransformer",
                     "prompt": "You are receiving a messages that you have to understand the meaning and generate only three questions related to the main topic of the message.",
                     "keep_origin_node" : true,
                     "mode" : "QAndA",
