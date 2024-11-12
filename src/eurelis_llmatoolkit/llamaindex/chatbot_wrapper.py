@@ -122,7 +122,7 @@ class ChatbotWrapper(AbstractWrapper):
         memory = self._get_memory(chat_store_key)
 
         # Create the chat engine with the specified configuration
-        chat_mode = self._config.get("chat_mode")
+        chat_mode = self._config.["chat_engine"].get("chat_mode")
         system_prompt_list = self._config.get("system_prompt")
 
         if isinstance(system_prompt_list, list):
