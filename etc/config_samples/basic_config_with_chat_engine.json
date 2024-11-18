@@ -21,12 +21,10 @@
         }
     ],
     "chat_engine": {
-        "chat_mode": {
-            "provider": "ContextChatEngine",
-            "retriever": {
-                "provider": "VectorIndexRetriever",
-                "similarity_top_k": 10
-            }
+        "provider": "ContextChatEngine",
+        "retriever": {
+            "provider": "VectorIndexRetriever",
+            "similarity_top_k": 10
         },
         "memory": {
             "provider": "ChatMemoryBuffer",

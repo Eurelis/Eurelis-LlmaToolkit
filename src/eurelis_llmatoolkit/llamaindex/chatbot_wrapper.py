@@ -101,8 +101,8 @@ class ChatbotWrapper(AbstractWrapper):
         memory = self._get_memory(chat_store_key)
 
         # Create the chat engine with the specified configuration
-        chat_mode = self._config["chat_engine"].get("chat_mode")
-        system_prompt_list = self._config["chat_engine"].get("system_prompt")
+        chat_engine_config = self._config["chat_engine"]
+        system_prompt_list = chat_engine_config.get("system_prompt")
 
         if isinstance(system_prompt_list, list):
             system_prompt = "\n".join(system_prompt_list)
@@ -114,8 +114,7 @@ class ChatbotWrapper(AbstractWrapper):
             )
 
         # Par défaut, utilise le LLM d'OPENAI si non précisé
-        chat_engine_config = self._config["chat_engine"]
-        retriever = self._get_retriever(config=chat_engine_config.get("chat_mode"))
+        retriever = self._get_retriever(config=chat_engine_config)
 
         chat_engine = ChatEngineFactory.create_chat_engine(chat_engine_config)
         self._chat_engine = chat_engine.from_defaults(

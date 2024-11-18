@@ -178,18 +178,15 @@
         "provider": "Anthropic",
         "model": "claude-3-5-sonnet-20241022"
     },
-    "chat_mode": "context",
     "conversation_manager": {
         "provider": "JSONConversationManager",
         "persist_conversation_path": "../etc/no-commit/conversation_history.json"
     },
     "chat_engine": {
-        "chat_mode": {
-            "provider": "ContextChatEngine",
-            "retriever": {
-                "provider": "VectorIndexRetriever",
-                "similarity_top_k": 10
-            }
+        "provider": "ContextChatEngine",
+        "retriever": {
+            "provider": "VectorIndexRetriever",
+            "similarity_top_k": 10
         },
         "memory": {
             "provider": "ChatMemoryBuffer",
