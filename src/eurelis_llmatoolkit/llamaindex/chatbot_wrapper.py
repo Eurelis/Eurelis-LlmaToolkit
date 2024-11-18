@@ -2,6 +2,9 @@ from typing import TYPE_CHECKING, Optional
 from llama_index.core.query_engine import RetrieverQueryEngine
 
 from eurelis_llmatoolkit.llamaindex.abstract_wrapper import AbstractWrapper
+from eurelis_llmatoolkit.llamaindex.factories.chat_engine_factory import (
+    ChatEngineFactory,
+)
 from eurelis_llmatoolkit.llamaindex.factories.memory_persistence_factory import (
     MemoryPersistenceFactory,
 )
@@ -28,8 +31,6 @@ class ChatbotWrapper(AbstractWrapper):
         self,
         conversation_id: str,
         message: str,
-        dataset_id: Optional[str] = None,
-        use_cache: bool = False,
     ):
         """
         Runs the chatbot by initializing the vector store, storage context,
@@ -37,8 +38,6 @@ class ChatbotWrapper(AbstractWrapper):
 
         Args:
             conversation_id: str, ID of the current conversation.
-            dataset_id: Optional, ID of the dataset to process.
-            use_cache: Optional, flag to indicate if caching should be used.
         """
         # Création d'un chat_engine pour avoir une conversation avec id
         chat_engine = self._get_chat_engine(chat_store_key=conversation_id)
@@ -87,26 +86,6 @@ class ChatbotWrapper(AbstractWrapper):
 
         return self._llm
 
-    def _get_query_engine(self, retriever, llm):
-        """
-        Creates a query engine using the retriever and language model.
-
-        Args:
-            retriever: The retriever to be used for querying.
-            llm: The language model to be used for querying.
-
-        Returns:
-            RetrieverQueryEngine: The configured query engine.
-        """
-        if self._query_engine is not None:
-            return self._query_engine
-
-        self._query_engine = RetrieverQueryEngine.from_args(
-            retriever=retriever, llm=llm
-        )
-
-        return self._query_engine
-
     def _get_chat_engine(self, chat_store_key: str):
         """
         Creates a chat engine using the index, chat mode, memory, and system prompt.
@@ -135,8 +114,12 @@ class ChatbotWrapper(AbstractWrapper):
             )
 
         # Par défaut, utilise le LLM d'OPENAI si non précisé
-        self._chat_engine = index.as_chat_engine(
-            chat_mode=chat_mode,
+        chat_engine_config = self._config["chat_engine"]
+        retriever = self._get_retriever(config=chat_engine_config.get("chat_mode"))
+
+        chat_engine = ChatEngineFactory.create_chat_engine(chat_engine_config)
+        self._chat_engine = chat_engine.from_defaults(
+            retriever=retriever,
             llm=llm,
             memory=memory,
             system_prompt=system_prompt,

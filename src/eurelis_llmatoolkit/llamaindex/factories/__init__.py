@@ -1,4 +1,7 @@
 from eurelis_llmatoolkit.llamaindex.factories.cache_factory import CacheFactory
+from eurelis_llmatoolkit.llamaindex.factories.chat_engine_factory import (
+    ChatEngineFactory,
+)
 from eurelis_llmatoolkit.llamaindex.factories.memory_persistence_factory import (
     MemoryPersistenceFactory,
 )
@@ -16,6 +19,7 @@ from eurelis_llmatoolkit.llamaindex.factories.vectorstore_factory import (
 
 __all__ = [
     "CacheFactory",
+    "ChatEngineFactory",
     "MemoryPersistenceFactory",
     "EmbeddingFactory",
     "LLMFactory",

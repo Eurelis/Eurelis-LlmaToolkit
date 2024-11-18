@@ -21,10 +21,12 @@
         }
     ],
     "chat_engine": {
-        "chat_mode": "context",
-        "retriever": {
-            "provider": "VectorIndexRetriever",
-            "similarity_top_k": 10
+        "chat_mode": {
+            "provider": "ContextChatEngine",
+            "retriever": {
+                "provider": "VectorIndexRetriever",
+                "similarity_top_k": 10
+            }
         },
         "memory": {
             "provider": "ChatMemoryBuffer",
@@ -32,7 +34,7 @@
         },
         "memory_persistence": {
             "provider": "JSONPersistenceHandler",
-            "persist_conversation_path": "etc/no-commit/conversation_history.json"
+            "persist_conversation_path": "${BASE_CACHE_FOLDER}/conversation_history.json"
         },
         "system_prompt": [
             "You are a chatbot, able to have normal interactions, as well as talk"
