@@ -96,10 +96,12 @@ class AbstractWrapper(ABC):
             embedding_model = self._get_embeddings()
 
             self._retriever = RetrieverFactory.create_retriever(
-                retriever_config,
-                index=index,
-                filters=filters,
-                embedding_model=embedding_model,
+                {
+                    "index": index,
+                    "embedding_model": embedding_model,
+                    "filters": filters,
+                    **retriever_config,
+                }
             )
 
         return self._retriever

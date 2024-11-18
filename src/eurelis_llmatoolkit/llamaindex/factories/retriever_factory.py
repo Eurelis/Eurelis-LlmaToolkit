@@ -2,49 +2,44 @@ import importlib
 
 
 class RetrieverFactory:
+    _built_in = {
+        "VectorIndexRetriever": "llama_index.core.retrievers.VectorIndexRetriever"
+    }
+
     @staticmethod
-    def create_retriever(
-        config: dict,
-        index=None,
-        filters=None,
-        embedding_model=None,
-    ):
+    def create_retriever(config: dict):
+        """
+        Creates a retriever based on the provided configuration.
+
+        Args:
+            config (dict): Configuration for the retriever, including parameters
+            like 'provider' and any additional instantiation arguments.
+
+        Returns:
+            Instance of the retriever class.
+        """
         provider = config.get("provider")
+        if not provider:
+            raise ValueError("The 'provider' field is required in the configuration.")
 
-        #
-        # Check for built-in Retriever
-        #
-        if provider == "VectorIndexRetriever":
-            from llama_index.core.retrievers import VectorIndexRetriever
-
-            if index is None:
-                raise ValueError("VectorIndexRetriever requires a valid 'index'.")
-
-            return VectorIndexRetriever(
-                index=index,
-                similarity_top_k=config.get("similarity_top_k", 10),  # Default to 10
-                filters=filters,
-                embed_model=embedding_model,
-            )
+        # Check for built-in retriever or custom class
+        real_provider = RetrieverFactory._built_in.get(provider, provider)
 
         #
         # If the provider is a custom retriever
         #
-        if provider.count(".") == 0:
+        if real_provider.count(".") == 0:
             raise ValueError(
                 "Provider attribute must reference a standard Retriever short name or a fully qualified class path"
             )
 
-        module_name, class_name = provider.rsplit(".", 1)
+        # Extract module and class from custom provider path
+        try:
+            module_name, class_name = real_provider.rsplit(".", 1)
+            module = importlib.import_module(module_name)
+            retriever_class = getattr(module, class_name)
+        except (ImportError, AttributeError) as e:
+            raise ImportError(f"Failed to import retriever class '{provider}': {e}")
 
-        module = importlib.import_module(module_name)
-
-        retriever_class = getattr(module, class_name)
-
-        return retriever_class(
-            index=index,
-            similarity_top_k=config.get("similarity_top_k", 10),
-            filters=filters,
-            embed_model=embedding_model,
-            config=config,
-        )
+        # Instantiate the retriever with the parameters passed in `config`
+        return retriever_class(**config)
