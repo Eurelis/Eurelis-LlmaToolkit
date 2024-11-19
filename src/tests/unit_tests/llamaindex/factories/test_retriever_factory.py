@@ -1,38 +1,10 @@
-from llama_index.core import VectorStoreIndex
-from llama_index.core.storage import StorageContext
-
-from eurelis_llmatoolkit.llamaindex.factories.embedding_factory import EmbeddingFactory
 from eurelis_llmatoolkit.llamaindex.factories.retriever_factory import RetrieverFactory
-from eurelis_llmatoolkit.llamaindex.factories.vectorstore_factory import (
-    VectorStoreFactory,
-)
 
 
-# Function to initialize the required objects
-def setup_index_and_context():
-    embedding = EmbeddingFactory.create_embedding(
-        {
-            "provider": "OpenAI",
-            "model": "text-embedding-3-small",
-            "openai_api_key": "FAKE_KEY",
-        }
-    )
-    vector_store = VectorStoreFactory.create_vector_store(
-        {"provider": "Chroma", "collection_name": "llamaindex", "mode": "ephemeral"}
-    )
-
-    storage_context = StorageContext.from_defaults(vector_store=vector_store)
-    index = VectorStoreIndex.from_vector_store(
-        vector_store, embed_model=embedding, storage_context=storage_context
-    )
-    return embedding, index
-
-
-def test_load_vector_index_retriever():
+def test_load_vector_index_retriever(embedding, index):
     """
     Test to ensure the factory correctly instantiates the built-in VectorIndexRetriever
     """
-    embedding, index = setup_index_and_context()
 
     config = {
         "provider": "VectorIndexRetriever",
@@ -48,11 +20,10 @@ def test_load_vector_index_retriever():
     ), "Unexpected retriever class name"
 
 
-def test_load_custom_retriever():
+def test_load_custom_retriever(embedding, index):
     """
     Test to verify that the factory can load a custom retriever class using a path
     """
-    embedding, index = setup_index_and_context()
 
     config = {
         "provider": "llama_index.core.retrievers.VectorIndexRetriever",
