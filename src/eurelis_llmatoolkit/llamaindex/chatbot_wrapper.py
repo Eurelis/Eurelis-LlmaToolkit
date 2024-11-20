@@ -27,11 +27,7 @@ class ChatbotWrapper(AbstractWrapper):
         self._chat_engine = None
         self._memory_persistence = None
 
-    def run(
-        self,
-        conversation_id: str,
-        message: str,
-    ):
+    def run(self, conversation_id: str, message: str, filters):
         """
         Runs the chatbot by initializing the vector store, storage context,
         index, retriever, query engine, and memory.
@@ -40,7 +36,9 @@ class ChatbotWrapper(AbstractWrapper):
             conversation_id: str, ID of the current conversation.
         """
         # Création d'un chat_engine pour avoir une conversation avec id
-        chat_engine = self._get_chat_engine(chat_store_key=conversation_id)
+        chat_engine = self._get_chat_engine(
+            chat_store_key=conversation_id, filters=filters
+        )
 
         # Pour sauver et restaurer la conversation
         memory = self._get_memory()
@@ -86,13 +84,15 @@ class ChatbotWrapper(AbstractWrapper):
 
         return self._llm
 
-    def _get_chat_engine(self, chat_store_key: str):
+    def _get_chat_engine(self, chat_store_key: str, filters=None):
         """
         Creates a chat engine using the index, chat mode, memory, and system prompt.
 
         Returns:
             ChatEngine: The configured chat engine.
         """
+
+        # ATTENTION: Si filter alors skip et forcer la re création de chat_engine
         if self._chat_engine is not None:
             return self._chat_engine
 
@@ -114,7 +114,8 @@ class ChatbotWrapper(AbstractWrapper):
             )
 
         # Par défaut, utilise le LLM d'OPENAI si non précisé
-        retriever = self._get_retriever(config=chat_engine_config)
+        # retriever = self._get_retriever(config=chat_engine_config)
+        retriever = self._get_retriever(config=chat_engine_config, filters=filters)
 
         chat_engine = ChatEngineFactory.create_chat_engine(chat_engine_config)
         self._chat_engine = chat_engine.from_defaults(
