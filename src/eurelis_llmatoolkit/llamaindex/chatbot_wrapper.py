@@ -42,17 +42,27 @@ class ChatbotWrapper(AbstractWrapper):
             conversation_id: str, ID of the current conversation.
         """
         # Création d'un chat_engine pour avoir une conversation avec id
+        # Une mémoire vierge (memory) est instanciée et associée à l'ID de la conversation
         chat_engine = self._get_chat_engine(
             chat_store_key=conversation_id,
             filters=filters,
             custom_system_prompt=custom_system_prompt,
         )
+        # Attention : Ne pas confondre la memory (type de mémoire avec des caractéristiques)
+        # et l'history (stockage des conversations)
+        # La mémoire vierge est configurée et passée dans le chat_engine
 
-        # Pour sauver et restaurer la conversation
+        # On récupère ici l'instance de la mémoire, qui a été préalablement créée (dans _get_chat_engine), mais qui est encore vierge
         memory = self._get_memory()
+
+        # On utilise la mémoire pour instancier la gestion de la persistance
+        # Instanciation de memory_persistence pour gérer le stockage et la récupération des conversations
         memory_persistence = self._get_memory_persistence(memory)
+
+        # Chargement de l'historique des conversations dans la mémoire (memory) à partir de memory_persistence
         memory_persistence.load_history()
 
+        # Le chat_engine utilisera la mémoire avec les conversations chargées pour traiter le message
         response = chat_engine.chat(message)
 
         # Sauvegarder les conversations
@@ -134,6 +144,8 @@ class ChatbotWrapper(AbstractWrapper):
             ChatEngine: The configured chat engine.
         """
         llm = self._get_llm()
+        # Récupère la memory avec la bonne conversation
+        # La mémoire est ensuite stockée dans self._memory
         memory = self._get_memory(chat_store_key)
 
         # Create the chat engine with the specified configuration
