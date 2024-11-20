@@ -27,7 +27,13 @@ class ChatbotWrapper(AbstractWrapper):
         self._chat_engine = None
         self._memory_persistence = None
 
-    def run(self, conversation_id: str, message: str, filters):
+    def run(
+        self,
+        conversation_id: str,
+        message: str,
+        filters=None,
+        custom_system_prompt=None,
+    ):
         """
         Runs the chatbot by initializing the vector store, storage context,
         index, retriever, query engine, and memory.
@@ -37,7 +43,9 @@ class ChatbotWrapper(AbstractWrapper):
         """
         # Création d'un chat_engine pour avoir une conversation avec id
         chat_engine = self._get_chat_engine(
-            chat_store_key=conversation_id, filters=filters
+            chat_store_key=conversation_id,
+            filters=filters,
+            custom_system_prompt=custom_system_prompt,
         )
 
         # Pour sauver et restaurer la conversation
@@ -84,9 +92,43 @@ class ChatbotWrapper(AbstractWrapper):
 
         return self._llm
 
-    def _get_chat_engine(self, chat_store_key: str, filters=None):
+    def _get_prompt(self, chat_engine_config, custom_prompt=None):
+        """
+        Generates the system prompt for the chat engine.
+
+        Args:
+            chat_engine_config (dict): The chat engine configuration containing system prompts.
+            custom_prompt (str, optional): A custom prompt to use. If not provided, the prompt will be generated from the configuration.
+
+        Returns:
+            str: The generated system prompt.
+        """
+        system_prompt_list = chat_engine_config.get("system_prompt")
+
+        if custom_prompt is None:
+            if isinstance(system_prompt_list, list):
+                system_prompt = "\n".join(system_prompt_list)
+            elif isinstance(system_prompt_list, str):
+                system_prompt = system_prompt_list
+            else:
+                raise ValueError(
+                    "The 'system_prompt' should be either a list of strings or a single string."
+                )
+        else:
+            system_prompt = custom_prompt
+
+        return system_prompt
+
+    def _get_chat_engine(
+        self, chat_store_key: str, filters=None, custom_system_prompt=None
+    ):
         """
         Creates a chat engine using the index, chat mode, memory, and system prompt.
+
+        Args:
+            chat_store_key (str): Key to access the memory chat store.
+            filters (optional): Filters to apply for data retrieval (MetadataFilters).
+            custom_system_prompt (str, optional): A custom prompt to use instead of the one configured.
 
         Returns:
             ChatEngine: The configured chat engine.
@@ -102,16 +144,8 @@ class ChatbotWrapper(AbstractWrapper):
 
         # Create the chat engine with the specified configuration
         chat_engine_config = self._config["chat_engine"]
-        system_prompt_list = chat_engine_config.get("system_prompt")
 
-        if isinstance(system_prompt_list, list):
-            system_prompt = "\n".join(system_prompt_list)
-        elif isinstance(system_prompt_list, str):
-            system_prompt = system_prompt_list
-        else:
-            raise ValueError(
-                "The 'system_prompt' should be either a list of strings or a single string."
-            )
+        system_prompt = self._get_prompt(chat_engine_config, custom_system_prompt)
 
         # Par défaut, utilise le LLM d'OPENAI si non précisé
         # retriever = self._get_retriever(config=chat_engine_config)
