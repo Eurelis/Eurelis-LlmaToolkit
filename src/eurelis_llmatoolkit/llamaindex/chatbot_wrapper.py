@@ -123,7 +123,7 @@ class ChatbotWrapper(AbstractWrapper):
         self, chat_store_key: str, filters=None, custom_system_prompt=None
     ):
         """
-        Creates a chat engine using the index, chat mode, memory, and system prompt.
+        Creates a chat engine using the llm, chat mode, memory, retriever and system prompt.
 
         Args:
             chat_store_key (str): Key to access the memory chat store.
@@ -133,13 +133,7 @@ class ChatbotWrapper(AbstractWrapper):
         Returns:
             ChatEngine: The configured chat engine.
         """
-
-        # ATTENTION: Si filter alors skip et forcer la re création de chat_engine
-        if self._chat_engine is not None:
-            return self._chat_engine
-
         llm = self._get_llm()
-        index = self._get_vector_store_index()
         memory = self._get_memory(chat_store_key)
 
         # Create the chat engine with the specified configuration
@@ -148,7 +142,6 @@ class ChatbotWrapper(AbstractWrapper):
         system_prompt = self._get_prompt(chat_engine_config, custom_system_prompt)
 
         # Par défaut, utilise le LLM d'OPENAI si non précisé
-        # retriever = self._get_retriever(config=chat_engine_config)
         retriever = self._get_retriever(config=chat_engine_config, filters=filters)
 
         chat_engine = ChatEngineFactory.create_chat_engine(chat_engine_config)
