@@ -23,3 +23,4 @@ archive/
 # Dev
 src/eurelis_llmatoolkit/*_ko/
 **/*_ko
+src/*_dev.ipynb

@@ -85,9 +85,6 @@ class AbstractWrapper(ABC):
         config: dict,
         filters: Optional[MetadataFilters] = None,
     ):
-        if self._retriever is not None:
-            return self._retriever
-
         retriever_config = config.get("retriever")
 
         if retriever_config:
