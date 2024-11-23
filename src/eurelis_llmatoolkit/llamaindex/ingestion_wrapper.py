@@ -139,7 +139,7 @@ class IngestionWrapper(AbstractWrapper):
             )
 
         # Embedding (last transformation)
-        transformations.append(self._get_embeddings())
+        transformations.append(self._get_embedding_model())
 
         return transformations
 

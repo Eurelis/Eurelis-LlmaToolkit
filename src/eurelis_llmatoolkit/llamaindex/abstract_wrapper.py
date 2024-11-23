@@ -71,7 +71,7 @@ class AbstractWrapper(ABC):
 
         return self._storage_context
 
-    def _get_embeddings(self):
+    def _get_embedding_model(self):
         if self._embedding_model is not None:
             return self._embedding_model
 
@@ -90,12 +90,12 @@ class AbstractWrapper(ABC):
         if retriever_config:
             index = self._get_vector_store_index()
 
-            embedding_model = self._get_embeddings()
+            embed_model = self._get_embedding_model()
 
             self._retriever = RetrieverFactory.create_retriever(
                 {
                     "index": index,
-                    "embedding_model": embedding_model,
+                    "embed_model": embed_model,
                     "filters": filters,
                     **retriever_config,
                 }
