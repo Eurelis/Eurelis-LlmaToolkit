@@ -1,16 +1,15 @@
 from typing import TYPE_CHECKING, Optional
+
 from llama_index.core.query_engine import RetrieverQueryEngine
 
 from eurelis_llmatoolkit.llamaindex.abstract_wrapper import AbstractWrapper
 from eurelis_llmatoolkit.llamaindex.factories.chat_engine_factory import (
     ChatEngineFactory,
 )
+from eurelis_llmatoolkit.llamaindex.factories.llm_factory import LLMFactory
+from eurelis_llmatoolkit.llamaindex.factories.memory_factory import MemoryFactory
 from eurelis_llmatoolkit.llamaindex.factories.memory_persistence_factory import (
     MemoryPersistenceFactory,
-)
-from eurelis_llmatoolkit.llamaindex.factories.memory_factory import MemoryFactory
-from eurelis_llmatoolkit.llamaindex.factories.llm_factory import (
-    LLMFactory,
 )
 
 if TYPE_CHECKING:
@@ -113,21 +112,21 @@ class ChatbotWrapper(AbstractWrapper):
         Returns:
             str: The generated system prompt.
         """
+        if custom_prompt is not None:
+            return custom_prompt
+
         system_prompt_list = chat_engine_config.get("system_prompt")
 
-        if custom_prompt is None:
-            if isinstance(system_prompt_list, list):
-                system_prompt = "\n".join(system_prompt_list)
-            elif isinstance(system_prompt_list, str):
-                system_prompt = system_prompt_list
-            else:
-                raise ValueError(
-                    "The 'system_prompt' should be either a list of strings or a single string."
-                )
+        if isinstance(system_prompt_list, list):
+            return "\n".join(system_prompt_list)
+        elif isinstance(system_prompt_list, str):
+            return system_prompt_list
+        elif system_prompt_list is None:
+            return None
         else:
-            system_prompt = custom_prompt
-
-        return system_prompt
+            raise ValueError(
+                "The 'system_prompt' should be either a list of strings or a single string."
+            )
 
     def _get_chat_engine(
         self, chat_store_key: str, filters=None, custom_system_prompt=None
@@ -143,6 +142,9 @@ class ChatbotWrapper(AbstractWrapper):
         Returns:
             ChatEngine: The configured chat engine.
         """
+        if self._chat_engine is not None:
+            return self._chat_engine
+
         llm = self._get_llm()
         # Récupère la memory avec la bonne conversation
         # La mémoire est ensuite stockée dans self._memory
