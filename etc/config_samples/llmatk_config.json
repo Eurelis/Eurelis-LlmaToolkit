@@ -49,8 +49,8 @@
                 {
                     "provider": "LLMNodeTransformer",
                     "prompt": "You are receiving a messages that you have to understand the meaning and generate only three questions related to the main topic of the message.",
-                    "keep_origin_node" : true,
-                    "mode" : "QAndA",
+                    "keep_origin_node": true,
+                    "mode": "QAndA",
                     "llm_provider": "OpenAI",
                     "llm_model": "gpt-4o",
                     "llm_api_key": "${OPENAI_API_KEY}",
@@ -142,12 +142,12 @@
         "provider": "FSCache",
         "base_dir": "../etc/no-commit/scraping_cache"
     },
-    "embeddings": {
+    "embedding_model": {
         "provider": "OpenAI",
         "model": "text-embedding-3-small",
         "openai_api_key": "${OPENAI_API_KEY}"
     },
-    "_embeddings": {
+    "_embedding_model": {
         "provider": "HuggingFace",
         "model": "sangmini/msmarco-cotmae-MiniLM-L12_en-ko-ja",
         "cache_folder": "${EMBEDDINGS_CACHE_FOLDER}"

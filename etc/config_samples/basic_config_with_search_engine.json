@@ -26,7 +26,7 @@
             "similarity_top_k": 10
         }
     },
-    "embeddings": {
+    "embedding_model": {
         "provider": "HuggingFace",
         "model": "sangmini/msmarco-cotmae-MiniLM-L12_en-ko-ja",
         "cache_folder": "${BASE_CACHE_FOLDER}/huggingface"

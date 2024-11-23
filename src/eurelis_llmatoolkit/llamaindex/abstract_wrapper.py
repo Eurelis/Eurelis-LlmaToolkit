@@ -75,7 +75,7 @@ class AbstractWrapper(ABC):
         if self._embedding_model is not None:
             return self._embedding_model
 
-        embedding_config = self._config["embeddings"]
+        embedding_config = self._config["embedding_model"]
         self._embedding_model = EmbeddingFactory.create_embedding(embedding_config)
 
         return self._embedding_model
