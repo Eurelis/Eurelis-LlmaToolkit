@@ -40,50 +40,83 @@ class ChatbotWrapper(AbstractWrapper):
         Args:
             conversation_id: str, ID of the current conversation.
         """
-        # Création d'un chat_engine pour avoir une conversation avec id
-        # Une mémoire vierge (memory) est instanciée et associée à l'ID de la conversation
+        # Création d'un chat_engine
         chat_engine = self._get_chat_engine(
             chat_store_key=conversation_id,
             filters=filters,
             custom_system_prompt=custom_system_prompt,
         )
-        # Attention : Ne pas confondre la memory (type de mémoire avec des caractéristiques)
-        # et l'history (stockage des conversations)
-        # La mémoire vierge est configurée et passée dans le chat_engine
-
-        # On récupère ici l'instance de la mémoire, qui a été préalablement créée (dans _get_chat_engine), mais qui est encore vierge
-        memory = self._get_memory()
-
-        # On utilise la mémoire pour instancier la gestion de la persistance
-        # Instanciation de memory_persistence pour gérer le stockage et la récupération des conversations
-        memory_persistence = self._get_memory_persistence(memory)
-
-        # Chargement de l'historique des conversations dans la mémoire (memory) à partir de memory_persistence
-        memory_persistence.load_history()
-
-        # Le chat_engine utilisera la mémoire avec les conversations chargées pour traiter le message
         response = chat_engine.chat(message)
 
-        # Sauvegarder les conversations
-        memory_persistence.save_history()
+        # Sauvegarder l'historique des conversations mises à jour en utilisant la mémoire du chat_engine
+        self._save_memory(chat_engine._memory)
 
-        # Si EmptyResponse est retourné, vérifier la création de vector_index dans la BDD vectorielle
         return response
 
-    def _get_memory(self, chat_store_key: str | None = None):
+    def _initialize_memory(self, chat_store_key: str) -> "BaseMemory":
         """
-        Creates a BaseMemory.
+        Initializes a memory instance and loads its conversation history.
+
+        Args:
+            chat_store_key (str): The unique key associated with the conversation.
 
         Returns:
-            BaseMemory: The configured memory.
+            BaseMemory: A memory instance, with loaded conversation history.
         """
-        if self._memory is not None:
-            return self._memory
-
         memory_config = self._config["chat_engine"].get("memory")
-        if memory_config and chat_store_key is not None:
-            self._memory = MemoryFactory.create_memory(memory_config, chat_store_key)
-        return self._memory
+        if not memory_config:
+            raise ValueError("Memory configuration is missing in chat_engine settings.")
+
+        # Création d'une instance de mémoire vide
+        memory = MemoryFactory.create_memory(memory_config, chat_store_key)
+
+        # Chargement des conversations dans la mémoire
+        memory_persistence = self._get_memory_persistence(memory)
+        memory_persistence.load_history()
+
+        return memory_persistence._memory
+
+    def _get_memory_persistence(self, memory=None):
+        """
+        Retrieve or create a memory persistence instance.
+
+            - If a memory persistence already exists and no new memory is provided, return it.
+            - If a memory persistence exists and a memory is provided, update the persistence with the new memory.
+            - If memory persistence does not exist and a memory is provided, create a new memory persistence.
+            - If memory persistence does not exist and no memory is provided, raises an error.
+
+            Args:
+                memory (Optional[BaseChatStoreMemory]): Memory instance to initialize or update the persistence if needed.
+
+            Returns:
+                MemoryPersistence: The memory persistence instance.
+
+        """
+        # Si la persistance de la mémoire existe déjà et qu'aucune nouvelle mémoire n'est fournie
+        if self._memory_persistence is not None:
+            # Si une mémoire est fournie, on met à jour la persistance avec cette nouvelle mémoire
+            if memory is not None:
+                self._memory_persistence._memory = memory
+            return self._memory_persistence
+
+        # Si la persistance de mémoire n'existe pas, et qu'une mémoire est fournie
+        if memory is None:
+            raise ValueError(
+                "Memory is required when creating a new memory persistence."
+            )
+
+        # Créer une nouvelle persistance de mémoire à partir de la configuration
+        memory_persistence_config = self._config["chat_engine"].get(
+            "memory_persistence"
+        )
+        if not memory_persistence_config:
+            raise ValueError("Memory persistence configuration is missing.")
+
+        self._memory_persistence = MemoryPersistenceFactory.create_memory_persistence(
+            memory_persistence_config, memory
+        )
+
+        return self._memory_persistence
 
     def _get_llm(self):
         """
@@ -132,7 +165,7 @@ class ChatbotWrapper(AbstractWrapper):
         self, chat_store_key: str, filters=None, custom_system_prompt=None
     ):
         """
-        Creates a chat engine using the llm, chat mode, memory, retriever and system prompt.
+        Creates and configures a chat engine.
 
         Args:
             chat_store_key (str): Key to access the memory chat store.
@@ -142,20 +175,13 @@ class ChatbotWrapper(AbstractWrapper):
         Returns:
             ChatEngine: The configured chat engine.
         """
-        if self._chat_engine is not None:
-            return self._chat_engine
-
         llm = self._get_llm()
-        # Récupère la memory avec la bonne conversation
-        # La mémoire est ensuite stockée dans self._memory
-        memory = self._get_memory(chat_store_key)
 
-        # Create the chat engine with the specified configuration
+        # Initialisation de la mémoire avec chargement de l'historique
+        memory = self._initialize_memory(chat_store_key)
+
         chat_engine_config = self._config["chat_engine"]
-
         system_prompt = self._get_prompt(chat_engine_config, custom_system_prompt)
-
-        # Par défaut, utilise le LLM d'OPENAI si non précisé
         retriever = self._get_retriever(config=chat_engine_config, filters=filters)
 
         chat_engine = ChatEngineFactory.create_chat_engine(chat_engine_config)
@@ -168,31 +194,15 @@ class ChatbotWrapper(AbstractWrapper):
 
         return self._chat_engine
 
-    def _get_memory_persistence(self, memory=None):
+    def _save_memory(self, memory):
         """
-        Get or create a memory persistence.
-
-        If a memory persistence already exists, return it. If not, and if
-        a configuration is available, create one using the provided memory.
+        Save the current state of the memory's conversation history.
 
         Args:
-            memory (Optional[BaseChatStoreMemory]): Memory instance for initializing
-            the memory persistence, if needed.
-
-        Returns:
-            MemoryPersistence: The memory persistence instance.
+            memory (BaseMemory): Memory instance to save.
         """
-        if self._memory_persistence is not None:
-            return self._memory_persistence
+        if not memory:
+            raise ValueError("Cannot save history: memory is not provided.")
 
-        memory_persistence_config = self._config["chat_engine"].get(
-            "memory_persistence"
-        )
-        if memory_persistence_config and memory is not None:
-            self._memory_persistence = (
-                MemoryPersistenceFactory.create_memory_persistence(
-                    memory_persistence_config, memory
-                )
-            )
-
-        return self._memory_persistence
+        memory_persistence = self._get_memory_persistence(memory)
+        memory_persistence.save_history()
