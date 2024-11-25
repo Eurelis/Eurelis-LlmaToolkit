@@ -178,10 +178,6 @@
         "provider": "Anthropic",
         "model": "claude-3-5-sonnet-20241022"
     },
-    "conversation_manager": {
-        "provider": "JSONConversationManager",
-        "persist_conversation_path": "../etc/no-commit/conversation_history.json"
-    },
     "chat_engine": {
         "provider": "ContextChatEngine",
         "retriever": {

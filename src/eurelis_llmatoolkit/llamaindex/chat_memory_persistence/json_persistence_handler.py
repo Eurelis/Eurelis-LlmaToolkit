@@ -48,7 +48,7 @@ class JSONPersistenceHandler(AbstractMemoryPersistenceHandler):
         except (FileNotFoundError, json.JSONDecodeError):
             pass  # If the file doesn't exist or any other error occurs, we continue with a new history
 
-        # Retrieve all conversation IDs (you might need a method for this)
+        # Retrieve all conversation IDs
         conversation_ids = self._memory.chat_store.get_keys()
 
         # Save messages from each conversation
