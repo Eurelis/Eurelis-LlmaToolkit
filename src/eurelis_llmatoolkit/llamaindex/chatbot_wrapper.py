@@ -178,7 +178,7 @@ class ChatbotWrapper(AbstractWrapper):
         llm = self._get_llm()
 
         # Initialisation de la mémoire avec chargement de l'historique
-        memory = self._initialize_memory(chat_store_key)
+        self._memory = self._initialize_memory(chat_store_key)
 
         chat_engine_config = self._config["chat_engine"]
         system_prompt = self._get_prompt(chat_engine_config, custom_system_prompt)
@@ -188,7 +188,7 @@ class ChatbotWrapper(AbstractWrapper):
         self._chat_engine = chat_engine.from_defaults(
             retriever=retriever,
             llm=llm,
-            memory=memory,
+            memory=self._memory,
             system_prompt=system_prompt,
         )
 
