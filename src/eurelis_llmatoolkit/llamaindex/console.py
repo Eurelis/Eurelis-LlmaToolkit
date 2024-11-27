@@ -25,7 +25,7 @@ def cli(ctx: click.Context, config: str):
     config_dict = ConfigLoader.load_config(config)
     ctx.obj["wrapper"] = IngestionWrapper(config_dict)
     ctx.obj["search_wrapper"] = SearchWrapper(config_dict)
-    ctx.obj["chatbot_wrapper"] = ChatbotWrapper(config_dict)
+    ctx.obj["chatbot_wrapper"] = ChatbotWrapper(config_dict, "default_console")
 
 
 @click.group()

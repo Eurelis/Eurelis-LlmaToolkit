@@ -52,8 +52,8 @@ def test_run_with_memory_and_persistence(chatbot, memory_config):
     """
     # Simuler une nouvelle interaction via run
     user_message = "How are you today?"
-    conversation_id = "conversation_1"
-    response = chatbot.run(conversation_id, user_message)
+    conversation_id = "test_conversation"
+    response = chatbot.run(user_message)
 
     # Step 1: Vérifier que la réponse du chatbot est non vide
     assert response is not None, "La réponse du chatbot ne doit pas être vide."

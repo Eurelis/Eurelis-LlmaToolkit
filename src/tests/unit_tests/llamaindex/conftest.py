@@ -2,6 +2,11 @@ import os
 import pytest
 from llama_index.core import VectorStoreIndex
 from llama_index.core.storage import StorageContext
+from llama_index.core.vector_stores import (
+    MetadataFilter,
+    MetadataFilters,
+    FilterOperator,
+)
 
 from eurelis_llmatoolkit.llamaindex.chatbot_wrapper import ChatbotWrapper
 from eurelis_llmatoolkit.llamaindex.factories.embedding_factory import EmbeddingFactory
@@ -94,7 +99,7 @@ def chatbot_config(memory_config, memory_persistence_config):
 
 @pytest.fixture
 def chatbot(chatbot_config):
-    return ChatbotWrapper(chatbot_config)
+    return ChatbotWrapper(chatbot_config, "test_conversation")
 
 
 @pytest.fixture
@@ -106,4 +111,17 @@ def memory(memory_config):
 def memory_persistence(memory_persistence_config, memory):
     return MemoryPersistenceFactory.create_memory_persistence(
         memory_persistence_config, memory
+    )
+
+
+@pytest.fixture
+def filters():
+    return MetadataFilters(
+        filters=[
+            MetadataFilter(
+                key="c_product",
+                operator=FilterOperator.EQ,
+                value="product-flexacryl-instant-waterproof-compound",
+            )
+        ]
     )

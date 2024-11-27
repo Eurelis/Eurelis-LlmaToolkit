@@ -238,22 +238,22 @@ class ChatbotWrapper(AbstractWrapper):
             )
 
         if hasattr(self._chat_engine._retriever, "_filters"):
-            if self._permanent_filters is None and filters is None:
-                combined_filters = None
-            else:
+            # Combinaison des filtres
+            combined_filters = None
+
+            if self._permanent_filters or filters:
+                # Fusion des filtres permanents et des filtres personnalisés
+                permanent_filters = (
+                    self._permanent_filters.filters if self._permanent_filters else []
+                )
+                custom_filters = filters.filters if filters else []
+
                 combined_filters = MetadataFilters(
-                    filters=(
-                        (
-                            self._permanent_filters.filters
-                            if self._permanent_filters
-                            else []
-                        )
-                        + (filters.filters if filters else [])
-                    ),
+                    filters=permanent_filters + custom_filters,
                     condition=filter_condition,
                 )
 
-            # Appliquer les filtres combinés au retriever
+            # Appliquer les filtres combinés si existants
             self._chat_engine._retriever._filters = combined_filters
         else:
             raise AttributeError(
