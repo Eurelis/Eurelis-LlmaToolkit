@@ -1,7 +1,5 @@
 from typing import TYPE_CHECKING, Optional
 
-from llama_index.core.query_engine import RetrieverQueryEngine
-
 from eurelis_llmatoolkit.llamaindex.abstract_wrapper import AbstractWrapper
 from eurelis_llmatoolkit.llamaindex.factories.chat_engine_factory import (
     ChatEngineFactory,
@@ -11,6 +9,10 @@ from eurelis_llmatoolkit.llamaindex.factories.memory_factory import MemoryFactor
 from eurelis_llmatoolkit.llamaindex.factories.memory_persistence_factory import (
     MemoryPersistenceFactory,
 )
+from llama_index.core.vector_stores import (
+    MetadataFilters,
+    FilterCondition,
+)
 
 if TYPE_CHECKING:
     from llama_index.core.base.llms.base import BaseLLM
@@ -18,19 +20,26 @@ if TYPE_CHECKING:
 
 
 class ChatbotWrapper(AbstractWrapper):
-    def __init__(self, config: dict):
+    def __init__(
+        self,
+        config: dict,
+        conversation_id: str,
+        permanent_filters: Optional["MetadataFilters"] = None,
+    ):
         super().__init__(config)
         self._llm: "BaseLLM" = None
-        self._query_engine: Optional[RetrieverQueryEngine] = None
         self._memory: "BaseMemory" = None
-        self._chat_engine = None
         self._memory_persistence = None
+        self._permanent_filters: Optional["MetadataFilters"] = permanent_filters
+
+        # Création d'un chat_engine
+        self._chat_engine = self._create_chat_engine(chat_store_key=conversation_id)
 
     def run(
         self,
-        conversation_id: str,
         message: str,
-        filters=None,
+        filters: Optional["MetadataFilters"] = None,
+        filter_condition: Optional["FilterCondition"] = None,
         custom_system_prompt=None,
     ):
         """
@@ -40,10 +49,10 @@ class ChatbotWrapper(AbstractWrapper):
         Args:
             conversation_id: str, ID of the current conversation.
         """
-        # Création d'un chat_engine
+        # Récupération du chat_engine instancié
         chat_engine = self._get_chat_engine(
-            chat_store_key=conversation_id,
             filters=filters,
+            filter_condition=filter_condition,
             custom_system_prompt=custom_system_prompt,
         )
         response = chat_engine.chat(message)
@@ -72,9 +81,10 @@ class ChatbotWrapper(AbstractWrapper):
 
         # Chargement des conversations dans la mémoire
         memory_persistence = self._get_memory_persistence(memory)
-        memory_persistence.load_history()
+        if memory_persistence is not None:
+            memory_persistence.load_history()
 
-        return memory_persistence._memory
+        return memory_persistence._memory if memory_persistence else memory
 
     def _get_memory_persistence(self, memory=None):
         """
@@ -84,13 +94,13 @@ class ChatbotWrapper(AbstractWrapper):
             - If a memory persistence exists and a memory is provided, update the persistence with the new memory.
             - If memory persistence does not exist and a memory is provided, create a new memory persistence.
             - If memory persistence does not exist and no memory is provided, raises an error.
+            - If the configuration for memory persistence is missing, set `_memory_persistence` to None.
 
             Args:
                 memory (Optional[BaseChatStoreMemory]): Memory instance to initialize or update the persistence if needed.
 
             Returns:
-                MemoryPersistence: The memory persistence instance.
-
+                Optional[MemoryPersistence]: The memory persistence instance, or None if not configured.
         """
         # Si la persistance de la mémoire existe déjà et qu'aucune nouvelle mémoire n'est fournie
         if self._memory_persistence is not None:
@@ -110,7 +120,8 @@ class ChatbotWrapper(AbstractWrapper):
             "memory_persistence"
         )
         if not memory_persistence_config:
-            raise ValueError("Memory persistence configuration is missing.")
+            self._memory_persistence = None
+            return None
 
         self._memory_persistence = MemoryPersistenceFactory.create_memory_persistence(
             memory_persistence_config, memory
@@ -161,28 +172,30 @@ class ChatbotWrapper(AbstractWrapper):
                 "The 'system_prompt' should be either a list of strings or a single string."
             )
 
-    def _get_chat_engine(
-        self, chat_store_key: str, filters=None, custom_system_prompt=None
+    def _create_chat_engine(
+        self,
+        chat_store_key: str,
+        custom_system_prompt=None,
     ):
         """
-        Creates and configures a chat engine.
+        Create and configure a chat engine with memory, retriever, and LLM.
 
         Args:
-            chat_store_key (str): Key to access the memory chat store.
-            filters (optional): Filters to apply for data retrieval (MetadataFilters).
-            custom_system_prompt (str, optional): A custom prompt to use instead of the one configured.
+            chat_store_key (str): Unique key to identify the chat history store.
+            custom_system_prompt (str, optional): Custom prompt to override the default system prompt.
 
         Returns:
-            ChatEngine: The configured chat engine.
+            ChatEngine: The fully configured chat engine instance.
         """
-        llm = self._get_llm()
+
+        chat_engine_config = self._config["chat_engine"]
+        system_prompt = self._get_prompt(chat_engine_config, custom_system_prompt)
 
         # Initialisation de la mémoire avec chargement de l'historique
         self._memory = self._initialize_memory(chat_store_key)
 
-        chat_engine_config = self._config["chat_engine"]
-        system_prompt = self._get_prompt(chat_engine_config, custom_system_prompt)
-        retriever = self._get_retriever(config=chat_engine_config, filters=filters)
+        llm = self._get_llm()
+        retriever = self._get_retriever(config=chat_engine_config)
 
         chat_engine = ChatEngineFactory.create_chat_engine(chat_engine_config)
         self._chat_engine = chat_engine.from_defaults(
@@ -191,6 +204,64 @@ class ChatbotWrapper(AbstractWrapper):
             memory=self._memory,
             system_prompt=system_prompt,
         )
+
+        return self._chat_engine
+
+    def _get_chat_engine(
+        self,
+        filters: Optional[MetadataFilters] = None,
+        filter_condition: Optional[FilterCondition] = None,
+        custom_system_prompt=None,
+    ):
+        """
+        Retrieve the configured chat engine, optionally applying metadata filters.
+
+        Args:
+            filters (MetadataFilters, optional): Filters to combine with `_permanent_filters` for data retrieval.
+            filter_condition (FilterCondition, optional): Logical condition (AND, OR) to combine filters.
+            custom_system_prompt (str, optional): Custom prompt to override the default system prompt.
+
+        Raises:
+            ValueError: If `_chat_engine` is not initialized.
+            AttributeError: If the retriever does not support filters.
+
+        Returns:
+            ChatEngine: The chat engine with applied filters (if supported).
+        """
+
+        chat_engine_config = self._config["chat_engine"]
+        system_prompt = self._get_prompt(chat_engine_config, custom_system_prompt)
+
+        if self._chat_engine is None:
+            raise ValueError(
+                "The '_chat_engine' must be initialized using the '_create_chat_engine' method."
+            )
+
+        if hasattr(self._chat_engine._retriever, "_filters"):
+            if self._permanent_filters is None and filters is None:
+                combined_filters = None
+            else:
+                combined_filters = MetadataFilters(
+                    filters=(
+                        (
+                            self._permanent_filters.filters
+                            if self._permanent_filters
+                            else []
+                        )
+                        + (filters.filters if filters else [])
+                    ),
+                    condition=filter_condition,
+                )
+
+            # Appliquer les filtres combinés au retriever
+            self._chat_engine._retriever._filters = combined_filters
+        else:
+            raise AttributeError(
+                "The '_filters' attribute is not available for this retriever."
+            )
+
+            # TODO : System prompt
+            # self._chat_engine._prefix_messages = system_prompt
 
         return self._chat_engine
 
@@ -205,4 +276,5 @@ class ChatbotWrapper(AbstractWrapper):
             raise ValueError("Cannot save history: memory is not provided.")
 
         memory_persistence = self._get_memory_persistence(memory)
-        memory_persistence.save_history()
+        if memory_persistence is not None:
+            memory_persistence.save_history()
