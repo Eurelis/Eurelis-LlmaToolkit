@@ -14,26 +14,39 @@ class JSONPersistenceHandler(AbstractMemoryPersistenceHandler):
         self,
         config: dict,
         memory: BaseChatStoreMemory,
+        conversation_id: str = None,
     ) -> None:
         super().__init__(config, memory)
         self._filename = config["persist_conversation_path"]
+        self._conversation_id = conversation_id
 
     def load_history(self) -> None:
-        """Loads conversation history from a JSON file."""
+        """Loads conversation history from a JSON file, filtered by self._conversation_id if set."""
+        if self._conversation_id is None:
+            raise ValueError("Conversation ID is required.")
+
         try:
             with open(self._filename, "r") as f:
                 data = json.load(f)
-                for conversation_id, messages in data.get("conversations", {}).items():
-                    # Convert each JSON message into a ChatMessage object
-                    chat_messages = [
-                        ChatMessage(
-                            role=MessageRole(msg["role"]), content=msg["content"]
-                        )
-                        for msg in messages
-                    ]
+                conversations = data.get("conversations", {})
 
-                    # Store converted messages in memory
-                    self._memory.chat_store.set_messages(conversation_id, chat_messages)
+                if self._conversation_id:
+                    # If self._conversation_id is defined, load only this conversation
+                    messages = conversations.get(self._conversation_id, [])
+                    if messages:
+                        chat_messages = [
+                            ChatMessage(
+                                role=MessageRole(msg["role"]), content=msg["content"]
+                            )
+                            for msg in messages
+                        ]
+                        # Store converted messages in memory
+                        self._memory.chat_store.set_messages(
+                            self._conversation_id, chat_messages
+                        )
+                    else:
+                        self._memory.chat_store.set_messages(self._conversation_id, [])
+
         except FileNotFoundError:
             print("No history found. Create a new history.")
 

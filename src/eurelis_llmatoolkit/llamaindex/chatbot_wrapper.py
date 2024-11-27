@@ -80,13 +80,13 @@ class ChatbotWrapper(AbstractWrapper):
         memory = MemoryFactory.create_memory(memory_config, chat_store_key)
 
         # Chargement des conversations dans la mémoire
-        memory_persistence = self._get_memory_persistence(memory)
+        memory_persistence = self._get_memory_persistence(memory, chat_store_key)
         if memory_persistence is not None:
             memory_persistence.load_history()
 
         return memory_persistence._memory if memory_persistence else memory
 
-    def _get_memory_persistence(self, memory=None):
+    def _get_memory_persistence(self, memory=None, chat_store_key: str = None):
         """
         Retrieve or create a memory persistence instance.
 
@@ -126,6 +126,7 @@ class ChatbotWrapper(AbstractWrapper):
         self._memory_persistence = MemoryPersistenceFactory.create_memory_persistence(
             memory_persistence_config, memory
         )
+        self._memory_persistence._conversation_id = chat_store_key
 
         return self._memory_persistence
 
