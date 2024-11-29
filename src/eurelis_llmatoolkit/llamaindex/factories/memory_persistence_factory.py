@@ -1,4 +1,5 @@
 import importlib
+from typing import Optional
 from llama_index.core.memory.types import BaseChatStoreMemory
 
 from eurelis_llmatoolkit.llamaindex.chat_memory_persistence.json_persistence_handler import (
@@ -9,12 +10,17 @@ from eurelis_llmatoolkit.llamaindex.chat_memory_persistence.json_persistence_han
 class MemoryPersistenceFactory:
     @staticmethod
     def create_memory_persistence(
-        memory_persistence_config: dict, memory: BaseChatStoreMemory
+        memory_persistence_config: dict,
+        memory: BaseChatStoreMemory,
+        conversation_id: Optional[str] = None,
+        _persistance_data: Optional[dict] = None,
     ):
         provider = memory_persistence_config["provider"]
 
         if provider == "JSONPersistenceHandler":
-            return JSONPersistenceHandler(memory_persistence_config, memory)
+            return JSONPersistenceHandler(
+                memory_persistence_config, memory, conversation_id
+            )
 
         #
         # If the provider is a custom reader
@@ -30,4 +36,6 @@ class MemoryPersistenceFactory:
 
         reader_class = getattr(module, class_name)
 
-        return reader_class(memory_persistence_config, memory)
+        return reader_class(
+            memory_persistence_config, memory, conversation_id, _persistance_data
+        )

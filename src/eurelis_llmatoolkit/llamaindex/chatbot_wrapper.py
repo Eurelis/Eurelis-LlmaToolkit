@@ -24,12 +24,14 @@ class ChatbotWrapper(AbstractWrapper):
         self,
         config: dict,
         conversation_id: str,
+        persistence_data: Optional[dict] = None,
         permanent_filters: Optional["MetadataFilters"] = None,
     ):
         super().__init__(config)
         self._llm: "BaseLLM" = None
         self._memory: "BaseMemory" = None
         self._memory_persistence = None
+        self._persistence_data = persistence_data
         self._permanent_filters: Optional["MetadataFilters"] = permanent_filters
 
         # Création d'un chat_engine
@@ -106,7 +108,7 @@ class ChatbotWrapper(AbstractWrapper):
         if self._memory_persistence is not None:
             # Si une mémoire est fournie, on met à jour la persistance avec cette nouvelle mémoire
             if memory is not None:
-                self._memory_persistence._memory = memory
+                self._memory_persistence.set_memory(memory)
             return self._memory_persistence
 
         # Si la persistance de mémoire n'existe pas, et qu'une mémoire est fournie
@@ -124,9 +126,8 @@ class ChatbotWrapper(AbstractWrapper):
             return None
 
         self._memory_persistence = MemoryPersistenceFactory.create_memory_persistence(
-            memory_persistence_config, memory
+            memory_persistence_config, memory, chat_store_key, self._persistence_data
         )
-        self._memory_persistence._conversation_id = chat_store_key
 
         return self._memory_persistence
 
