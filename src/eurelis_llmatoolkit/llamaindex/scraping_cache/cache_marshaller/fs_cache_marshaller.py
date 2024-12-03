@@ -32,7 +32,7 @@ class FSCacheMarshaller(AbstractFSReader):
             cache_path = self._define_cache_path(document.doc_id)
 
             # Retirer un slash au début du cache_path si présent car provoque un l'écrasement des autres Path lors d'un concaténation
-            if cache_path.parts[0].startswith("/"):
+            if cache_path.parts and cache_path.parts[0].startswith("/"):
                 cache_path = Path(*cache_path.parts[1:])
 
             # Combine base_dir, dataset_name et cache_path pour construire le chemin complet

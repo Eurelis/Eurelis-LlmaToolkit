@@ -215,7 +215,10 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             dict: Dictionnaire contenant les métadonnées extraites.
         """
-        return {}
+        h1 = page.find("h1")
+        title = h1.get_text(strip=True) if h1 else None
+
+        return {"title": title}
 
     def _fetch_url(self, url: str) -> Optional[str]:
         """Récupère le contenu d'une URL
