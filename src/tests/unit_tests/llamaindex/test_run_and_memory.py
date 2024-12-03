@@ -77,7 +77,7 @@ def test_run_with_memory_and_persistence(chatbot, memory_config):
     # Step 3: Recharger une mémoire vide à partir de la même config pour vérifier si la conversation a été sauvegardé
     reloaded_memory = MemoryFactory.create_memory(memory_config, "test_conversation")
     reloaded_persistence = MemoryPersistenceFactory.create_memory_persistence(
-        chatbot._get_memory_persistence()._config, reloaded_memory
+        chatbot._get_memory_persistence()._config, reloaded_memory, conversation_id
     )
     reloaded_persistence.load_history()
 

@@ -110,7 +110,7 @@ def memory(memory_config):
 @pytest.fixture
 def memory_persistence(memory_persistence_config, memory):
     return MemoryPersistenceFactory.create_memory_persistence(
-        memory_persistence_config, memory
+        memory_persistence_config, memory, "test_conversation"
     )
 
 
