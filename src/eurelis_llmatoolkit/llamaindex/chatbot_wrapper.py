@@ -248,7 +248,9 @@ class ChatbotWrapper(AbstractWrapper):
                 permanent_filters = (
                     self._permanent_filters.filters if self._permanent_filters else []
                 )
-                custom_filters = filters.filters if filters else []
+                custom_filters = (
+                    filters.filters if filters and hasattr(filters, "filters") else []
+                )
 
                 combined_filters = MetadataFilters(
                     filters=permanent_filters + custom_filters,
