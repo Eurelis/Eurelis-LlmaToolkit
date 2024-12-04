@@ -113,7 +113,9 @@ class AbstractWrapper(ABC):
         storage_context = self._get_storage_context()
 
         self._vector_store_index = VectorStoreIndex.from_vector_store(
-            vector_store, storage_context=storage_context
+            vector_store,
+            embed_model=self._get_embedding_model(),
+            storage_context=storage_context,
         )
 
         return self._vector_store_index
