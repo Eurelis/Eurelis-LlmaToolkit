@@ -16,7 +16,14 @@ init-venv:
 	@echo "***** $@"
 	${PYTHON} -m venv ./.venv
 
-update-venv: init-venv
+install-pre-commit: init-venv
+	@echo "***** $@"
+	@source .venv/bin/activate
+	pip install pre-commit
+	git config --local core.hookspath .githooks/
+	chmod +x .githooks/pre-commit
+
+update-venv: init-venv install-pre-commit
 	@echo "***** $@"
 	@source .venv/bin/activate
 	pip install --upgrade pip
@@ -38,6 +45,10 @@ install-mypy: update-venv
 	pip install mypy
 
 init-project: update-venv install-black install-pylint install-mypy
+
+check-pre-commit:
+	@echo "***** $@"
+	pre-commit run --all-files
 
 #
 # Build
