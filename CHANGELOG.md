@@ -1,5 +1,14 @@
 # Changelog
 
+## FUTURE - 2.0.0dev4
+
+* TBD
+
+## 2024-12-24 - 2.0.0dev3
+
+* Improved chatbot wrapper and memory management
+* LLM Node Transformer
+
 ## 2024-10-29 - 2.0.0dev2
 
 * Improved ingestion pipeline & chatbot wrapper
