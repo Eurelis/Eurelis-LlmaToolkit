@@ -1,9 +1,11 @@
 import copy
-from typing import List, Any, Sequence, Union
 import uuid
+from typing import Any, List, Sequence, Union
+
 from llama_index.core.node_parser import NodeParser
 from llama_index.core.schema import BaseNode
 from pydantic import BaseModel
+
 from eurelis_llmatoolkit.llamaindex.factories.llm_factory import LLMFactory
 
 
@@ -144,12 +146,14 @@ class LLMNodeTransformer(NodeParser):
             new_node.set_content(value=content)
 
             # Ajouter les métadonnées spécifiques sur le nouveau noeud
-            self._add_generated_metadata(new_node, original_content)
+            self._add_generated_metadata(new_node, content, original_content)
             transformed_nodes.append(new_node)
 
         return transformed_nodes
 
-    def _add_generated_metadata(self, node: BaseNode, original_content: str):
+    def _add_generated_metadata(
+        self, node: BaseNode, new_content: str, original_content: str
+    ):
         """
         Adds metadata to indicate that the content is generated.
 
@@ -160,3 +164,4 @@ class LLMNodeTransformer(NodeParser):
         node.metadata["generated_content"] = True
         node.metadata["generated_content_mode"] = self._mode
         node.metadata["generated_content_origin"] = original_content
+        node.metadata["generated_content_new"] = new_content
