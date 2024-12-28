@@ -3,7 +3,7 @@
 # ID: 138fd403232d2ddd5efb44317e38bf03
 
 # start templated
-INSTALL_PYTHON=/Users/vincentlambert/Projects/1-Interne/Eurelis-GesprodNextGen/.venv/bin/python
+INSTALL_PYTHON=.venv/bin/python
 ARGS=(hook-impl --config=.pre-commit-config.yaml --hook-type=pre-commit)
 # end templated
 

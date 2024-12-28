@@ -14,41 +14,28 @@ PYTHON := python3.11
 #
 init-venv:
 	@echo "***** $@"
-	${PYTHON} -m venv ./.venv
+	@uv sync --all-extras
 
 install-pre-commit: init-venv
 	@echo "***** $@"
-	@source .venv/bin/activate
-	pip install pre-commit
-	git config --local core.hookspath .githooks/
-	chmod +x .githooks/pre-commit
+	@git config --local core.hookspath .githooks/
+	@chmod +x .githooks/pre-commit
 
 update-venv: init-venv install-pre-commit
-	@echo "***** $@"
-	@source .venv/bin/activate
-	pip install --upgrade pip
-	pip install .
 
-install-black: update-venv
-	@echo "***** $@"
-	@source .venv/bin/activate
-	pip install black
+init-project: update-venv
 
-install-pylint: update-venv
+update-requirements:
 	@echo "***** $@"
-	@source .venv/bin/activate
-	pip install pylint
+	@uv export --quiet --no-header --frozen --no-emit-project --no-hashes --all-extras --no-dev --output-file src/requirements.txt
 
-install-mypy: update-venv
+check-dependancies: update-requirements
 	@echo "***** $@"
-	@source .venv/bin/activate
-	pip install mypy
-
-init-project: update-venv install-black install-pylint install-mypy
+	@uv tool run pip-audit --requirement src/requirements.txt
 
 check-pre-commit:
 	@echo "***** $@"
-	pre-commit run --all-files
+	@pre-commit run --all-files
 
 #
 # Build

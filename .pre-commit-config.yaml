@@ -1,18 +1,40 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
-  # - repo: https://github.com/pre-commit/pre-commit-hooks
-  #   rev: v3.2.0
-  #   hooks:
-  # -   id: trailing-whitespace
-  # -   id: end-of-file-fixer
+  #   - repo: https://github.com/pre-commit/pre-commit-hooks
+  #     rev: v3.2.0
+  #     hooks:
+  #       - id: trailing-whitespace
+  #       - id: end-of-file-fixer
   - repo: https://github.com/psf/black
     rev: 22.3.0
     hooks:
       - id: black
         args: [--check]
-  # - repo: https://github.com/pypa/pip-audit
-  #   rev: v2.7.3
-  #   hooks:
-  #       - id: pip-audit
-  #         args: ["-r", "src/requirements.txt"]
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.8.4
+    hooks:
+      # Run the linter.
+      - id: ruff
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    # uv version.
+    rev: 0.5.11
+    hooks:
+      - id: uv-export
+        args:
+          [
+            "--quiet",
+            "--no-header",
+            "--frozen",
+            "--no-emit-project",
+            "--all-extras",
+            "--no-dev",
+            "--no-hashes",
+            "--output-file=src/requirements.txt",
+          ]
+  - repo: https://github.com/pypa/pip-audit
+    rev: v2.7.3
+    hooks:
+      - id: pip-audit
+        args: ["-r", "src/requirements.txt"]
