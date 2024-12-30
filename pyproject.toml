@@ -57,7 +57,7 @@ mongodb = [
     "llama-index-storage-docstore-mongodb>=0.2.0",
     "llama-index-vector-stores-mongodb>=0.5.0",
     "motor>=3.5.1",
-    "pymongo>=4.10.1",
+    "pymongo<4.10",
 ]
 chroma = [
     "chromadb>=0.5.23",
