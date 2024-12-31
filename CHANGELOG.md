@@ -1,8 +1,8 @@
 # Changelog
 
-## FUTURE - 2.0.0dev4
+## 2024-12-21 - 2.0.0dev4
 
-* TBD
+* Fix motor & pymongo version
 
 ## 2024-12-24 - 2.0.0dev3
 
