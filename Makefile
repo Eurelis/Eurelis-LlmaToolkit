@@ -43,19 +43,13 @@ check-pre-commit:
 package-build: update-venv
 	@echo "***** $@"
 	@source .venv/bin/activate
-	pip install --upgrade build
-	python -m build
+	uv sync --all-extras
+	uv build
 
-package-fast-rebuild:
+package-publish: package-build
 	@echo "***** $@"
 	@source .venv/bin/activate
-	python -m build
-
-package-upload: package-build
-	@echo "***** $@"
-	@source .venv/bin/activate
-	pip install --upgrade twine
-	twine upload --repository pypi dist/*
+	uv publish
 
 #
 # Cleaning
