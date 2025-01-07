@@ -112,7 +112,9 @@ class AbstractWrapper(ABC):
         if self._node_postprocessors is not None:
             return self._node_postprocessors
 
-        post_processor_config = self._config.get("postprocessors", [])
+        post_processor_config = self._config.get("chat_engine", {}).get(
+            "postprocessors", []
+        )
         if not post_processor_config:
             return None
 
