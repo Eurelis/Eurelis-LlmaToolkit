@@ -4,7 +4,6 @@ import importlib
 class RetrieverFactory:
     _built_in = {
         "VectorIndexRetriever": "llama_index.core.retrievers.VectorIndexRetriever",
-        "QAndARetriever": "eurelis_llmatoolkit.llamaindex.retrievers.qanda_retriever.QAndaRetriever",
     }
 
     @staticmethod
