@@ -22,14 +22,14 @@ class NodePostProcessorFactory:
         real_provider = NodePostProcessorFactory._built_in.get(provider, provider)
 
         #
-        # If the provider is a custom Postprocesseur
+        # If the provider is a custom Postprocessor
         #
         if real_provider.count(".") == 0:
             raise ValueError(
-                "Provider attribute must reference a standard Postprocesseur short name or a fully qualified class path"
+                "Provider attribute must reference a standard Postprocessor short name or a fully qualified class path"
             )
 
-        # Extract module and class from custom Postprocesseur path
+        # Extract module and class from custom Postprocessor path
         try:
             module_name, class_name = real_provider.rsplit(".", 1)
             module = importlib.import_module(module_name)
