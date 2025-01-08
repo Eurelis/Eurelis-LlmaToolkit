@@ -229,7 +229,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             str: Contenu de la page
         """
-        response = requests.get(url, timeout=10, headers=self._headers)
+        response = requests.get(url, timeout=60, headers=self._headers)
         if response.status_code == 200:
             return response.content
         print(f"Erreur lors de la récupération de {url}: {response.status_code}")
