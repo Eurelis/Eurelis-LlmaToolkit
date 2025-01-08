@@ -198,6 +198,7 @@ class ChatbotWrapper(AbstractWrapper):
 
         llm = self._get_llm()
         retriever = self._get_retriever(config=chat_engine_config)
+        node_postprocessors = self._get_node_postprocessors()
 
         chat_engine = ChatEngineFactory.create_chat_engine(chat_engine_config)
         self._chat_engine = chat_engine.from_defaults(
@@ -205,6 +206,7 @@ class ChatbotWrapper(AbstractWrapper):
             llm=llm,
             memory=self._memory,
             system_prompt=system_prompt,
+            node_postprocessors=node_postprocessors,
         )
 
         return self._chat_engine

@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Iterable, Optional
 
 from llama_index.core import VectorStoreIndex
 from llama_index.core.embeddings import BaseEmbedding
+from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.core.storage import StorageContext
 from llama_index.core.vector_stores.types import MetadataFilters
 
@@ -10,6 +11,9 @@ from eurelis_llmatoolkit.llamaindex.factories.documentstore_factory import (
     DocumentStoreFactory,
 )
 from eurelis_llmatoolkit.llamaindex.factories.embedding_factory import EmbeddingFactory
+from eurelis_llmatoolkit.llamaindex.factories.node_postprocessor_factory import (
+    NodePostProcessorFactory,
+)
 from eurelis_llmatoolkit.llamaindex.factories.retriever_factory import RetrieverFactory
 from eurelis_llmatoolkit.llamaindex.factories.vectorstore_factory import (
     VectorStoreFactory,
@@ -28,6 +32,7 @@ class AbstractWrapper(ABC):
         self._storage_context: Optional[StorageContext] = None
         self._vector_store_index: Optional[VectorStoreIndex] = None
         self._retriever: "BaseRetriever" = None
+        self._node_postprocessors: Optional[list[BaseNodePostprocessor]] = None
         self._embedding_model: "BaseEmbedding" = None
 
     def _get_vector_store(self):
@@ -102,6 +107,21 @@ class AbstractWrapper(ABC):
             )
 
         return self._retriever
+
+    def _get_node_postprocessors(self):
+        if self._node_postprocessors is not None:
+            return self._node_postprocessors
+
+        post_processor_config = self._config.get("chat_engine", {}).get(
+            "postprocessors", []
+        )
+        if not post_processor_config:
+            return None
+
+        self._node_postprocessors = NodePostProcessorFactory.create_node_postprocessors(
+            configs=post_processor_config
+        )
+        return self._node_postprocessors
 
     def _get_vector_store_index(self):
         """Create your index"""
