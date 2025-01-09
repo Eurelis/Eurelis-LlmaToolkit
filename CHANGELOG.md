@@ -1,6 +1,11 @@
 # Changelog
 
-## 2024-12-21 - 2.0.0dev4
+## 2024-01-09 - 2.0.0dev5
+
+* Add node post-processor support
+* Increaseed timeout for requests in AdvancedSitemaReader
+
+## 2024-12-31 - 2.0.0dev4
 
 * Fix motor & pymongo version
 
