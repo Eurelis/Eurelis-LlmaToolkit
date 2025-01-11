@@ -26,7 +26,7 @@ class PDFFileReader(AbstractFSReader):
         pdf = pymupdf.open(path)
 
         # Extraction au format MD
-        pdf_md_text = pymupdf4llm.to_markdown(pdf)
+        pdf_md_text = pymupdf4llm.to_markdown(pdf, show_progress=False)
 
         relative_path = os.path.relpath(path, self._config["base_dir"])
 

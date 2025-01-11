@@ -8,7 +8,6 @@ import requests.compat
 from bs4 import BeautifulSoup
 from llama_index.core.schema import Document
 
-
 from eurelis_llmatoolkit.llamaindex.readers.abstract_reader_adapter import (
     AbstractReaderAdapter,
 )
@@ -179,7 +178,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
                 title = "PDF Document"  # Valeur par défaut
 
             # Extraction au format MD
-            pdf_md_text = pymupdf4llm.to_markdown(pdf_file)
+            pdf_md_text = pymupdf4llm.to_markdown(pdf_file, show_progress=False)
 
             return f"---------- {title} ----------\n{pdf_md_text}"
 
