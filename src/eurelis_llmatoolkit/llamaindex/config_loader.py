@@ -10,9 +10,8 @@ class ConfigLoader:
     @staticmethod
     def load_config(config_path):
         dotenv_path = find_dotenv(usecwd=True)
-        if not dotenv_path:
-            raise RuntimeError("No .env file found")
-        load_dotenv(dotenv_path)
+        if dotenv_path:
+            load_dotenv(dotenv_path)
 
         with open(config_path, "r") as file:
             config = json.load(file)
