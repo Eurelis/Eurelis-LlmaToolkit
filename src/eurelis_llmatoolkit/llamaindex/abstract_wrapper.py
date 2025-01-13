@@ -18,6 +18,7 @@ from eurelis_llmatoolkit.llamaindex.factories.retriever_factory import Retriever
 from eurelis_llmatoolkit.llamaindex.factories.vectorstore_factory import (
     VectorStoreFactory,
 )
+from eurelis_llmatoolkit.llamaindex.logger import Logger
 
 if TYPE_CHECKING:
     from llama_index.core.vector_stores.types import BasePydanticVectorStore
@@ -34,6 +35,7 @@ class AbstractWrapper(ABC):
         self._retriever: "BaseRetriever" = None
         self._node_postprocessors: Optional[list[BaseNodePostprocessor]] = None
         self._embedding_model: "BaseEmbedding" = None
+        self.logger = Logger().get_logger()
 
     def _get_vector_store(self):
         if self._vector_store is not None:

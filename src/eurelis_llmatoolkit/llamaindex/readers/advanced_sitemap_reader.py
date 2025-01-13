@@ -131,7 +131,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
             )
 
         except Exception as e:
-            print(f"Erreur lors de la récupération de {url}: {e}")
+            self.logger.error(f"Error fetching {url}: {e}")
             return None
 
     def _find_pdf_urls(self, page: BeautifulSoup, url: str) -> List[str]:
@@ -183,7 +183,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
             return f"---------- {title} ----------\n{pdf_md_text}"
 
         except Exception as e:
-            print(f"Erreur lors de la récupération de {pdf_url}: {e}")
+            self.logger.error(f"Error fetching {pdf_url}: {e}")
             return ""
 
     def _remove_excluded_elements(self, page: BeautifulSoup, remove_list: list):
@@ -228,8 +228,9 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             str: Contenu de la page
         """
-        response = requests.get(url, timeout=60, headers=self._headers)
+        requests_timeout = self.config.get("requests_timeout", 60)
+        response = requests.get(url, timeout=requests_timeout, headers=self._headers)
         if response.status_code == 200:
             return response.content
-        print(f"Erreur lors de la récupération de {url}: {response.status_code}")
+        self.logger.error(f"Error fetching {url}: {response.status_code}")
         return None

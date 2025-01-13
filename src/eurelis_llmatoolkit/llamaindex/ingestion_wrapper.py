@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import List, Optional
 
 from llama_index.core import Document
 from llama_index.core.ingestion import IngestionPipeline
@@ -9,12 +9,13 @@ from eurelis_llmatoolkit.llamaindex.factories.reader_factory import ReaderFactor
 from eurelis_llmatoolkit.llamaindex.factories.transformation_factory import (
     TransformationFactory,
 )
-
-if TYPE_CHECKING:
-    from llama_index.core.vector_stores.types import BasePydanticVectorStore
+from eurelis_llmatoolkit.llamaindex.logger import Logger
 
 
 class IngestionWrapper(AbstractWrapper):
+    def __init__(self, config: dict):
+        self.logger = Logger().get_logger()
+
     def run(self, dataset_id: Optional[str] = None, use_cache: bool = False):
         self._process_datasets(dataset_id, use_cache)
 
@@ -25,7 +26,7 @@ class IngestionWrapper(AbstractWrapper):
         )  # Convertir l'iterable en liste
 
         if not datasets:
-            print(f"No dataset found with ID: {dataset_id}")
+            self.logger.warning(f"No dataset found with ID: {dataset_id}")
             return
 
         # Parcourir tous les datasets et générer le cache
@@ -33,14 +34,16 @@ class IngestionWrapper(AbstractWrapper):
             # Vérifier que l'ID du dataset n'est pas None
             dataset_id = dataset_config.get("id")
             if dataset_id is None:
-                print(f"Dataset configuration missing 'id': {dataset_config}")
+                self.logger.warning(
+                    f"Dataset configuration missing 'id': {dataset_config}"
+                )
                 continue
 
             documents = self._get_documents(dataset_config, use_cache=False)
 
             # Générer le cache
             self._generate_cache(dataset_id, documents)
-            print(f"Cache generated for dataset ID: {dataset_id}!")
+            self.logger.info(f"Cache generated for dataset ID: {dataset_id}!")
 
     def _load_documents_from_reader(self, dataset_config: dict) -> List[Document]:
         """Load documents using the appropriate reader based on the dataset configuration."""
@@ -185,3 +188,4 @@ class IngestionWrapper(AbstractWrapper):
         )
         # TODO: définir le show_progress via une variable d'environnement
         pipeline.run(documents=documents, show_progress=True)
+        self.logger.info(f"Dataset {dataset_config['id']} ingested successfully.")
