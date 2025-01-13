@@ -14,6 +14,7 @@ from eurelis_llmatoolkit.llamaindex.logger import Logger
 
 class IngestionWrapper(AbstractWrapper):
     def __init__(self, config: dict):
+        self._config = config
         self.logger = Logger().get_logger()
 
     def run(self, dataset_id: Optional[str] = None, use_cache: bool = False):
