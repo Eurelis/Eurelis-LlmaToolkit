@@ -27,7 +27,8 @@ classifiers = [
 ]
 dependencies = [
     "python-dotenv==1.0.0",
-    "click==8.1.7"
+    "click==8.1.7",
+    "sentry-sdk==2.19.2"
 ]
 
 [project.urls]
