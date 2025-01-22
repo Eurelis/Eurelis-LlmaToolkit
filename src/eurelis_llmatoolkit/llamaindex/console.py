@@ -4,6 +4,7 @@ from eurelis_llmatoolkit.llamaindex.chatbot_wrapper import ChatbotWrapper
 from eurelis_llmatoolkit.llamaindex.config_loader import ConfigLoader
 from eurelis_llmatoolkit.llamaindex.ingestion_wrapper import IngestionWrapper
 from eurelis_llmatoolkit.llamaindex.search_wrapper import SearchWrapper
+from eurelis_llmatoolkit.llamaindex.logger import Logger
 
 
 @click.group()
@@ -13,15 +14,23 @@ from eurelis_llmatoolkit.llamaindex.search_wrapper import SearchWrapper
     required=True,
     help="Path to the configuration file.",
 )
+@click.option(
+    "-logging_config",
+    type=click.Path(exists=True),
+    required=False,
+    help="Path to the logging configuration file.",
+)
 @click.pass_context
-def cli(ctx: click.Context, config: str):
+def cli(ctx: click.Context, config: str, logging_config: str):
     """
     Root command to handle configuration options.
 
     Args:
         ctx: Click context
         config: Path to the configuration file
+        logging_config: Path to the logging configuration file
     """
+    Logger(logging_config)  # Initialize Logger with logging_config
     config_dict = ConfigLoader.load_config(config)
     ctx.obj["wrapper"] = IngestionWrapper(config_dict)
     ctx.obj["search_wrapper"] = SearchWrapper(config_dict)
@@ -105,9 +114,8 @@ def search_docs(ctx: click.Context):
 
 @click.group()
 @click.option("--query", required=True, help="Chat query")
-@click.option("--id_conversation", required=True, help="ID de la conversation")
 @click.pass_context
-def chatbot(ctx: click.Context, query: str, id_conversation: str):
+def chatbot(ctx: click.Context, query: str):
     """
     Group of commands for chatbot management.
 
@@ -116,7 +124,6 @@ def chatbot(ctx: click.Context, query: str, id_conversation: str):
         query: Chat query
     """
     ctx.obj["query"] = query
-    ctx.obj["id_conversation"] = id_conversation
 
 
 @chatbot.command("chat")
@@ -125,8 +132,7 @@ def chat(ctx: click.Context):
     """Chat with chatbot"""
     wrapper: ChatbotWrapper = ctx.obj["chatbot_wrapper"]
     query = ctx.obj["query"]
-    id_conversation = ctx.obj["id_conversation"]
-    result = wrapper.run(id_conversation, query)
+    result = wrapper.run(query)
     click.echo(result)
 
 

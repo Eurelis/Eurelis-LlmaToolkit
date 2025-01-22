@@ -29,11 +29,13 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             list: Liste des données du sitemap
         """
+        self.logger.info(f"Loading data from sitemap URL: {url}")
         if url is None:
             load_params = self._get_load_data_params()
             url = load_params["sitemap_url"]
 
         sitemap_content = self._fetch_url(url)
+        self.logger.debug(f"Sitemap : {url}")
         root = ET.fromstring(sitemap_content)
 
         # on vérifie si le sitemap est un sitemap index ou un sitemap
@@ -41,7 +43,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
             return self._process_sitemap_index(root)
         if root.tag.endswith("urlset"):
             return self._process_urlset(root)
-        raise ValueError(f"Format de sitemap non supporté pour l'URL: {url}")
+        raise ValueError(f"Unsupported sitemap format for URL: {url}")
 
     def _process_sitemap_index(self, root: ET.Element) -> list:
         """Récupère les données de tous les sitemaps référencés dans un sitemap index
@@ -52,6 +54,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             list: Liste des données de tous les sitemaps référencés
         """
+        self.logger.debug("Processing sitemap index")
         all_data = []
         for sitemap in root.findall(".//{*}sitemap"):
             loc = sitemap.find("{*}loc").text
@@ -68,6 +71,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             list: Liste des données du sitemap
         """
+        self.logger.debug("Processing URL set")
         all_data = []
 
         url_include_filters = self.config.get("url_include_filters", None)
@@ -79,6 +83,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
             if url_include_filters and not any(
                 re.match(regexp_pattern, loc) for regexp_pattern in url_include_filters
             ):
+                self.logger.debug(f"URL {loc} does not match include filters, skipping")
                 continue
             page_data = self._process_page(loc)
             if page_data:
@@ -91,6 +96,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
                 all_data.append(page_data)
 
             if requests_per_second > 0:
+                self.logger.debug(f"Sleeping for {1 / requests_per_second} seconds")
                 time.sleep(1 / requests_per_second)
 
         return all_data
@@ -104,6 +110,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             Document: Contenu de la page
         """
+        self.logger.info(f"Fetching page data for URL: {url}")
         try:
             response = self._fetch_url(url)
 
@@ -124,6 +131,10 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
 
                 page_text = html2text.html2text(page_text)
 
+            self.logger.debug(
+                f"Page content: {page_text[:100]}"
+            )  # Log 100 premiers caractères
+
             return Document(
                 text=page_text,
                 metadata=self._get_metadata(url, page),
@@ -143,6 +154,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             List[str]: Liste des URLs des PDFs
         """
+        self.logger.info(f"Finding PDF URLs in page: {url}")
         pdf_links = set()
         for link in page.find_all("a", href=True):
             if link["href"].endswith(".pdf"):
@@ -158,6 +170,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             str: Contenu du PDF
         """
+        self.logger.info(f"Processing PDF URL: {pdf_url}")
         import pymupdf
         import pymupdf4llm
 
@@ -193,6 +206,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
             page (BeautifulSoup): Page à traiter
             remove_list (list): Liste des éléments à supprimer
         """
+        self.logger.debug(f"Removing elements: {remove_list}")
         for remove in remove_list:
             nodes = []
             if isinstance(remove, str):
@@ -214,6 +228,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             dict: Dictionnaire contenant les métadonnées extraites.
         """
+        self.logger.debug(f"Generating metadata for URL: {url}")
         h1 = page.find("h1")
         title = h1.get_text(strip=True) if h1 else None
 
@@ -228,6 +243,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             str: Contenu de la page
         """
+        self.logger.info(f"Fetching URL: {url}")
         requests_timeout = self.config.get("requests_timeout", 60)
         response = requests.get(url, timeout=requests_timeout, headers=self._headers)
         if response.status_code == 200:
