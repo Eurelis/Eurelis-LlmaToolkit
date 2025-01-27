@@ -143,6 +143,50 @@ class IngestionWrapper(AbstractWrapper):
 
         return transformations
 
+    def _get_urls_from_document_store(self, id_dataset=None) -> List[str]:
+        """Retrieve all URLs from the database."""
+        document_store = self._get_document_store()
+        documents: dict = document_store.docs
+
+        if not documents:
+            print("No documents found in the database.")
+            return []
+
+        # Filtrage basé sur id_dataset
+        if id_dataset is not None:
+            namespace_filter = f"{self._config['project']}/{id_dataset}"
+            urls = {
+                doc.id_
+                for doc in documents.values()
+                if doc.metadata.get("namespace") == namespace_filter
+            }
+        else:
+            # Si id_dataset est None, on ne filtre pas par namespace
+            urls = {doc.id_ for doc in documents.values()}
+
+        return list(urls)
+
+    def _get_urls_from_documents(self, documents: List[Document]) -> List[str]:
+        """Create a list of URLs from the documents."""
+        urls = [str(doc.id_) for doc in documents]
+        return urls
+
+    def _remove_unmatched_documents(
+        self, urls_doc_store: List[str], urls_scraping: List[str]
+    ):
+        """Remove documents from the database that do not match any of the provided URLs."""
+        urls_to_delete = set(urls_doc_store) - set(urls_scraping)
+        document_store = self._get_document_store()
+        vector_store = self._get_vector_store()
+
+        if urls_to_delete:
+            for url in urls_to_delete:
+                document_store.delete_document(doc_id=url)
+                vector_store.delete(url)
+                print(f"Deleting document with URL: {url}")
+        else:
+            print("Aucune URL à supprimer.")
+
     def _ingest_dataset(self, dataset_config: dict, use_cache: bool = False):
         """
         Ingest the dataset using the provided configuration.
@@ -174,6 +218,14 @@ class IngestionWrapper(AbstractWrapper):
         # Optionnellement, définir un document store pour gérer les documents
         document_store = self._get_document_store()
 
+        # Récupérer les urls en base => urls_doc_store
+        urls_doc_store = self._get_urls_from_document_store(
+            id_dataset=dataset_config["id"]
+        )
+
+        # Faire une liste des urls des documents => urls_scraping
+        urls_scraping = self._get_urls_from_documents(documents)
+
         #
         # INGESTION PIPELINE
         #
@@ -185,3 +237,6 @@ class IngestionWrapper(AbstractWrapper):
         )
         # TODO: définir le show_progress via une variable d'environnement
         pipeline.run(documents=documents, show_progress=True)
+
+        # Supprimer les documents du document_store qui ne sont pas dans urls_scraping
+        self._remove_unmatched_documents(urls_doc_store, urls_scraping)
