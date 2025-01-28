@@ -20,8 +20,14 @@ from eurelis_llmatoolkit.llamaindex.logger import Logger
     required=False,
     help="Path to the logging configuration file.",
 )
+@click.option(
+    "-enable_sentry",
+    is_flag=True,
+    default=False,
+    help="Enable Sentry integration.",
+)
 @click.pass_context
-def cli(ctx: click.Context, config: str, logging_config: str):
+def cli(ctx: click.Context, config: str, logging_config: str, enable_sentry: bool):
     """
     Root command to handle configuration options.
 
@@ -29,8 +35,11 @@ def cli(ctx: click.Context, config: str, logging_config: str):
         ctx: Click context
         config: Path to the configuration file
         logging_config: Path to the logging configuration file
+        enable_sentry: Flag to enable Sentry integration
     """
-    Logger(logging_config)  # Initialize Logger with logging_config
+    Logger(
+        logging_config, enable_sentry
+    )  # Initialize Logger with logging_config and enable_sentry
     config_dict = ConfigLoader.load_config(config)
     ctx.obj["wrapper"] = IngestionWrapper(config_dict)
     ctx.obj["search_wrapper"] = SearchWrapper(config_dict)
