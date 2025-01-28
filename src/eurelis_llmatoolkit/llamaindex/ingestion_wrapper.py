@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import List, Optional
 
 from llama_index.core import Document
 from llama_index.core.ingestion import IngestionPipeline
@@ -10,13 +10,16 @@ from eurelis_llmatoolkit.llamaindex.factories.transformation_factory import (
     TransformationFactory,
 )
 
-if TYPE_CHECKING:
-    from llama_index.core.vector_stores.types import BasePydanticVectorStore
-
 
 class IngestionWrapper(AbstractWrapper):
-    def run(self, dataset_id: Optional[str] = None, use_cache: bool = False):
-        self._process_datasets(dataset_id, use_cache)
+    def run(
+        self,
+        dataset_id: Optional[str] = None,
+        use_cache: bool = False,
+        delete: bool = False,
+    ):
+        self._process_datasets(dataset_id, use_cache, delete)
+        print("Ingestion completed!")
 
     def generate_cache(self, dataset_id: Optional[str] = None):
         # Récupérer la configuration des datasets
@@ -81,11 +84,14 @@ class IngestionWrapper(AbstractWrapper):
         return documents
 
     def _process_datasets(
-        self, dataset_id: Optional[str] = None, use_cache: bool = False
+        self,
+        dataset_id: Optional[str] = None,
+        use_cache: bool = False,
+        delete: bool = False,
     ):
         """Process all datasets or a specific dataset based on the dataset ID."""
         for dataset_config in self._filter_datasets(dataset_id):
-            self._ingest_dataset(dataset_config, use_cache)
+            self._ingest_dataset(dataset_config, use_cache, delete)
 
     def _generate_cache(self, dataset_name: str, documents: list):
         cache_config = self._config.get("scraping_cache", [])
@@ -143,8 +149,8 @@ class IngestionWrapper(AbstractWrapper):
 
         return transformations
 
-    def _get_urls_from_document_store(self, id_dataset=None) -> List[str]:
-        """Retrieve all URLs from the database."""
+    def _get_doc_ids_from_document_store(self, id_dataset=None) -> List[str]:
+        """Retrieve all doc_ids from the database."""
         document_store = self._get_document_store()
         documents: dict = document_store.docs
 
@@ -155,39 +161,41 @@ class IngestionWrapper(AbstractWrapper):
         # Filtrage basé sur id_dataset
         if id_dataset is not None:
             namespace_filter = f"{self._config['project']}/{id_dataset}"
-            urls = {
+            doc_ids = {
                 doc.id_
                 for doc in documents.values()
                 if doc.metadata.get("namespace") == namespace_filter
             }
         else:
             # Si id_dataset est None, on ne filtre pas par namespace
-            urls = {doc.id_ for doc in documents.values()}
+            doc_ids = {doc.id_ for doc in documents.values()}
 
-        return list(urls)
+        return list(doc_ids)
 
-    def _get_urls_from_documents(self, documents: List[Document]) -> List[str]:
-        """Create a list of URLs from the documents."""
-        urls = [str(doc.id_) for doc in documents]
-        return urls
+    def _get_doc_ids_from_documents(self, documents: List[Document]) -> List[str]:
+        """Create a list of doc_ids from the documents."""
+        doc_ids = [str(doc.id_) for doc in documents]
+        return doc_ids
 
     def _remove_unmatched_documents(
-        self, urls_doc_store: List[str], urls_scraping: List[str]
+        self, doc_ids_doc_store: List[str], doc_ids_scraping: List[str]
     ):
-        """Remove documents from the database that do not match any of the provided URLs."""
-        urls_to_delete = set(urls_doc_store) - set(urls_scraping)
+        """Remove documents from the database that do not match any of the provided doc_ids."""
+        doc_ids_to_delete = set(doc_ids_doc_store) - set(doc_ids_scraping)
         document_store = self._get_document_store()
         vector_store = self._get_vector_store()
 
-        if urls_to_delete:
-            for url in urls_to_delete:
+        if doc_ids_to_delete:
+            for url in doc_ids_to_delete:
                 document_store.delete_document(doc_id=url)
                 vector_store.delete(url)
                 print(f"Deleting document with URL: {url}")
         else:
             print("Aucune URL à supprimer.")
 
-    def _ingest_dataset(self, dataset_config: dict, use_cache: bool = False):
+    def _ingest_dataset(
+        self, dataset_config: dict, use_cache: bool = False, delete: bool = False
+    ):
         """
         Ingest the dataset using the provided configuration.
 
@@ -218,13 +226,13 @@ class IngestionWrapper(AbstractWrapper):
         # Optionnellement, définir un document store pour gérer les documents
         document_store = self._get_document_store()
 
-        # Récupérer les urls en base => urls_doc_store
-        urls_doc_store = self._get_urls_from_document_store(
+        # Récupérer les doc_ids en base => doc_ids_doc_store
+        doc_ids_doc_store = self._get_doc_ids_from_document_store(
             id_dataset=dataset_config["id"]
         )
 
-        # Faire une liste des urls des documents => urls_scraping
-        urls_scraping = self._get_urls_from_documents(documents)
+        # Faire une liste des doc_ids des documents => doc_ids_scraping
+        doc_ids_scraping = self._get_doc_ids_from_documents(documents)
 
         #
         # INGESTION PIPELINE
@@ -238,5 +246,9 @@ class IngestionWrapper(AbstractWrapper):
         # TODO: définir le show_progress via une variable d'environnement
         pipeline.run(documents=documents, show_progress=True)
 
-        # Supprimer les documents du document_store qui ne sont pas dans urls_scraping
-        self._remove_unmatched_documents(urls_doc_store, urls_scraping)
+        # Supprimer les documents du document_store qui ne sont pas dans doc_ids_scraping
+        if delete:
+            print("Deleting old documents...")
+            self._remove_unmatched_documents(doc_ids_doc_store, doc_ids_scraping)
+        else:
+            print("The delete option is disabled: old documents will not be deleted.")

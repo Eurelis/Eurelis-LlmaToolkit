@@ -46,14 +46,20 @@ def dataset(ctx: click.Context, id: str):
 @click.option(
     "--from_cache", is_flag=True, default=False, help="Load documents from cache."
 )
+@click.option(
+    "--delete",
+    is_flag=True,
+    default=False,
+    help="Enable deletion of unmatched documents.",
+)
 @click.pass_context
-def dataset_ingest(ctx: click.Context, from_cache: bool):
+def dataset_ingest(ctx: click.Context, from_cache: bool, delete: bool):
     """Launch ingestion"""
     dataset_id = ctx.obj["dataset_id"]
 
     wrapper: IngestionWrapper = ctx.obj["wrapper"]
-    wrapper.run(dataset_id=dataset_id, use_cache=from_cache)
-    click.echo(f"End of ingestion!")
+    wrapper.run(dataset_id=dataset_id, use_cache=from_cache, delete=delete)
+    click.echo("End of ingestion!")
 
 
 @dataset.command("cache")
@@ -64,7 +70,7 @@ def dataset_cache(ctx: click.Context):
 
     wrapper: IngestionWrapper = ctx.obj["wrapper"]
     wrapper.generate_cache(dataset_id)
-    click.echo(f"End of cache generation!")
+    click.echo("End of cache generation!")
 
 
 @click.group()
