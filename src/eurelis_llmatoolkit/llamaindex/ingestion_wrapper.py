@@ -31,7 +31,7 @@ class IngestionWrapper(AbstractWrapper):
             use_cache,
         )
         self._process_datasets(dataset_id, use_cache, delete)
-        print("Ingestion completed!")
+        self.logger.info("Ingestion completed!")
 
     def generate_cache(self, dataset_id: Optional[str] = None):
         self.logger.info("Generating cache for dataset_id: %s", dataset_id)
@@ -193,7 +193,7 @@ class IngestionWrapper(AbstractWrapper):
         documents: dict = document_store.docs
 
         if not documents:
-            print("No documents found in the database.")
+            self.logger.warning("No documents found in the database.")
             return []
 
         # Filtrage basé sur id_dataset
@@ -227,9 +227,9 @@ class IngestionWrapper(AbstractWrapper):
             for url in doc_ids_to_delete:
                 document_store.delete_document(doc_id=url)
                 vector_store.delete(url)
-                print(f"Deleting document with URL: {url}")
+                self.logger.info(f"Deleting document with URL: {url}")
         else:
-            print("Aucune URL à supprimer.")
+            self.logger.info("No URLs to delete.")
 
     def _ingest_dataset(
         self, dataset_config: dict, use_cache: bool = False, delete: bool = False
@@ -287,8 +287,10 @@ class IngestionWrapper(AbstractWrapper):
 
         # Supprimer les documents du document_store qui ne sont pas dans doc_ids_scraping
         if delete:
-            print("Deleting old documents...")
+            self.logger.info("Deleting old documents...")
             self._remove_unmatched_documents(doc_ids_doc_store, doc_ids_scraping)
         else:
-            print("The delete option is disabled: old documents will not be deleted.")
+            self.logger.info(
+                "The delete option is disabled: old documents will not be deleted."
+            )
         self.logger.info(f"Dataset {dataset_config['id']} ingested successfully.")
