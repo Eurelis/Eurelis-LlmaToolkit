@@ -18,7 +18,7 @@ class AbstractMemoryPersistenceHandler(ABC):
         self._memory = memory
         self._conversation_id = conversation_id
         self._persistence_config = persistence_config
-        self.logger = Logger().get_logger()
+        self.logger = Logger().get_logger(__name__)
 
     @abstractmethod
     def load_history(self) -> None:

@@ -9,7 +9,7 @@ class AbstractReaderAdapter(ABC):
     def __init__(self, config):
         self.config = config
         self.reader = None
-        self.logger = Logger().get_logger()
+        self.logger = Logger().get_logger(__name__)
 
     @abstractmethod
     def load_data(self, *args, **kwargs):

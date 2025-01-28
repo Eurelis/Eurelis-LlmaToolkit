@@ -96,7 +96,7 @@ class ChatbotWrapper(AbstractWrapper):
         memory_persistence = self._get_memory_persistence(memory, chat_store_key)
         if memory_persistence is not None:
             memory_persistence.load_history()
-            self.logger.info(
+            self.logger.debug(
                 "Memory history loaded for chat_store_key: %s", chat_store_key
             )
 

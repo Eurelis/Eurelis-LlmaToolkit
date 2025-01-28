@@ -10,20 +10,12 @@ if dotenv_path:
 
 
 class Logger:
-    _instance = None
+    def __init__(self, logging_config=None):
+        # Load sentry_dsn from environment variables
+        sentry_dsn = os.getenv("SENTRY_DSN")
+        config_file = logging_config or os.getenv("LOGGING_CONFIG_FILE", "logging.ini")
 
-    def __new__(cls, logging_config=None):
-        if not cls._instance:
-            cls._instance = super().__new__(cls)
-
-            # Load sentry_dsn from environment variables
-            sentry_dsn = os.getenv("SENTRY_DSN")
-            config_file = logging_config or os.getenv(
-                "LOGGING_CONFIG_FILE", "logging.ini"
-            )
-
-            cls._instance._initialize(sentry_dsn, config_file)
-        return cls._instance
+        self._initialize(sentry_dsn, config_file)
 
     def _initialize(self, sentry_dsn=None, config_file="logging.ini"):
         if os.path.exists(config_file):
@@ -46,5 +38,5 @@ class Logger:
         sentry_sdk.init(dsn=sentry_dsn, integrations=[sentry_logging])
         self.logger.info("Sentry initialized.")
 
-    def get_logger(self):
-        return self.logger
+    def get_logger(self, name):
+        return logging.getLogger(name)

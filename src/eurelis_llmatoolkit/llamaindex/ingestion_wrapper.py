@@ -15,8 +15,9 @@ from eurelis_llmatoolkit.llamaindex.logger import Logger
 
 class IngestionWrapper(AbstractWrapper):
     def __init__(self, config: dict):
+        super().__init__(config)
         self._config = config
-        self.logger = Logger().get_logger()
+        self.logger = Logger().get_logger(__name__)
         self.logger.debug("IngestionWrapper initialized")
 
     def run(
@@ -227,7 +228,8 @@ class IngestionWrapper(AbstractWrapper):
             for url in doc_ids_to_delete:
                 document_store.delete_document(doc_id=url)
                 vector_store.delete(url)
-                self.logger.info(f"Deleting document with URL: {url}")
+                self.logger.debug(f"Deleted document with URL: {url}")
+            self.logger.info(f"Deleted {len(doc_ids_to_delete)} documents.")
         else:
             self.logger.info("No URLs to delete.")
 
@@ -240,12 +242,15 @@ class IngestionWrapper(AbstractWrapper):
         Args:
             dataset_config (dict): Configuration for the dataset.
         """
-        self.logger.info("Ingesting dataset with use_cache: %s", use_cache)
+        self.logger.info(
+            f"Ingesting dataset {dataset_config['id']} with use_cache: %s", use_cache
+        )
         #
         # READER / CACHE
         #
         # Récupérer les documents à partir du cache ou via le reader
         documents = self._get_documents(dataset_config, use_cache)
+        self.logger.debug(f"Retrieved {len(documents)} documents for ingestion.")
 
         #
         # ACRONYMS & NODE PARSER & EMBEDDINGS
@@ -284,6 +289,7 @@ class IngestionWrapper(AbstractWrapper):
         )
         # TODO: définir le show_progress via une variable d'environnement
         pipeline.run(documents=documents, show_progress=True)
+        self.logger.debug(f"Ingested {len(documents)} documents into the pipeline.")
 
         # Supprimer les documents du document_store qui ne sont pas dans doc_ids_scraping
         if delete:

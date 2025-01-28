@@ -31,7 +31,7 @@ class LLMNodeTransformer(NodeParser):
         self._mode = config.get("mode")
         self._llm_provider = config.get("llm_provider")
         self._llm_model = config.get("llm_model")
-        self.logger = Logger().get_logger()
+        self.logger = Logger().get_logger(__name__)
 
     def _parse_nodes(
         self,
