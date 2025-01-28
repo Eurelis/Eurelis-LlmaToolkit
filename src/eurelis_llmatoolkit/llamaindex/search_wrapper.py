@@ -10,6 +10,7 @@ class SearchWrapper(AbstractWrapper):
     def __init__(self, config: dict):
         super().__init__(config)
         self._retriever = None
+        self.logger.info("SearchWrapper initialized.")
 
     def get_filters_formatted(self) -> list:
         """Return the filters formatted."""
@@ -39,6 +40,7 @@ class SearchWrapper(AbstractWrapper):
         Returns:
             List of documents
         """
+        self.logger.info("Searching documents with query: %s", query)
         # recherche dans l'index
         results: list[NodeWithScore] = self.search_nodes(
             query, extract_filters=extract_filters
@@ -61,11 +63,13 @@ class SearchWrapper(AbstractWrapper):
                         "node": node,
                     }
 
-        return sorted(
+        sorted_documents = sorted(
             [doc["node"] for doc in documents.values()],
             key=lambda x: x.score,
             reverse=True,
         )
+        self.logger.debug("Documents sorted by score.")
+        return sorted_documents
 
     def search_nodes(
         self, query: str, extract_filters: bool = False
@@ -79,10 +83,12 @@ class SearchWrapper(AbstractWrapper):
         Returns:
             List of NodeWithScore
         """
+        self.logger.info("Searching nodes.")
         retriever = self._get_retriever(self._config["search_engine"])
         # recherche dans l'index
         if getattr(retriever, "supports_extract_filters", False):
             results = retriever.retrieve(query, extract_filters=extract_filters)
         else:
             results = retriever.retrieve(query)
+        self.logger.debug("Nodes retrieved.")
         return results

@@ -34,6 +34,10 @@ class ChatbotWrapper(AbstractWrapper):
         self._persistence_data = persistence_data
         self._permanent_filters: Optional["MetadataFilters"] = permanent_filters
 
+        self.logger.info(
+            "ChatbotWrapper initialized with conversation_id: %s", conversation_id
+        )
+
         # Création d'un chat_engine
         self._chat_engine = self._create_chat_engine(chat_store_key=conversation_id)
 
@@ -51,6 +55,8 @@ class ChatbotWrapper(AbstractWrapper):
         Args:
             conversation_id: str, ID of the current conversation.
         """
+        self.logger.info("Running chatbot with message: %s", message)
+
         # Récupération du chat_engine instancié
         chat_engine = self._get_chat_engine(
             filters=filters,
@@ -58,6 +64,7 @@ class ChatbotWrapper(AbstractWrapper):
             custom_system_prompt=custom_system_prompt,
         )
         response = chat_engine.chat(message)
+        self.logger.debug("Chatbot response: %s", response)
 
         # Sauvegarder l'historique des conversations mises à jour en utilisant la mémoire du chat_engine
         self._save_memory(chat_engine._memory)
@@ -74,8 +81,12 @@ class ChatbotWrapper(AbstractWrapper):
         Returns:
             BaseMemory: A memory instance, with loaded conversation history.
         """
+        self.logger.info("Initializing memory with chat_store_key: %s", chat_store_key)
         memory_config = self._config["chat_engine"].get("memory")
         if not memory_config:
+            self.logger.error(
+                "Memory configuration is missing in chat_engine settings."
+            )
             raise ValueError("Memory configuration is missing in chat_engine settings.")
 
         # Création d'une instance de mémoire vide
@@ -85,6 +96,9 @@ class ChatbotWrapper(AbstractWrapper):
         memory_persistence = self._get_memory_persistence(memory, chat_store_key)
         if memory_persistence is not None:
             memory_persistence.load_history()
+            self.logger.info(
+                "Memory history loaded for chat_store_key: %s", chat_store_key
+            )
 
         return memory_persistence._memory if memory_persistence else memory
 
@@ -104,15 +118,22 @@ class ChatbotWrapper(AbstractWrapper):
             Returns:
                 Optional[MemoryPersistence]: The memory persistence instance, or None if not configured.
         """
+        self.logger.debug(
+            "Getting memory persistence for chat_store_key: %s", chat_store_key
+        )
         # Si la persistance de la mémoire existe déjà et qu'aucune nouvelle mémoire n'est fournie
         if self._memory_persistence is not None:
             # Si une mémoire est fournie, on met à jour la persistance avec cette nouvelle mémoire
             if memory is not None:
                 self._memory_persistence.set_memory(memory)
+                self.logger.debug("Memory persistence updated with new memory.")
             return self._memory_persistence
 
         # Si la persistance de mémoire n'existe pas, et qu'une mémoire est fournie
         if memory is None:
+            self.logger.error(
+                "Memory is required when creating a new memory persistence."
+            )
             raise ValueError(
                 "Memory is required when creating a new memory persistence."
             )
@@ -123,12 +144,16 @@ class ChatbotWrapper(AbstractWrapper):
         )
         if not memory_persistence_config:
             self._memory_persistence = None
+            self.logger.warning("Memory persistence configuration is missing.")
             return None
 
         self._memory_persistence = MemoryPersistenceFactory.create_memory_persistence(
             memory_persistence_config, memory, chat_store_key, self._persistence_data
         )
 
+        self.logger.debug(
+            "Memory persistence created for chat_store_key: %s", chat_store_key
+        )
         return self._memory_persistence
 
     def _get_llm(self):
@@ -138,6 +163,7 @@ class ChatbotWrapper(AbstractWrapper):
         Returns:
             BaseLLM: The configured language model.
         """
+        self.logger.debug("Retrieving language model (LLM) from configuration.")
         if self._llm is not None:
             return self._llm
 
@@ -158,6 +184,7 @@ class ChatbotWrapper(AbstractWrapper):
         Returns:
             str: The generated system prompt.
         """
+        self.logger.debug("Get system prompt for chat engine.")
         if custom_prompt is not None:
             return custom_prompt
 
@@ -170,6 +197,7 @@ class ChatbotWrapper(AbstractWrapper):
         elif system_prompt_list is None:
             return None
         else:
+            self.logger.error("Invalid 'system_prompt' format in configuration.")
             raise ValueError(
                 "The 'system_prompt' should be either a list of strings or a single string."
             )
@@ -189,6 +217,9 @@ class ChatbotWrapper(AbstractWrapper):
         Returns:
             ChatEngine: The fully configured chat engine instance.
         """
+        self.logger.debug(
+            "Creating chat engine with chat_store_key: %s", chat_store_key
+        )
 
         chat_engine_config = self._config["chat_engine"]
         system_prompt = self._get_prompt(chat_engine_config, custom_system_prompt)
@@ -208,7 +239,7 @@ class ChatbotWrapper(AbstractWrapper):
             system_prompt=system_prompt,
             node_postprocessors=node_postprocessors,
         )
-
+        self.logger.info("Chat engine created successfully.")
         return self._chat_engine
 
     def _get_chat_engine(
@@ -232,11 +263,17 @@ class ChatbotWrapper(AbstractWrapper):
         Returns:
             ChatEngine: The chat engine with applied filters (if supported).
         """
+        self.logger.debug(
+            "Retrieving chat engine with filters and custom system prompt."
+        )
 
         chat_engine_config = self._config["chat_engine"]
         system_prompt = self._get_prompt(chat_engine_config, custom_system_prompt)
 
         if self._chat_engine is None:
+            self.logger.error(
+                "The '_chat_engine' must be initialized using the '_create_chat_engine' method."
+            )
             raise ValueError(
                 "The '_chat_engine' must be initialized using the '_create_chat_engine' method."
             )
@@ -261,7 +298,11 @@ class ChatbotWrapper(AbstractWrapper):
 
             # Appliquer les filtres combinés si existants
             self._chat_engine._retriever._filters = combined_filters
+            self.logger.debug("Filters applied to chat engine retriever.")
         else:
+            self.logger.error(
+                "The '_filters' attribute is not available for this retriever."
+            )
             raise AttributeError(
                 "The '_filters' attribute is not available for this retriever."
             )
@@ -278,9 +319,12 @@ class ChatbotWrapper(AbstractWrapper):
         Args:
             memory (BaseMemory): Memory instance to save.
         """
+        self.logger.debug("Saving memory state.")
         if not memory:
+            self.logger.error("Cannot save history: memory is not provided.")
             raise ValueError("Cannot save history: memory is not provided.")
 
         memory_persistence = self._get_memory_persistence(memory)
         if memory_persistence is not None:
             memory_persistence.save_history()
+            self.logger.info("Memory history saved successfully.")

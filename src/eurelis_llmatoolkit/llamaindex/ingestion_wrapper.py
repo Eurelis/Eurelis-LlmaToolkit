@@ -10,25 +10,38 @@ from eurelis_llmatoolkit.llamaindex.factories.transformation_factory import (
     TransformationFactory,
 )
 
+from eurelis_llmatoolkit.llamaindex.logger import Logger
+
 
 class IngestionWrapper(AbstractWrapper):
+    def __init__(self, config: dict):
+        self._config = config
+        self.logger = Logger().get_logger()
+        self.logger.debug("IngestionWrapper initialized")
+
     def run(
         self,
         dataset_id: Optional[str] = None,
         use_cache: bool = False,
         delete: bool = False,
     ):
+        self.logger.info(
+            "Running ingestion with filtering dataset_id: %s, use_cache: %s",
+            dataset_id,
+            use_cache,
+        )
         self._process_datasets(dataset_id, use_cache, delete)
         print("Ingestion completed!")
 
     def generate_cache(self, dataset_id: Optional[str] = None):
+        self.logger.info("Generating cache for dataset_id: %s", dataset_id)
         # Récupérer la configuration des datasets
         datasets = list(
             self._filter_datasets(dataset_id)
         )  # Convertir l'iterable en liste
 
         if not datasets:
-            print(f"No dataset found with ID: {dataset_id}")
+            self.logger.warning(f"No dataset found with ID: {dataset_id}")
             return
 
         # Parcourir tous les datasets et générer le cache
@@ -36,17 +49,22 @@ class IngestionWrapper(AbstractWrapper):
             # Vérifier que l'ID du dataset n'est pas None
             dataset_id = dataset_config.get("id")
             if dataset_id is None:
-                print(f"Dataset configuration missing 'id': {dataset_config}")
+                self.logger.warning(
+                    f"Dataset configuration missing 'id': {dataset_config}"
+                )
                 continue
 
             documents = self._get_documents(dataset_config, use_cache=False)
 
             # Générer le cache
             self._generate_cache(dataset_id, documents)
-            print(f"Cache generated for dataset ID: {dataset_id}!")
+            self.logger.info(f"Cache generated for dataset ID: {dataset_id}!")
 
     def _load_documents_from_reader(self, dataset_config: dict) -> List[Document]:
         """Load documents using the appropriate reader based on the dataset configuration."""
+        self.logger.debug(
+            "Loading documents from reader for dataset_config: %s", dataset_config
+        )
         reader_adapter = ReaderFactory.create_reader(
             f"{self._config['project']}/{dataset_config['id']}",
             dataset_config["reader"],
@@ -58,6 +76,9 @@ class IngestionWrapper(AbstractWrapper):
 
     def _load_documents_from_cache(self, dataset_config: dict) -> List[Document]:
         """Load documents from cache if the cache is available."""
+        self.logger.debug(
+            "Loading documents from cache for dataset_config: %s", dataset_config
+        )
         cache_config = self._config.get("scraping_cache", [])
         cache = CacheFactory.create_cache(cache_config)
         documents = cache.load_data(dataset_config["id"])
@@ -77,6 +98,9 @@ class IngestionWrapper(AbstractWrapper):
         Returns:
             List[Document]: List of documents with added project metadata.
         """
+        self.logger.debug(
+            "Adding project metadata to documents for project: %s", project
+        )
         for doc in documents:
             if not hasattr(doc, "metadata"):
                 doc.metadata = {}
@@ -90,10 +114,16 @@ class IngestionWrapper(AbstractWrapper):
         delete: bool = False,
     ):
         """Process all datasets or a specific dataset based on the dataset ID."""
+        self.logger.info(
+            "Processing datasets with filtering dataset_id: %s, use_cache: %s",
+            dataset_id,
+            use_cache,
+        )
         for dataset_config in self._filter_datasets(dataset_id):
             self._ingest_dataset(dataset_config, use_cache, delete)
 
     def _generate_cache(self, dataset_name: str, documents: list):
+        self.logger.debug("Generating cache for dataset_name: %s", dataset_name)
         cache_config = self._config.get("scraping_cache", [])
         cache = CacheFactory.create_cache(cache_config)
         cache.to_cache(dataset_name, documents)
@@ -109,6 +139,11 @@ class IngestionWrapper(AbstractWrapper):
         Returns:
             List[Document]: List of retrieved documents.
         """
+        self.logger.debug(
+            "Getting documents for dataset_config: %s, use_cache: %s",
+            dataset_config,
+            use_cache,
+        )
         return (
             self._load_documents_from_cache(dataset_config)
             if use_cache
@@ -122,6 +157,9 @@ class IngestionWrapper(AbstractWrapper):
         Args:
             dataset_config (dict): The dataset configuration that specifies the transformations.
         """
+        self.logger.debug(
+            "Getting transformations for dataset_config: %s", dataset_config
+        )
         # Transformations
         transformations = [
             TransformationFactory.create_transformation(t_config)
@@ -202,6 +240,7 @@ class IngestionWrapper(AbstractWrapper):
         Args:
             dataset_config (dict): Configuration for the dataset.
         """
+        self.logger.info("Ingesting dataset with use_cache: %s", use_cache)
         #
         # READER / CACHE
         #
@@ -252,3 +291,4 @@ class IngestionWrapper(AbstractWrapper):
             self._remove_unmatched_documents(doc_ids_doc_store, doc_ids_scraping)
         else:
             print("The delete option is disabled: old documents will not be deleted.")
+        self.logger.info(f"Dataset {dataset_config['id']} ingested successfully.")
