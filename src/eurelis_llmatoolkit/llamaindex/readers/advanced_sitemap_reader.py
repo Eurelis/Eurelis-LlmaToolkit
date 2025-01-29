@@ -1,3 +1,4 @@
+import logging
 import re
 import time
 import xml.etree.ElementTree as ET
@@ -11,6 +12,8 @@ from llama_index.core.schema import Document
 from eurelis_llmatoolkit.llamaindex.readers.abstract_reader_adapter import (
     AbstractReaderAdapter,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class AdvancedSitemapReader(AbstractReaderAdapter):
@@ -29,13 +32,14 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             list: Liste des données du sitemap
         """
-        self.logger.info(f"Loading data from sitemap URL: {url}")
         if url is None:
             load_params = self._get_load_data_params()
             url = load_params["sitemap_url"]
 
+        logger.info(f"Loading data from sitemap URL: {url}")
+
         sitemap_content = self._fetch_url(url)
-        self.logger.debug(f"Sitemap : {url}")
+        logger.debug(f"Sitemap : {url}")
         root = ET.fromstring(sitemap_content)
 
         # on vérifie si le sitemap est un sitemap index ou un sitemap
@@ -54,7 +58,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             list: Liste des données de tous les sitemaps référencés
         """
-        self.logger.debug("Processing sitemap index")
+        logger.debug("Processing sitemap index")
         all_data = []
         for sitemap in root.findall(".//{*}sitemap"):
             loc = sitemap.find("{*}loc").text
@@ -71,7 +75,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             list: Liste des données du sitemap
         """
-        self.logger.debug("Processing URL set")
+        logger.debug("Processing URL set")
         all_data = []
 
         url_include_filters = self.config.get("url_include_filters", None)
@@ -83,7 +87,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
             if url_include_filters and not any(
                 re.match(regexp_pattern, loc) for regexp_pattern in url_include_filters
             ):
-                self.logger.debug(f"URL {loc} does not match include filters, skipping")
+                logger.debug(f"URL {loc} does not match include filters, skipping")
                 continue
             page_data = self._process_page(loc)
             if page_data:
@@ -96,7 +100,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
                 all_data.append(page_data)
 
             if requests_per_second > 0:
-                self.logger.debug(f"Sleeping for {1 / requests_per_second} seconds")
+                logger.debug(f"Sleeping for {1 / requests_per_second} seconds")
                 time.sleep(1 / requests_per_second)
 
         return all_data
@@ -110,7 +114,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             Document: Contenu de la page
         """
-        self.logger.info(f"Fetching page data for URL: {url}")
+        logger.info(f"Fetching page data for URL: {url}")
         try:
             response = self._fetch_url(url)
 
@@ -131,7 +135,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
 
                 page_text = html2text.html2text(page_text)
 
-            self.logger.debug(
+            logger.debug(
                 f"Page content: {page_text[:100]}"
             )  # Log 100 premiers caractères
 
@@ -142,7 +146,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
             )
 
         except Exception as e:
-            self.logger.error(f"Error fetching {url}: {e}")
+            logger.error(f"Error fetching {url}: {e}")
             return None
 
     def _find_pdf_urls(self, page: BeautifulSoup, url: str) -> List[str]:
@@ -154,7 +158,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             List[str]: Liste des URLs des PDFs
         """
-        self.logger.info(f"Finding PDF URLs in page: {url}")
+        logger.info(f"Finding PDF URLs in page: {url}")
         pdf_links = set()
         for link in page.find_all("a", href=True):
             if link["href"].endswith(".pdf"):
@@ -170,7 +174,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             str: Contenu du PDF
         """
-        self.logger.info(f"Processing PDF URL: {pdf_url}")
+        logger.info(f"Processing PDF URL: {pdf_url}")
         import pymupdf
         import pymupdf4llm
 
@@ -196,7 +200,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
             return f"---------- {title} ----------\n{pdf_md_text}"
 
         except Exception as e:
-            self.logger.error(f"Error fetching {pdf_url}: {e}")
+            logger.error(f"Error fetching {pdf_url}: {e}")
             return ""
 
     def _remove_excluded_elements(self, page: BeautifulSoup, remove_list: list):
@@ -206,7 +210,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
             page (BeautifulSoup): Page à traiter
             remove_list (list): Liste des éléments à supprimer
         """
-        self.logger.debug(f"Removing elements: {remove_list}")
+        logger.debug(f"Removing elements: {remove_list}")
         for remove in remove_list:
             nodes = []
             if isinstance(remove, str):
@@ -228,7 +232,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             dict: Dictionnaire contenant les métadonnées extraites.
         """
-        self.logger.debug(f"Generating metadata for URL: {url}")
+        logger.debug(f"Generating metadata for URL: {url}")
         h1 = page.find("h1")
         title = h1.get_text(strip=True) if h1 else None
 
@@ -243,10 +247,10 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             str: Contenu de la page
         """
-        self.logger.info(f"Fetching URL: {url}")
+        logger.info(f"Fetching URL: {url}")
         requests_timeout = self.config.get("requests_timeout", 60)
         response = requests.get(url, timeout=requests_timeout, headers=self._headers)
         if response.status_code == 200:
             return response.content
-        self.logger.error(f"Error fetching {url}: {response.status_code}")
+        logger.error(f"Error fetching {url}: {response.status_code}")
         return None

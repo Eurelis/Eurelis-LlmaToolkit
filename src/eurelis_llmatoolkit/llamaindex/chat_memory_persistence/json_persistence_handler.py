@@ -1,3 +1,4 @@
+import logging
 import json
 from typing import Any, Dict
 
@@ -7,6 +8,8 @@ from llama_index.core.memory.types import BaseChatStoreMemory
 from eurelis_llmatoolkit.llamaindex.chat_memory_persistence.abstract_memory_persistence_handler import (
     AbstractMemoryPersistenceHandler,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class JSONPersistenceHandler(AbstractMemoryPersistenceHandler):
@@ -48,7 +51,7 @@ class JSONPersistenceHandler(AbstractMemoryPersistenceHandler):
                         self._memory.chat_store.set_messages(self._conversation_id, [])
 
         except FileNotFoundError:
-            self.logger.info("No history found. Create a new history.")
+            logger.info("No history found. Create a new history.")
 
     def save_history(self) -> None:
         """Saves the history of all conversations in a JSON file."""
