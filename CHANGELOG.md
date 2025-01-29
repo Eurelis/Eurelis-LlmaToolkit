@@ -1,54 +1,75 @@
 # Changelog
 
-## 2024-01-11 - 2.0.0dev6
+All notable changes to this project will be documented in this file.
 
-* No exception raised if .env file not found
-* Limit pymupdf4llm.to_markdown verbosity
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 2024-01-09 - 2.0.0dev5
+## [Unreleased]
 
-* Add node post-processor support
-* Increaseed timeout for requests in AdvancedSitemaReader
+### Added
 
-## 2024-12-31 - 2.0.0dev4
+- Data cleaning in ingestion wrapper (delete obsolete data)
+- Sentry support in console mode
+- Add timeout to sitemap reader configuration
 
-* Fix motor & pymongo version
+### Changed
 
-## 2024-12-24 - 2.0.0dev3
+- Logging strategy improvements
 
-* Improved chatbot wrapper and memory management
-* LLM Node Transformer
+### Removed
 
-## 2024-10-29 - 2.0.0dev2
+- Legacy code source
 
-* Improved ingestion pipeline & chatbot wrapper
-* Custom retriever
+## [2.0.0dev6] - 2024-01-11
 
-## 2024-10-22 - 2.0.0dev1
+- No exception raised if .env file not found
+- Limit pymupdf4llm.to_markdown verbosity
 
-* 1st integration with LlmaIndex
+## [2.0.0dev5] - 2024-01-09
 
-## 2024-09-30 - 1.1.0rc2
+- Add node post-processor support
+- Increaseed timeout for requests in AdvancedSitemaReader
 
-* MongoDb RecordManager
-* On demand indexation
-* Search API
+## [2.0.0dev4] - 2024-12-31
 
-## 2024-06-17 - 1.1.0rc1
+- Fix motor & pymongo version
 
-* Langchain 0.2.2 update
-* Add CITATION.cff
-* Add SECURITY.md
+## [2.0.0dev3] - 2024-12-24
 
-## 2024-05-22 - 1.0.1
+- Improved chatbot wrapper and memory management
+- LLM Node Transformer
 
-* Factory update for Solr VectorStore
-* Variabilization of the limit on the number of requests per second when scrapping via sitemap
+## [2.0.0dev2] - 2024-10-29
 
-## 2024-05-20 - 1.0.0
+- Improved ingestion pipeline & chatbot wrapper
+- Custom retriever
 
-* First release
+## [2.0.0dev1] - 2024-10-22
 
-## 2024-05-16 - 1.0.0rc1
+- 1st integration with LlmaIndex
 
-* First release candidate
+## [1.1.0rc2] - 2024-09-30
+
+- MongoDb RecordManager
+- On demand indexation
+- Search API
+
+## [1.1.0rc1] - 2024-06-17
+
+- Langchain 0.2.2 update
+- Add CITATION.cff
+- Add SECURITY.md
+
+## [1.0.1] - 2024-05-22
+
+- Factory update for Solr VectorStore
+- Variabilization of the limit on the number of requests per second when scrapping via sitemap
+
+## [1.0.0] - 2024-05-20
+
+- First release
+
+## [1.0.0rc1] - 2024-05-16
+
+- First release candidate
