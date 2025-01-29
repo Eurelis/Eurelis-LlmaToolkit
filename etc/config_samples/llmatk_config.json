@@ -65,6 +65,111 @@
             }
         },
         {
+            "id": "bostik",
+            "reader": {
+                "provider": "tests.samples.readers.bostik_sitemap_reader.BostikSitemapReader",
+                "sitemap_url": "https://www.bostik.com/uk/en_GB/sitemap.xml",
+                "html_to_text": true,
+                "limit": 15,
+                "embed_pdf": true,
+                "user_agent": "EurelisKBF/0.1",
+                "parser_remove": [
+                    "script",
+                    {
+                        "name": "header",
+                        "attrs": {
+                            "id": "header-global"
+                        }
+                    },
+                    "noscript",
+                    "footer",
+                    "svg",
+                    {
+                        "name": "nav",
+                        "attrs": {
+                            "class": "breadcrumb"
+                        }
+                    },
+                    {
+                        "name": "div",
+                        "attrs": {
+                            "class": "skip-link js-skip"
+                        }
+                    },
+                    {
+                        "name": "a",
+                        "attrs": {
+                            "href": "#anchor-top"
+                        }
+                    },
+                    {
+                        "name": "div",
+                        "attrs": {
+                            "class": "iw-widget"
+                        }
+                    },
+                    {
+                        "name": "section",
+                        "attrs": {
+                            "class": "content-block market-related content-color-primary"
+                        }
+                    },
+                    {
+                        "name": "section",
+                        "attrs": {
+                            "class": "product-share color-primary"
+                        }
+                    },
+                    {
+                        "name": "div",
+                        "attrs": {
+                            "class": "banner-share"
+                        }
+                    },
+                    {
+                        "name": "div",
+                        "attrs": {
+                            "id": "modal-ie-detect"
+                        }
+                    },
+                    {
+                        "name": "div",
+                        "attrs": {
+                            "class": "share-rs_toolbox"
+                        }
+                    },
+                    {
+                        "name": "div",
+                        "attrs": {
+                            "id": "modal-share-rs"
+                        }
+                    },
+                    "form",
+                    "button"
+                ]
+            },
+            "acronyms": {
+                "provider": "JSONFileAcronymTransformer",
+                "path": "../etc/config_samples/acronyms.json"
+            },
+            "transformations": [
+                {
+                    "provider": "SentenceSplitter",
+                    "chunk_size": 750,
+                    "chunk_overlap": 50
+                },
+                {
+                    "provider": "LLMNodeTransformer",
+                    "prompt": "You are receiving a messages that you have to understand the meaning and generate only one question related to the main topic of the message.",
+                    "keep_origin_node": true,
+                    "mode": "QAndA",
+                    "llm_provider": "OpenAI",
+                    "llm_model": "gpt-4o",
+                    "llm_api_key": "${OPENAI_API_KEY}"
+                }
+            ]
+        },
+        {
             "id": "url",
             "reader": {
                 "provider": "eurelis_llmatoolkit.llamaindex.readers.CommunitySimpleWebPageReader",

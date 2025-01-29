@@ -1,8 +1,9 @@
 # Eurelis-LlmaToolkit
 
 ![Python : 11](https://img.shields.io/badge/Python-=3.11-green)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 ![Code style : black](https://img.shields.io/badge/Code_style-black-black)
-![Linting : pylint](https://img.shields.io/badge/Linting-pylint-yellowgreen)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 
 [![Open Issues](https://img.shields.io/github/issues-raw/Eurelis/Eurelis-KB-Framework)](https://github.com/Eurelis/Eurelis-KB-Framework/issues)

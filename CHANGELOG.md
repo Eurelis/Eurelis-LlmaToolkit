@@ -1,5 +1,10 @@
 # Changelog
 
+## 2024-01-11 - 2.0.0dev6
+
+* No exception raised if .env file not found
+* Limit pymupdf4llm.to_markdown verbosity
+
 ## 2024-01-09 - 2.0.0dev5
 
 * Add node post-processor support

@@ -37,8 +37,29 @@ check-pre-commit:
 	@echo "***** $@"
 	@pre-commit run --all-files
 
+
 #
-# Build
+# Clean
+#
+clean:
+	@echo "***** $@"
+	@echo "***** $@"
+	@find src -type d -name "__pycache__" -exec rm -rf {} +
+	@rm -rf src/*.egg-info
+
+
+#
+# Testing
+#
+run-tests:
+	@echo "***** $@"
+	@source .venv/bin/activate
+	cd src
+	${PYTHON} -m pytest -p no:warnings
+
+
+#
+# Package
 #
 package-build: update-venv
 	@echo "***** $@"
@@ -50,19 +71,3 @@ package-publish: package-build
 	@echo "***** $@"
 	@source .venv/bin/activate
 	uv publish
-
-#
-# Cleaning
-#
-clean-src:
-	@echo "***** $@"
-	@source .venv/bin/activate && black src && mypy src
-
-#
-# Testing
-#
-run-tests:
-	@echo "***** $@"
-	@source .venv/bin/activate
-	cd src
-	${PYTHON} -m pytest -p no:warnings
