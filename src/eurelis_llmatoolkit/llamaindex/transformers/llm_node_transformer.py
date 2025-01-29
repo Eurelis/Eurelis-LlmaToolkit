@@ -1,4 +1,5 @@
 import copy
+import logging
 import uuid
 from typing import Any, List, Sequence, Union
 
@@ -7,7 +8,8 @@ from llama_index.core.schema import BaseNode
 from pydantic import BaseModel
 
 from eurelis_llmatoolkit.llamaindex.factories.llm_factory import LLMFactory
-from eurelis_llmatoolkit.llamaindex.logger import Logger
+
+logger = logging.getLogger(__name__)
 
 
 class LLMResponseSchema(BaseModel):
@@ -31,7 +33,6 @@ class LLMNodeTransformer(NodeParser):
         self._mode = config.get("mode")
         self._llm_provider = config.get("llm_provider")
         self._llm_model = config.get("llm_model")
-        self.logger = Logger().get_logger(__name__)
 
     def _parse_nodes(
         self,
@@ -80,7 +81,7 @@ class LLMNodeTransformer(NodeParser):
         try:
             return sllm.complete(prompt).raw.responses
         except Exception as e:
-            self.logger.error(f"Error generating content via LLM: {e}")
+            logger.error(f"Error generating content via LLM: {e}")
             return []
 
     def _get_llm(self):

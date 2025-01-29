@@ -4,10 +4,10 @@ from eurelis_llmatoolkit.llamaindex.chatbot_wrapper import ChatbotWrapper
 from eurelis_llmatoolkit.llamaindex.config_loader import ConfigLoader
 from eurelis_llmatoolkit.llamaindex.ingestion_wrapper import IngestionWrapper
 from eurelis_llmatoolkit.llamaindex.search_wrapper import SearchWrapper
-from eurelis_llmatoolkit.llamaindex.logger import Logger
 
 import os
 import logging
+import logging.config
 from dotenv import load_dotenv, find_dotenv
 
 logger = logging.getLogger(__name__)
@@ -53,12 +53,10 @@ def cli(ctx: click.Context, config: str, logging_config: str, enable_sentry: boo
     #
     # Load logging configuration file
     if logging_config:
-        logging_conf_path = os.path.join(os.path.dirname(__file__), logging_config)
-
-        if os.path.exists(logging_conf_path):
+        if os.path.exists(logging_config):
             # You need to use disable_existing_loggers=False to avoid the default loggers to be disabled
-            logging.config.fileConfig(logging_conf_path, disable_existing_loggers=False)
-            logger.debug(f"Logging configuration loaded from {logging_conf_path}")
+            logging.config.fileConfig(logging_config, disable_existing_loggers=False)
+            logger.debug(f"Logging configuration loaded from {logging_config}")
         else:
             logging.basicConfig(
                 force=True,

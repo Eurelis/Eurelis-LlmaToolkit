@@ -1,7 +1,5 @@
 from abc import ABC, abstractmethod
 
-from eurelis_llmatoolkit.llamaindex.logger import Logger
-
 
 class AbstractReaderAdapter(ABC):
     required_params = []
@@ -9,7 +7,6 @@ class AbstractReaderAdapter(ABC):
     def __init__(self, config):
         self.config = config
         self.reader = None
-        self.logger = Logger().get_logger(__name__)
 
     @abstractmethod
     def load_data(self, *args, **kwargs):
