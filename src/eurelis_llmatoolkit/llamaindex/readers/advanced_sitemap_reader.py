@@ -114,7 +114,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             Document: Contenu de la page
         """
-        logger.info(f"Fetching page data for URL: {url}")
+        logger.debug(f"Fetching page data for URL: {url}")
         try:
             response = self._fetch_url(url)
 
@@ -158,11 +158,13 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             List[str]: Liste des URLs des PDFs
         """
-        logger.info(f"Finding PDF URLs in page: {url}")
         pdf_links = set()
         for link in page.find_all("a", href=True):
             if link["href"].endswith(".pdf"):
                 pdf_links.add(requests.compat.urljoin(url, link["href"]))
+
+        logger.debug(f"Finding PDF URLs : {', '.join(pdf_links)}")
+
         return list(pdf_links)
 
     def _process_pdf(self, pdf_url: str) -> str:
@@ -247,7 +249,6 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             str: Contenu de la page
         """
-        logger.info(f"Fetching URL: {url}")
         requests_timeout = self.config.get("requests_timeout", 60)
         response = requests.get(url, timeout=requests_timeout, headers=self._headers)
         if response.status_code == 200:
