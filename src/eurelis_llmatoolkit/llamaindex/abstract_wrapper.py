@@ -1,3 +1,4 @@
+import logging
 from abc import ABC
 from typing import TYPE_CHECKING, Iterable, Optional
 
@@ -18,11 +19,12 @@ from eurelis_llmatoolkit.llamaindex.factories.retriever_factory import Retriever
 from eurelis_llmatoolkit.llamaindex.factories.vectorstore_factory import (
     VectorStoreFactory,
 )
-from eurelis_llmatoolkit.llamaindex.logger import Logger
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from llama_index.core.vector_stores.types import BasePydanticVectorStore
     from llama_index.core.retrievers import BaseRetriever
+    from llama_index.core.vector_stores.types import BasePydanticVectorStore
 
 
 class AbstractWrapper(ABC):
@@ -35,8 +37,7 @@ class AbstractWrapper(ABC):
         self._retriever: "BaseRetriever" = None
         self._node_postprocessors: Optional[list[BaseNodePostprocessor]] = None
         self._embedding_model: "BaseEmbedding" = None
-        self.logger = Logger().get_logger(__name__)
-        self.logger.debug("AbstractWrapper initialized.")
+        logger.debug("AbstractWrapper initialized.")
 
     def _get_vector_store(self):
         if self._vector_store is not None:
@@ -44,7 +45,7 @@ class AbstractWrapper(ABC):
 
         vectorstore_config = self._config["vectorstore"]
         self._vector_store = VectorStoreFactory.create_vector_store(vectorstore_config)
-        self.logger.debug("Vector store created.")
+        logger.debug("Vector store created.")
         return self._vector_store
 
     def _get_document_store(self):
@@ -56,7 +57,7 @@ class AbstractWrapper(ABC):
             self._document_store = DocumentStoreFactory.create_document_store(
                 documentstore_config
             )
-            self.logger.debug("Document store created.")
+            logger.debug("Document store created.")
 
         return self._document_store
 
@@ -67,7 +68,7 @@ class AbstractWrapper(ABC):
         Returns:
             StorageContext: The configured storage context.
         """
-        self.logger.debug("Creating storage context.")
+        logger.debug("Creating storage context.")
         if self._storage_context is not None:
             return self._storage_context
 
@@ -80,7 +81,7 @@ class AbstractWrapper(ABC):
             vector_store=vector_store, docstore=document_store
         )
 
-        self.logger.debug("Storage context created.")
+        logger.debug("Storage context created.")
         return self._storage_context
 
     def _get_embedding_model(self):
@@ -90,7 +91,7 @@ class AbstractWrapper(ABC):
         embedding_config = self._config["embedding_model"]
         self._embedding_model = EmbeddingFactory.create_embedding(embedding_config)
 
-        self.logger.debug("Embedding model created.")
+        logger.debug("Embedding model created.")
         return self._embedding_model
 
     def _get_retriever(
@@ -113,7 +114,7 @@ class AbstractWrapper(ABC):
                     **retriever_config,
                 }
             )
-            self.logger.debug("Retriever created.")
+            logger.debug("Retriever created.")
 
         return self._retriever
 
@@ -130,12 +131,12 @@ class AbstractWrapper(ABC):
         self._node_postprocessors = NodePostProcessorFactory.create_node_postprocessors(
             configs=post_processor_config
         )
-        self.logger.debug("Node postprocessors created.")
+        logger.debug("Node postprocessors created.")
         return self._node_postprocessors
 
     def _get_vector_store_index(self):
         """Create your index"""
-        self.logger.debug("Creating vector store index.")
+        logger.debug("Creating vector store index.")
         if self._vector_store_index is not None:
             return self._vector_store_index
 
@@ -149,7 +150,7 @@ class AbstractWrapper(ABC):
             storage_context=storage_context,
         )
 
-        self.logger.debug("Vector store index created.")
+        logger.debug("Vector store index created.")
         return self._vector_store_index
 
     def _filter_datasets(self, dataset_id: Optional[str] = None) -> Iterable[dict]:
@@ -173,6 +174,6 @@ class AbstractWrapper(ABC):
         ]
 
         if not filtered_datasets:
-            self.logger.warning(f"No dataset found with ID: {dataset_id}")
+            logger.warning(f"No dataset found with ID: {dataset_id}")
 
         return filtered_datasets

@@ -2,17 +2,11 @@ import json
 import os
 import re
 
-from dotenv import load_dotenv, find_dotenv
-
 
 class ConfigLoader:
 
     @staticmethod
     def load_config(config_path):
-        dotenv_path = find_dotenv(usecwd=True)
-        if dotenv_path:
-            load_dotenv(dotenv_path)
-
         with open(config_path, "r") as file:
             config = json.load(file)
         return ConfigLoader._replace_env_variables(config)

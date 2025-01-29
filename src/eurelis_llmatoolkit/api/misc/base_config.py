@@ -1,16 +1,15 @@
 import os
 
 import sentry_sdk
-from dotenv import load_dotenv
 
 from eurelis_llmatoolkit.api.misc.singleton import Singleton
+
 
 class BaseConfig(metaclass=Singleton):
     DEV_ENV_NAME = "dev"
     INTEG_ENV_NAME = "int"
     PREPROD_ENV_NAME = "preprod"
     PROD_ENV_NAME = "prod"
-    load_dotenv()
 
     def __getattr__(self, name):
         return self._get_from_env(name)
@@ -62,5 +61,6 @@ class BaseConfig(metaclass=Singleton):
 
     def is_prod_env(self) -> bool:
         return self.get_current_environment() == BaseConfig.PROD_ENV_NAME
+
 
 config = BaseConfig()

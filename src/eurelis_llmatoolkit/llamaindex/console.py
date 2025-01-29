@@ -6,22 +6,28 @@ from eurelis_llmatoolkit.llamaindex.ingestion_wrapper import IngestionWrapper
 from eurelis_llmatoolkit.llamaindex.search_wrapper import SearchWrapper
 from eurelis_llmatoolkit.llamaindex.logger import Logger
 
+import os
+import logging
+from dotenv import load_dotenv, find_dotenv
+
+logger = logging.getLogger(__name__)
+
 
 @click.group()
 @click.option(
-    "-config",
+    "--config",
     type=click.Path(exists=True),
     required=True,
     help="Path to the configuration file.",
 )
 @click.option(
-    "-logging_config",
+    "--logging_config",
     type=click.Path(exists=True),
     required=False,
     help="Path to the logging configuration file.",
 )
 @click.option(
-    "-enable_sentry",
+    "--enable_sentry",
     is_flag=True,
     default=False,
     help="Enable Sentry integration.",
@@ -37,9 +43,46 @@ def cli(ctx: click.Context, config: str, logging_config: str, enable_sentry: boo
         logging_config: Path to the logging configuration file
         enable_sentry: Flag to enable Sentry integration
     """
-    Logger(
-        logging_config, enable_sentry
-    )  # Initialize Logger with logging_config and enable_sentry
+
+    #
+    # Load environment variables
+    dotenv_path = find_dotenv(usecwd=True)
+    if dotenv_path:
+        load_dotenv(dotenv_path)
+
+    #
+    # Load logging configuration file
+    if logging_config:
+        logging_conf_path = os.path.join(os.path.dirname(__file__), logging_config)
+
+        if os.path.exists(logging_conf_path):
+            # You need to use disable_existing_loggers=False to avoid the default loggers to be disabled
+            logging.config.fileConfig(logging_conf_path, disable_existing_loggers=False)
+            logger.debug(f"Logging configuration loaded from {logging_conf_path}")
+        else:
+            logging.basicConfig(
+                force=True,
+                level=logging.DEBUG,
+                handlers=[logging.StreamHandler()],
+            )
+
+    #
+    # Sentry
+    sentry_dsn = os.getenv("SENTRY_DSN", None)
+    if enable_sentry and sentry_dsn:
+        import sentry_sdk
+
+        sentry_sdk.init(
+            dsn=sentry_dsn,
+            # Set traces_sample_rate to 1.0 to capture 100%
+            # of transactions for tracing.
+            traces_sample_rate=1.0,
+            # Set profiles_sample_rate to 1.0 to profile 100%
+            # of sampled transactions.
+            # We recommend adjusting this value in production.
+            profiles_sample_rate=1.0,
+        )
+
     config_dict = ConfigLoader.load_config(config)
     ctx.obj["wrapper"] = IngestionWrapper(config_dict)
     ctx.obj["search_wrapper"] = SearchWrapper(config_dict)
