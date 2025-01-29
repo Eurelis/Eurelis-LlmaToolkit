@@ -176,7 +176,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         Returns:
             str: Contenu du PDF
         """
-        logger.info(f"Processing PDF URL: {pdf_url}")
+        logger.debug(f"Processing PDF URL: {pdf_url}")
         import pymupdf
         import pymupdf4llm
 
