@@ -1,6 +1,8 @@
 import logging
 from typing import TYPE_CHECKING, Optional
 
+from llama_index.core.vector_stores import FilterCondition, MetadataFilters
+
 from eurelis_llmatoolkit.llamaindex.abstract_wrapper import AbstractWrapper
 from eurelis_llmatoolkit.llamaindex.factories.chat_engine_factory import (
     ChatEngineFactory,
@@ -9,10 +11,6 @@ from eurelis_llmatoolkit.llamaindex.factories.llm_factory import LLMFactory
 from eurelis_llmatoolkit.llamaindex.factories.memory_factory import MemoryFactory
 from eurelis_llmatoolkit.llamaindex.factories.memory_persistence_factory import (
     MemoryPersistenceFactory,
-)
-from llama_index.core.vector_stores import (
-    MetadataFilters,
-    FilterCondition,
 )
 
 logger = logging.getLogger(__name__)
@@ -260,8 +258,8 @@ class ChatbotWrapper(AbstractWrapper):
         """
         logger.debug("Retrieving chat engine with filters and custom system prompt.")
 
-        chat_engine_config = self._config["chat_engine"]
-        system_prompt = self._get_prompt(chat_engine_config, custom_system_prompt)
+        # TODO : System prompt
+        # system_prompt = self._get_prompt(chat_engine_config, custom_system_prompt)
 
         if self._chat_engine is None:
             logger.error(

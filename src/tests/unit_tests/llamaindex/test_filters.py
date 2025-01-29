@@ -9,7 +9,6 @@ def test_run_with_filters(chatbot_config, filters):
 
     # Simuler une nouvelle interaction via run
     user_message = "How are you today?"
-    conversation_id = "conversation_1"
     response = chatbot.run(message=user_message)
 
     assert response is not None, "La réponse du chatbot ne doit pas être vide."
