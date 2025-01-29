@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import List, Optional
 
 from llama_index.core import Document
 from llama_index.core.ingestion import IngestionPipeline
@@ -10,22 +10,39 @@ from eurelis_llmatoolkit.llamaindex.factories.transformation_factory import (
     TransformationFactory,
 )
 
-if TYPE_CHECKING:
-    from llama_index.core.vector_stores.types import BasePydanticVectorStore
+from eurelis_llmatoolkit.llamaindex.logger import Logger
 
 
 class IngestionWrapper(AbstractWrapper):
-    def run(self, dataset_id: Optional[str] = None, use_cache: bool = False):
-        self._process_datasets(dataset_id, use_cache)
+    def __init__(self, config: dict):
+        super().__init__(config)
+        self._config = config
+        self.logger = Logger().get_logger(__name__)
+        self.logger.debug("IngestionWrapper initialized")
+
+    def run(
+        self,
+        dataset_id: Optional[str] = None,
+        use_cache: bool = False,
+        delete: bool = False,
+    ):
+        self.logger.info(
+            "Running ingestion with filtering dataset_id: %s, use_cache: %s",
+            dataset_id,
+            use_cache,
+        )
+        self._process_datasets(dataset_id, use_cache, delete)
+        self.logger.info("Ingestion completed!")
 
     def generate_cache(self, dataset_id: Optional[str] = None):
+        self.logger.info("Generating cache for dataset_id: %s", dataset_id)
         # Récupérer la configuration des datasets
         datasets = list(
             self._filter_datasets(dataset_id)
         )  # Convertir l'iterable en liste
 
         if not datasets:
-            print(f"No dataset found with ID: {dataset_id}")
+            self.logger.warning(f"No dataset found with ID: {dataset_id}")
             return
 
         # Parcourir tous les datasets et générer le cache
@@ -33,17 +50,22 @@ class IngestionWrapper(AbstractWrapper):
             # Vérifier que l'ID du dataset n'est pas None
             dataset_id = dataset_config.get("id")
             if dataset_id is None:
-                print(f"Dataset configuration missing 'id': {dataset_config}")
+                self.logger.warning(
+                    f"Dataset configuration missing 'id': {dataset_config}"
+                )
                 continue
 
             documents = self._get_documents(dataset_config, use_cache=False)
 
             # Générer le cache
             self._generate_cache(dataset_id, documents)
-            print(f"Cache generated for dataset ID: {dataset_id}!")
+            self.logger.info(f"Cache generated for dataset ID: {dataset_id}!")
 
     def _load_documents_from_reader(self, dataset_config: dict) -> List[Document]:
         """Load documents using the appropriate reader based on the dataset configuration."""
+        self.logger.debug(
+            "Loading documents from reader for dataset_config: %s", dataset_config
+        )
         reader_adapter = ReaderFactory.create_reader(
             f"{self._config['project']}/{dataset_config['id']}",
             dataset_config["reader"],
@@ -55,6 +77,9 @@ class IngestionWrapper(AbstractWrapper):
 
     def _load_documents_from_cache(self, dataset_config: dict) -> List[Document]:
         """Load documents from cache if the cache is available."""
+        self.logger.debug(
+            "Loading documents from cache for dataset_config: %s", dataset_config
+        )
         cache_config = self._config.get("scraping_cache", [])
         cache = CacheFactory.create_cache(cache_config)
         documents = cache.load_data(dataset_config["id"])
@@ -74,6 +99,9 @@ class IngestionWrapper(AbstractWrapper):
         Returns:
             List[Document]: List of documents with added project metadata.
         """
+        self.logger.debug(
+            "Adding project metadata to documents for project: %s", project
+        )
         for doc in documents:
             if not hasattr(doc, "metadata"):
                 doc.metadata = {}
@@ -81,13 +109,22 @@ class IngestionWrapper(AbstractWrapper):
         return documents
 
     def _process_datasets(
-        self, dataset_id: Optional[str] = None, use_cache: bool = False
+        self,
+        dataset_id: Optional[str] = None,
+        use_cache: bool = False,
+        delete: bool = False,
     ):
         """Process all datasets or a specific dataset based on the dataset ID."""
+        self.logger.info(
+            "Processing datasets with filtering dataset_id: %s, use_cache: %s",
+            dataset_id,
+            use_cache,
+        )
         for dataset_config in self._filter_datasets(dataset_id):
-            self._ingest_dataset(dataset_config, use_cache)
+            self._ingest_dataset(dataset_config, use_cache, delete)
 
     def _generate_cache(self, dataset_name: str, documents: list):
+        self.logger.debug("Generating cache for dataset_name: %s", dataset_name)
         cache_config = self._config.get("scraping_cache", [])
         cache = CacheFactory.create_cache(cache_config)
         cache.to_cache(dataset_name, documents)
@@ -103,6 +140,11 @@ class IngestionWrapper(AbstractWrapper):
         Returns:
             List[Document]: List of retrieved documents.
         """
+        self.logger.debug(
+            "Getting documents for dataset_config: %s, use_cache: %s",
+            dataset_config,
+            use_cache,
+        )
         return (
             self._load_documents_from_cache(dataset_config)
             if use_cache
@@ -116,6 +158,9 @@ class IngestionWrapper(AbstractWrapper):
         Args:
             dataset_config (dict): The dataset configuration that specifies the transformations.
         """
+        self.logger.debug(
+            "Getting transformations for dataset_config: %s", dataset_config
+        )
         # Transformations
         transformations = [
             TransformationFactory.create_transformation(t_config)
@@ -143,62 +188,69 @@ class IngestionWrapper(AbstractWrapper):
 
         return transformations
 
-    def _get_urls_from_document_store(self, id_dataset=None) -> List[str]:
-        """Retrieve all URLs from the database."""
+    def _get_doc_ids_from_document_store(self, id_dataset=None) -> List[str]:
+        """Retrieve all doc_ids from the database."""
         document_store = self._get_document_store()
         documents: dict = document_store.docs
 
         if not documents:
-            print("No documents found in the database.")
+            self.logger.warning("No documents found in the database.")
             return []
 
         # Filtrage basé sur id_dataset
         if id_dataset is not None:
             namespace_filter = f"{self._config['project']}/{id_dataset}"
-            urls = {
+            doc_ids = {
                 doc.id_
                 for doc in documents.values()
                 if doc.metadata.get("namespace") == namespace_filter
             }
         else:
             # Si id_dataset est None, on ne filtre pas par namespace
-            urls = {doc.id_ for doc in documents.values()}
+            doc_ids = {doc.id_ for doc in documents.values()}
 
-        return list(urls)
+        return list(doc_ids)
 
-    def _get_urls_from_documents(self, documents: List[Document]) -> List[str]:
-        """Create a list of URLs from the documents."""
-        urls = [str(doc.id_) for doc in documents]
-        return urls
+    def _get_doc_ids_from_documents(self, documents: List[Document]) -> List[str]:
+        """Create a list of doc_ids from the documents."""
+        doc_ids = [str(doc.id_) for doc in documents]
+        return doc_ids
 
     def _remove_unmatched_documents(
-        self, urls_doc_store: List[str], urls_scraping: List[str]
+        self, doc_ids_doc_store: List[str], doc_ids_scraping: List[str]
     ):
-        """Remove documents from the database that do not match any of the provided URLs."""
-        urls_to_delete = set(urls_doc_store) - set(urls_scraping)
+        """Remove documents from the database that do not match any of the provided doc_ids."""
+        doc_ids_to_delete = set(doc_ids_doc_store) - set(doc_ids_scraping)
         document_store = self._get_document_store()
         vector_store = self._get_vector_store()
 
-        if urls_to_delete:
-            for url in urls_to_delete:
+        if doc_ids_to_delete:
+            for url in doc_ids_to_delete:
                 document_store.delete_document(doc_id=url)
                 vector_store.delete(url)
-                print(f"Deleting document with URL: {url}")
+                self.logger.debug(f"Deleted document with URL: {url}")
+            self.logger.info(f"Deleted {len(doc_ids_to_delete)} documents.")
         else:
-            print("Aucune URL à supprimer.")
+            self.logger.info("No URLs to delete.")
 
-    def _ingest_dataset(self, dataset_config: dict, use_cache: bool = False):
+    def _ingest_dataset(
+        self, dataset_config: dict, use_cache: bool = False, delete: bool = False
+    ):
         """
         Ingest the dataset using the provided configuration.
 
         Args:
             dataset_config (dict): Configuration for the dataset.
         """
+        self.logger.info(
+            f"Ingesting dataset {dataset_config['id']} with use_cache: %s", use_cache
+        )
         #
         # READER / CACHE
         #
         # Récupérer les documents à partir du cache ou via le reader
         documents = self._get_documents(dataset_config, use_cache)
+        self.logger.debug(f"Retrieved {len(documents)} documents for ingestion.")
 
         #
         # ACRONYMS & NODE PARSER & EMBEDDINGS
@@ -218,13 +270,13 @@ class IngestionWrapper(AbstractWrapper):
         # Optionnellement, définir un document store pour gérer les documents
         document_store = self._get_document_store()
 
-        # Récupérer les urls en base => urls_doc_store
-        urls_doc_store = self._get_urls_from_document_store(
+        # Récupérer les doc_ids en base => doc_ids_doc_store
+        doc_ids_doc_store = self._get_doc_ids_from_document_store(
             id_dataset=dataset_config["id"]
         )
 
-        # Faire une liste des urls des documents => urls_scraping
-        urls_scraping = self._get_urls_from_documents(documents)
+        # Faire une liste des doc_ids des documents => doc_ids_scraping
+        doc_ids_scraping = self._get_doc_ids_from_documents(documents)
 
         #
         # INGESTION PIPELINE
@@ -237,6 +289,14 @@ class IngestionWrapper(AbstractWrapper):
         )
         # TODO: définir le show_progress via une variable d'environnement
         pipeline.run(documents=documents, show_progress=True)
+        self.logger.debug(f"Ingested {len(documents)} documents into the pipeline.")
 
-        # Supprimer les documents du document_store qui ne sont pas dans urls_scraping
-        self._remove_unmatched_documents(urls_doc_store, urls_scraping)
+        # Supprimer les documents du document_store qui ne sont pas dans doc_ids_scraping
+        if delete:
+            self.logger.info("Deleting old documents...")
+            self._remove_unmatched_documents(doc_ids_doc_store, doc_ids_scraping)
+        else:
+            self.logger.info(
+                "The delete option is disabled: old documents will not be deleted."
+            )
+        self.logger.info(f"Dataset {dataset_config['id']} ingested successfully.")

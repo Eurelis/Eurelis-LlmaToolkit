@@ -48,7 +48,7 @@ class JSONPersistenceHandler(AbstractMemoryPersistenceHandler):
                         self._memory.chat_store.set_messages(self._conversation_id, [])
 
         except FileNotFoundError:
-            print("No history found. Create a new history.")
+            self.logger.info("No history found. Create a new history.")
 
     def save_history(self) -> None:
         """Saves the history of all conversations in a JSON file."""

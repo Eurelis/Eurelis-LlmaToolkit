@@ -3,6 +3,8 @@ from typing import Optional
 
 from llama_index.core.memory.types import BaseChatStoreMemory
 
+from eurelis_llmatoolkit.llamaindex.logger import Logger
+
 
 class AbstractMemoryPersistenceHandler(ABC):
     def __init__(
@@ -16,6 +18,7 @@ class AbstractMemoryPersistenceHandler(ABC):
         self._memory = memory
         self._conversation_id = conversation_id
         self._persistence_config = persistence_config
+        self.logger = Logger().get_logger(__name__)
 
     @abstractmethod
     def load_history(self) -> None:

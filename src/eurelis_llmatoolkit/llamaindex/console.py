@@ -4,6 +4,7 @@ from eurelis_llmatoolkit.llamaindex.chatbot_wrapper import ChatbotWrapper
 from eurelis_llmatoolkit.llamaindex.config_loader import ConfigLoader
 from eurelis_llmatoolkit.llamaindex.ingestion_wrapper import IngestionWrapper
 from eurelis_llmatoolkit.llamaindex.search_wrapper import SearchWrapper
+from eurelis_llmatoolkit.llamaindex.logger import Logger
 
 
 @click.group()
@@ -13,15 +14,32 @@ from eurelis_llmatoolkit.llamaindex.search_wrapper import SearchWrapper
     required=True,
     help="Path to the configuration file.",
 )
+@click.option(
+    "-logging_config",
+    type=click.Path(exists=True),
+    required=False,
+    help="Path to the logging configuration file.",
+)
+@click.option(
+    "-enable_sentry",
+    is_flag=True,
+    default=False,
+    help="Enable Sentry integration.",
+)
 @click.pass_context
-def cli(ctx: click.Context, config: str):
+def cli(ctx: click.Context, config: str, logging_config: str, enable_sentry: bool):
     """
     Root command to handle configuration options.
 
     Args:
         ctx: Click context
         config: Path to the configuration file
+        logging_config: Path to the logging configuration file
+        enable_sentry: Flag to enable Sentry integration
     """
+    Logger(
+        logging_config, enable_sentry
+    )  # Initialize Logger with logging_config and enable_sentry
     config_dict = ConfigLoader.load_config(config)
     ctx.obj["wrapper"] = IngestionWrapper(config_dict)
     ctx.obj["search_wrapper"] = SearchWrapper(config_dict)
@@ -46,14 +64,20 @@ def dataset(ctx: click.Context, id: str):
 @click.option(
     "--from_cache", is_flag=True, default=False, help="Load documents from cache."
 )
+@click.option(
+    "--delete",
+    is_flag=True,
+    default=False,
+    help="Enable deletion of unmatched documents.",
+)
 @click.pass_context
-def dataset_ingest(ctx: click.Context, from_cache: bool):
+def dataset_ingest(ctx: click.Context, from_cache: bool, delete: bool):
     """Launch ingestion"""
     dataset_id = ctx.obj["dataset_id"]
 
     wrapper: IngestionWrapper = ctx.obj["wrapper"]
-    wrapper.run(dataset_id=dataset_id, use_cache=from_cache)
-    click.echo(f"End of ingestion!")
+    wrapper.run(dataset_id=dataset_id, use_cache=from_cache, delete=delete)
+    click.echo("End of ingestion!")
 
 
 @dataset.command("cache")
@@ -64,7 +88,7 @@ def dataset_cache(ctx: click.Context):
 
     wrapper: IngestionWrapper = ctx.obj["wrapper"]
     wrapper.generate_cache(dataset_id)
-    click.echo(f"End of cache generation!")
+    click.echo("End of cache generation!")
 
 
 @click.group()
@@ -105,9 +129,8 @@ def search_docs(ctx: click.Context):
 
 @click.group()
 @click.option("--query", required=True, help="Chat query")
-@click.option("--id_conversation", required=True, help="ID de la conversation")
 @click.pass_context
-def chatbot(ctx: click.Context, query: str, id_conversation: str):
+def chatbot(ctx: click.Context, query: str):
     """
     Group of commands for chatbot management.
 
@@ -116,7 +139,6 @@ def chatbot(ctx: click.Context, query: str, id_conversation: str):
         query: Chat query
     """
     ctx.obj["query"] = query
-    ctx.obj["id_conversation"] = id_conversation
 
 
 @chatbot.command("chat")
@@ -125,8 +147,7 @@ def chat(ctx: click.Context):
     """Chat with chatbot"""
     wrapper: ChatbotWrapper = ctx.obj["chatbot_wrapper"]
     query = ctx.obj["query"]
-    id_conversation = ctx.obj["id_conversation"]
-    result = wrapper.run(id_conversation, query)
+    result = wrapper.run(query)
     click.echo(result)
 
 

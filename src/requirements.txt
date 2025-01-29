@@ -162,6 +162,7 @@ scikit-learn==1.6.0
 scipy==1.14.1
 selenium==4.27.1
 sentence-transformers==3.3.1
+sentry-sdk==2.19.2
 setuptools==75.6.0 ; python_full_version >= '3.12'
 sgmllib3k==1.0.0
 shellingham==1.5.4
