@@ -1,0 +1,52 @@
+{
+    "project": "llamaindex",
+    "dataset": [
+        {
+            "id": "sitemap",
+            "reader": {
+                "provider": "AdvancedSitemapReader",
+                "sitemap_url": "https://www.eurelis.com/sitemap.xml",
+                "html_to_text": true,
+                "limit": 1,
+                "embed_pdf": true,
+                "user_agent": "EurelisLLMATK/0.1",
+                "url_include_filters": [
+                    "^https:\\/\\/www\\.eurelis\\.com\\/blog.*"
+                ],
+                "parser_remove": [
+                    "script",
+                    {
+                        "name": "header",
+                        "attrs": {
+                            "id": "masthead"
+                        }
+                    },
+                    {
+                        "name": "div",
+                        "attrs": {
+                            "class": "uagb-button__link"
+                        }
+                    },
+                    "noscript",
+                    "footer",
+                    "svg",
+                    {
+                        "name": "nav",
+                        "attrs": {
+                            "class": "breadcrumb"
+                        }
+                    },
+                    "form",
+                    "button"
+                ]
+            },
+            "transformations": [
+                {
+                    "provider": "SentenceSplitter",
+                    "chunk_size": 768,
+                    "chunk_overlap": 56
+                }
+            ]
+        }
+    ]
+}

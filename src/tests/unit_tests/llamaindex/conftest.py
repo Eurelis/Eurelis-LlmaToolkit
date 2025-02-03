@@ -9,6 +9,7 @@ from llama_index.core.vector_stores import (
 )
 
 from eurelis_llmatoolkit.llamaindex.chatbot_wrapper import ChatbotWrapper
+from eurelis_llmatoolkit.llamaindex.config_loader import ConfigLoader
 from eurelis_llmatoolkit.llamaindex.factories.embedding_factory import EmbeddingFactory
 from eurelis_llmatoolkit.llamaindex.factories.memory_factory import MemoryFactory
 from eurelis_llmatoolkit.llamaindex.factories.memory_persistence_factory import (
@@ -17,10 +18,28 @@ from eurelis_llmatoolkit.llamaindex.factories.memory_persistence_factory import 
 from eurelis_llmatoolkit.llamaindex.factories.vectorstore_factory import (
     VectorStoreFactory,
 )
-
+from eurelis_llmatoolkit.llamaindex.readers.advanced_sitemap_reader import (
+    AdvancedSitemapReader,
+)
 from dotenv import load_dotenv
 
 load_dotenv()
+
+
+@pytest.fixture
+def config_dataset():
+    config_dict = ConfigLoader.load_config(
+        "./etc/config_tests/tests/unit_tests/llamaindex/reader/test_advanced_sitemap_reader.json"
+    )
+    return config_dict
+
+
+@pytest.fixture
+def config_dataset_hs():
+    config_dict = ConfigLoader.load_config(
+        "./etc/config_tests/tests/unit_tests/llamaindex/reader/test_advanced_sitemap_reader_sitemap_hs.json"
+    )
+    return config_dict
 
 
 @pytest.fixture
@@ -125,3 +144,25 @@ def filters():
             )
         ]
     )
+
+
+def create_readers(config_dataset):
+    readers = []
+    for dataset in config_dataset["dataset"]:
+        readers.append(
+            AdvancedSitemapReader(
+                dataset["reader"],
+                f"{config_dataset['project']}/{dataset['id']}",
+            )
+        )
+    return readers
+
+
+@pytest.fixture
+def advanced_sitemap_readers(config_dataset):
+    return create_readers(config_dataset)
+
+
+@pytest.fixture
+def advanced_sitemap_readers_hs(config_dataset_hs):
+    return create_readers(config_dataset_hs)
