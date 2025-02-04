@@ -1,0 +1,114 @@
+{
+    "project": "eurelis1",
+    "dataset": [
+        {
+            "id": "sitemap",
+            "reader": {
+                "provider": "AdvancedSitemapReader",
+                "sitemap_url": "https://www.eurelis.com/sitemap.xml",
+                "html_to_text": true,
+                "limit": 1,
+                "embed_pdf": true,
+                "user_agent": "EurelisLLMATK/0.1",
+                "url_include_filters": [
+                    "^https:\\/\\/www\\.eurelis\\.com\\/blog.*"
+                ],
+                "parser_remove": [
+                    "script",
+                    {
+                        "name": "header",
+                        "attrs": {
+                            "id": "masthead"
+                        }
+                    },
+                    {
+                        "name": "div",
+                        "attrs": {
+                            "class": "uagb-button__link"
+                        }
+                    },
+                    "noscript",
+                    "footer",
+                    "svg",
+                    {
+                        "name": "nav",
+                        "attrs": {
+                            "class": "breadcrumb"
+                        }
+                    },
+                    "form",
+                    "button"
+                ]
+            },
+            "transformations": [
+                {
+                    "provider": "SentenceSplitter",
+                    "chunk_size": 768,
+                    "chunk_overlap": 56
+                }
+            ],
+            "metadata": {
+                "provider": "MetadataTransformer",
+                "metadata": {
+                    "common_field": "common_value",
+                    "unique_field_project1": "eurelis_unique_value1"
+                }
+            }
+        }
+    ],
+    "search_engine": {
+        "retriever": {
+            "provider": "VectorIndexRetriever",
+            "similarity_top_k": 10
+        }
+    },
+    "scraping_cache": {
+        "provider": "FSCache",
+        "base_dir": "../etc/no-commit/scraping_cache"
+    },
+    "embedding_model": {
+        "provider": "OpenAI",
+        "model": "text-embedding-3-small",
+        "openai_api_key": "${OPENAI_API_KEY}"
+    },
+    "_vectorstore": {
+        "provider": "MongoDB",
+        "url": "${MONGO_CONNECTION_STRING}",
+        "db_name": "${MONGO_DB_NAME}",
+        "collection_name": "${MONGO_COLLECTION_NAME}",
+        "vector_index_name": "vector_index"
+    },
+    "vectorstore": {
+        "provider": "Chroma",
+        "mode": "persistent",
+        "path": "../etc/no-commit/chroma.db",
+        "collection_name": "${MONGO_COLLECTION_NAME}"
+    },
+    "documentstore": {
+        "provider": "MongoDB",
+        "url": "${MONGO_CONNECTION_STRING}",
+        "db_name": "${MONGO_DB_NAME}"
+    },
+    "llm": {
+        "provider": "OpenAI",
+        "model": "gpt-4o"
+    },
+    "chat_engine": {
+        "provider": "ContextChatEngine",
+        "retriever": {
+            "provider": "VectorIndexRetriever",
+            "similarity_top_k": 10
+        },
+        "memory": {
+            "provider": "ChatMemoryBuffer",
+            "token_limit": 1500
+        },
+        "memory_persistence": {
+            "provider": "JSONPersistenceHandler",
+            "persist_conversation_path": "${BASE_CACHE_FOLDER}/conversation_history.json"
+        },
+        "system_prompt": [
+            "You are a chatbot, able to have normal interactions, as well as talk"
+        ]
+    }
+}

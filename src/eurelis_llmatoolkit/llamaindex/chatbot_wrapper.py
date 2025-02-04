@@ -1,7 +1,11 @@
 import logging
 from typing import TYPE_CHECKING, Optional
 
-from llama_index.core.vector_stores import FilterCondition, MetadataFilters
+from llama_index.core.vector_stores import (
+    FilterCondition,
+    MetadataFilters,
+    MetadataFilter,
+)
 
 from eurelis_llmatoolkit.llamaindex.abstract_wrapper import AbstractWrapper
 from eurelis_llmatoolkit.llamaindex.factories.chat_engine_factory import (
@@ -34,6 +38,16 @@ class ChatbotWrapper(AbstractWrapper):
         self._memory_persistence = None
         self._persistence_data = persistence_data
         self._permanent_filters: Optional["MetadataFilters"] = permanent_filters
+
+        project_name = config.get("project_name")
+        if project_name:
+            project_filter = MetadataFilters(
+                filters=[MetadataFilter(key="project", value=project_name)]
+            )
+            if self._permanent_filters:
+                self._permanent_filters.filters.extend(project_filter.filters)
+            else:
+                self._permanent_filters = project_filter
 
         logger.info(
             "ChatbotWrapper initialized with conversation_id: %s", conversation_id
