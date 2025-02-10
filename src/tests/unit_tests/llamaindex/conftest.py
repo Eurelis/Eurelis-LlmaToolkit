@@ -27,22 +27,6 @@ load_dotenv()
 
 
 @pytest.fixture
-def config_dataset():
-    config_dict = ConfigLoader.load_config(
-        "./etc/config_tests/tests/unit_tests/llamaindex/reader/test_advanced_sitemap_reader.json"
-    )
-    return config_dict
-
-
-@pytest.fixture
-def config_dataset_hs():
-    config_dict = ConfigLoader.load_config(
-        "./etc/config_tests/tests/unit_tests/llamaindex/reader/test_advanced_sitemap_reader_sitemap_hs.json"
-    )
-    return config_dict
-
-
-@pytest.fixture
 def embedding():
     pass
     return EmbeddingFactory.create_embedding(
@@ -159,10 +143,9 @@ def create_readers(config_dataset):
 
 
 @pytest.fixture
-def advanced_sitemap_readers(config_dataset):
+def advanced_sitemap_readers(request):
+    config_path = request.param
+    config_dataset = ConfigLoader.load_config(
+        f"./etc/config_tests/tests/unit_tests/llamaindex/{config_path}"
+    )
     return create_readers(config_dataset)
-
-
-@pytest.fixture
-def advanced_sitemap_readers_hs(config_dataset_hs):
-    return create_readers(config_dataset_hs)
