@@ -132,7 +132,7 @@ def filters():
 @pytest.fixture
 def chatbot_config_project1():
     config_dict = ConfigLoader.load_config(
-        "../etc/config_tests/tests/unit_tests/llamaindex/test_eurelis1.json"
+        "../etc/config_tests/tests/unit_tests/llamaindex/chatbot_wrapper/test_chatbot_config_project1.json"
     )
     return config_dict
 
@@ -140,7 +140,7 @@ def chatbot_config_project1():
 @pytest.fixture
 def chatbot_config_project2():
     config_dict = ConfigLoader.load_config(
-        "../etc/config_tests/tests/unit_tests/llamaindex/test_eurelis2.json"
+        "../etc/config_tests/tests/unit_tests/llamaindex/chatbot_wrapper/test_chatbot_config_project2.json"
     )
     return config_dict
 

@@ -1,0 +1,36 @@
+{
+    "project": "eurelis2",
+    "embedding_model": {
+        "provider": "OpenAI",
+        "model": "text-embedding-3-small",
+        "openai_api_key": "${OPENAI_API_KEY}"
+    },
+    "vectorstore": {
+        "provider": "Chroma",
+        "mode": "persistent",
+        "path": "../etc/no-commit/chroma.db",
+        "collection_name": "${MONGO_COLLECTION_NAME}"
+    },
+    "llm": {
+        "provider": "OpenAI",
+        "model": "gpt-4o"
+    },
+    "chat_engine": {
+        "provider": "ContextChatEngine",
+        "retriever": {
+            "provider": "VectorIndexRetriever",
+            "similarity_top_k": 10
+        },
+        "memory": {
+            "provider": "ChatMemoryBuffer",
+            "token_limit": 1500
+        },
+        "memory_persistence": {
+            "provider": "JSONPersistenceHandler",
+            "persist_conversation_path": "${BASE_CACHE_FOLDER}/conversation_history.json"
+        },
+        "system_prompt": [
+            "You are a chatbot, able to have normal interactions, as well as talk"
+        ]
+    }
+}
