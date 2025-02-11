@@ -244,6 +244,11 @@ class IngestionWrapper(AbstractWrapper):
         #
         # Récupérer les documents à partir du cache ou via le reader
         documents = self._get_documents(dataset_config, use_cache)
+        if documents is None:
+            logger.critical(
+                f"Reading the dataset {dataset_config['id']} encountered an error. Ingestion aborted."
+            )
+            return
         logger.debug(f"Retrieved {len(documents)} documents for ingestion.")
 
         #

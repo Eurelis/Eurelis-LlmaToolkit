@@ -24,13 +24,13 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         self._headers = {"User-Agent": config.get("user_agent", "EurelisLLMATK/0.1")}
         self._namespace = namespace
 
-    def load_data(self, url: Optional[str] = None) -> list:
+    def load_data(self, url: Optional[str] = None) -> Optional[list]:
         """Charge les données d'un sitemap
 
         Args:
 
         Returns:
-            list: Liste des données du sitemap
+            Optional[list]: Liste des données du sitemap ou None en cas d'erreur
         """
         if url is None:
             load_params = self._get_load_data_params()
@@ -39,6 +39,10 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         logger.info(f"Loading data from sitemap URL: {url}")
 
         sitemap_content = self._fetch_url(url)
+        if sitemap_content is None:
+            logger.critical(f"Failed to fetch sitemap content for URL: {url}")
+            return None
+
         logger.debug(f"Sitemap : {url}")
         root = ET.fromstring(sitemap_content)
 
