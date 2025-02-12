@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from llama_index.core.vector_stores import (
     FilterCondition,
@@ -30,24 +30,26 @@ class ChatbotWrapper(AbstractWrapper):
         config: dict,
         conversation_id: str,
         persistence_data: Optional[dict] = None,
-        permanent_filters: Optional["MetadataFilters"] = None,
+        permanent_metadata_filters: Optional["MetadataFilters"] = None,
     ):
         super().__init__(config)
         self._llm: "BaseLLM" = None
         self._memory: "BaseMemory" = None
         self._memory_persistence = None
         self._persistence_data = persistence_data
-        self._permanent_filters: Optional["MetadataFilters"] = permanent_filters
+        self._permanent_metadata_filters: Optional["MetadataFilters"] = (
+            permanent_metadata_filters
+        )
 
         project_name = config.get("project_name")
         if project_name:
             project_filter = MetadataFilters(
                 filters=[MetadataFilter(key="project", value=project_name)]
             )
-            if self._permanent_filters:
-                self._permanent_filters.filters.extend(project_filter.filters)
+            if self._permanent_metadata_filters:
+                self._permanent_metadata_filters.filters.extend(project_filter.filters)
             else:
-                self._permanent_filters = project_filter
+                self._permanent_metadata_filters = project_filter
 
         logger.info(
             "ChatbotWrapper initialized with conversation_id: %s", conversation_id
@@ -59,8 +61,7 @@ class ChatbotWrapper(AbstractWrapper):
     def run(
         self,
         message: str,
-        filters: Optional["MetadataFilters"] = None,
-        filter_condition: Optional["FilterCondition"] = None,
+        metadata_filters: Optional["MetadataFilters"] = None,
         custom_system_prompt=None,
     ):
         """
@@ -74,8 +75,7 @@ class ChatbotWrapper(AbstractWrapper):
 
         # Récupération du chat_engine instancié
         chat_engine = self._get_chat_engine(
-            filters=filters,
-            filter_condition=filter_condition,
+            metadata_filters=metadata_filters,
             custom_system_prompt=custom_system_prompt,
         )
         response = chat_engine.chat(message)
@@ -251,16 +251,14 @@ class ChatbotWrapper(AbstractWrapper):
 
     def _get_chat_engine(
         self,
-        filters: Optional[MetadataFilters] = None,
-        filter_condition: Optional[FilterCondition] = None,
+        metadata_filters: Optional[MetadataFilters] = None,
         custom_system_prompt=None,
     ):
         """
         Retrieve the configured chat engine, optionally applying metadata filters.
 
         Args:
-            filters (MetadataFilters, optional): Filters to combine with `_permanent_filters` for data retrieval.
-            filter_condition (FilterCondition, optional): Logical condition (AND, OR) to combine filters.
+            metadata_filters (MetadataFilters, optional): Filters to combine with `_permanent_metadata_filters` for data retrieval.
             custom_system_prompt (str, optional): Custom prompt to override the default system prompt.
 
         Raises:
@@ -283,23 +281,38 @@ class ChatbotWrapper(AbstractWrapper):
                 "The '_chat_engine' must be initialized using the '_create_chat_engine' method."
             )
 
+        # En fonction du retriever utilisé, les filtres peuvent ne pas être supportés
         if hasattr(self._chat_engine._retriever, "_filters"):
             # Combinaison des filtres
-            combined_filters = None
 
-            if self._permanent_filters or filters:
-                # Fusion des filtres permanents et des filtres personnalisés
-                permanent_filters = (
-                    self._permanent_filters.filters if self._permanent_filters else []
-                )
-                custom_filters = (
-                    filters.filters if filters and hasattr(filters, "filters") else []
-                )
+            # Fusion des filtres permanents et des filtres personnalisés
+            permanent_metadata_filters = (
+                self._permanent_metadata_filters.filters
+                if self._permanent_metadata_filters
+                else None
+            )
 
-                combined_filters = MetadataFilters(
-                    filters=permanent_filters + custom_filters,
-                    condition=filter_condition,
+            custom_metadatafilters = (
+                metadata_filters.filters
+                if metadata_filters and hasattr(metadata_filters, "filters")
+                else None
+            )
+
+            # `filters` doit être un `None`, `MetadataFilters`, `MetadataFilter`, une liste de `MetadataFilters` ou de `MetadataFilter`
+            # - Pas de liste vide ni de tableau vide.
+            # - `MetadataFilters` ne peut pas avoir une liste vide de `filters`.
+            # - Si aucun filtre valide, retourner `None`.
+            combined_filters_list = (permanent_metadata_filters or []) + (
+                custom_metadatafilters or []
+            )
+            combined_filters = (
+                MetadataFilters(
+                    filters=combined_filters_list,
+                    condition=FilterCondition.AND,
                 )
+                if combined_filters_list
+                else None
+            )
 
             # Appliquer les filtres combinés si existants
             self._chat_engine._retriever._filters = combined_filters

@@ -1,5 +1,6 @@
 import os
 import pytest
+from pytest import FixtureRequest
 from llama_index.core import VectorStoreIndex
 from llama_index.core.storage import StorageContext
 from llama_index.core.vector_stores import (
@@ -130,94 +131,39 @@ def filters():
 
 
 @pytest.fixture
-def chatbot_config_project1():
-    config_dict = ConfigLoader.load_config(
-        "../etc/config_tests/tests/unit_tests/llamaindex/chatbot_wrapper/test_chatbot_config_project1.json"
+def chatbot_project(request):
+    config_path, conversation_id = request.param
+
+    config_dataset = ConfigLoader.load_config(
+        f"../etc/config_tests/tests/unit_tests/llamaindex/{config_path}"  # ex: chatbot_wrapper/test_chatbot_config_project1.json
     )
-    return config_dict
+    return ChatbotWrapper(config_dataset, conversation_id)
 
 
 @pytest.fixture
-def chatbot_config_project2():
-    config_dict = ConfigLoader.load_config(
-        "../etc/config_tests/tests/unit_tests/llamaindex/chatbot_wrapper/test_chatbot_config_project2.json"
+def chatbot_project_with_permanent_filter(request):
+    config_path, conversation_id = request.param
+
+    config_dataset = ConfigLoader.load_config(
+        f"../etc/config_tests/tests/unit_tests/llamaindex/{config_path}"  # ex: chatbot_wrapper/test_chatbot_config_project1.json
     )
-    return config_dict
 
-
-@pytest.fixture
-def common_filter():
-    return MetadataFilters(
+    permanent_filters = MetadataFilters(
         filters=[MetadataFilter(key="common_field", value="common_value")],
         condition=FilterCondition.AND,
     )
 
+    return ChatbotWrapper(
+        config_dataset, conversation_id, permanent_metadata_filters=permanent_filters
+    )
+
 
 @pytest.fixture
-def unique_filter_project1():
+def metadata_filters(request: FixtureRequest):
+    key_value_pairs = request.param
     return MetadataFilters(
         filters=[
-            MetadataFilter(key="unique_field_project1", value="eurelis_unique_value1")
-        ],
-        condition=FilterCondition.AND,
-    )
-
-
-@pytest.fixture
-def unique_filter_project2():
-    return MetadataFilters(
-        filters=[
-            MetadataFilter(key="unique_field_project2", value="eurelis_unique_value2")
-        ],
-        condition=FilterCondition.AND,
-    )
-
-
-@pytest.fixture
-def chatbot_project1(chatbot_config_project1):
-    return ChatbotWrapper(chatbot_config_project1, "test_conversation_project1")
-
-
-@pytest.fixture
-def chatbot_project2(chatbot_config_project2):
-    return ChatbotWrapper(chatbot_config_project2, "test_conversation_project2")
-
-
-@pytest.fixture
-def chatbot_project1_with_common_filter(chatbot_config_project1, common_filter):
-    return ChatbotWrapper(
-        chatbot_config_project1,
-        "test_conversation_project1",
-        permanent_filters=common_filter,
-    )
-
-
-@pytest.fixture
-def chatbot_project2_with_common_filter(chatbot_config_project2, common_filter):
-    return ChatbotWrapper(
-        chatbot_config_project2,
-        "test_conversation_project2",
-        permanent_filters=common_filter,
-    )
-
-
-@pytest.fixture
-def combined_permanent_filter():
-    return MetadataFilters(
-        filters=[
-            MetadataFilter(key="common_field", value="common_value"),
-            MetadataFilter(key="unique_field_project1", value="eurelis_unique_value1"),
-        ],
-        condition=FilterCondition.AND,
-    )
-
-
-@pytest.fixture
-def chatbot_with_combined_permanent_filter(
-    chatbot_config_project1, combined_permanent_filter
-):
-    return ChatbotWrapper(
-        chatbot_config_project1,
-        "test_conversation_project1",
-        permanent_filters=combined_permanent_filter,
+            MetadataFilter(key=key, value=value)
+            for key, value in key_value_pairs.items()
+        ]
     )
