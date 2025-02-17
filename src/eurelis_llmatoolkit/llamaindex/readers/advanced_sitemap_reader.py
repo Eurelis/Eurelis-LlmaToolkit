@@ -216,7 +216,6 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
             page (BeautifulSoup): Page à traiter
             remove_list (list): Liste des éléments à supprimer
         """
-        logger.debug(f"Removing elements: {remove_list}")
         for remove in remove_list:
             nodes = []
             if isinstance(remove, str):
@@ -254,8 +253,20 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
             str: Contenu de la page
         """
         requests_timeout = self.config.get("requests_timeout", 60)
-        response = requests.get(url, timeout=requests_timeout, headers=self._headers)
-        if response.status_code == 200:
-            return response.content
-        logger.error(f"Error fetching {url}: {response.status_code}")
+        max_attempts = max(
+            1, self.config.get("max_attempts", 5)
+        )  # Assure au moins 1 tentative
+        for attempt in range(max_attempts):
+            response = requests.get(
+                url, timeout=requests_timeout, headers=self._headers
+            )
+            if response.status_code == 200:
+                return response.content
+
+            logger.error(
+                f"Error fetching {url}, attempt {attempt + 1}: {response.status_code}"
+            )
+            if attempt < max_attempts - 1:
+                time.sleep(2)  # Attend 2 secondes avant la prochaine tentative
+        logger.error(f"All {max_attempts} attempts failed for {url}")
         return None
