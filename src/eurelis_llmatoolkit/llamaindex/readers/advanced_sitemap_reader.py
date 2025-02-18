@@ -121,6 +121,8 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         logger.debug(f"Fetching page data for URL: {url}")
         try:
             response = self._fetch_url(url)
+            if response is None:
+                self._unsuccessful_docs.append(url)  # Add URL to unsuccessful docs list
 
             page = BeautifulSoup(response, "html.parser")
 
