@@ -248,7 +248,7 @@ class IngestionWrapper(AbstractWrapper):
             for url in doc_ids_to_delete:
                 document_store.delete_document(doc_id=url)
                 vector_store.delete(url)
-                logger.debug(f"Deleted document with URL: {url}")
+                logger.info(f"Deleted document with URL: {url}")
             logger.info(f"Deleted {len(doc_ids_to_delete)} documents.")
         else:
             logger.info("No URLs to delete.")
