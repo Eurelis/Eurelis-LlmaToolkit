@@ -59,8 +59,14 @@ class IngestionWrapper(AbstractWrapper):
             self._generate_cache(dataset_id, documents)
             logger.info(f"Cache generated for dataset ID: {dataset_id}!")
 
-    def _load_documents_from_reader(self, dataset_config: dict) -> List[Document]:
-        """Load documents using the appropriate reader based on the dataset configuration."""
+    def _load_documents_from_reader(
+        self, dataset_config: dict
+    ) -> tuple[List[Document], List[str]]:
+        """Load documents using the appropriate reader based on the dataset configuration.
+
+        Returns:
+            tuple: Tuple containing the list of documents and the list of unsuccessful Docs (failed to be processed).
+        """
         logger.debug(
             "Loading documents from reader for dataset_config: %s", dataset_config
         )
@@ -71,10 +77,21 @@ class IngestionWrapper(AbstractWrapper):
         documents = reader_adapter.load_data()
 
         # Add project metadata
-        return self._add_project_metadata(documents, self._config["project"])
+        documents = self._add_project_metadata(documents, self._config["project"])
 
-    def _load_documents_from_cache(self, dataset_config: dict) -> List[Document]:
-        """Load documents from cache if the cache is available."""
+        # Get unsuccessful docs from the reader
+        unsuccessful_docs = reader_adapter.get_unsuccessful_docs()
+
+        return documents, unsuccessful_docs
+
+    def _load_documents_from_cache(
+        self, dataset_config: dict
+    ) -> tuple[List[Document], List[str]]:
+        """Load documents from cache if the cache is available.
+
+        Returns:
+            tuple: Tuple containing the list of documents and an empty list for unsuccessful Docs (failed to be processed).
+        """
         logger.debug(
             "Loading documents from cache for dataset_config: %s", dataset_config
         )
@@ -83,7 +100,8 @@ class IngestionWrapper(AbstractWrapper):
         documents = cache.load_data(dataset_config["id"])
 
         # Add project metadata
-        return self._add_project_metadata(documents, self._config["project"])
+        documents = self._add_project_metadata(documents, self._config["project"])
+        return documents, []
 
     def _add_project_metadata(
         self, documents: List[Document], project: str
@@ -125,7 +143,9 @@ class IngestionWrapper(AbstractWrapper):
         cache = CacheFactory.create_cache(cache_config)
         cache.to_cache(dataset_name, documents)
 
-    def _get_documents(self, dataset_config: dict, use_cache: bool) -> List[Document]:
+    def _get_documents(
+        self, dataset_config: dict, use_cache: bool
+    ) -> tuple[List[Document], List[str]]:
         """
         Get documents from either cache or reader based on the configuration.
 
@@ -134,7 +154,7 @@ class IngestionWrapper(AbstractWrapper):
             use_cache (bool): Whether to use cached data or read from source.
 
         Returns:
-            List[Document]: List of retrieved documents.
+            tuple: Tuple containing the list of retrieved documents and the list of unsuccessful Docs.
         """
         logger.debug(
             "Getting documents for dataset_config: %s, use_cache: %s",
@@ -211,10 +231,16 @@ class IngestionWrapper(AbstractWrapper):
         return doc_ids
 
     def _remove_unmatched_documents(
-        self, doc_ids_doc_store: List[str], doc_ids_scraping: List[str]
+        self,
+        doc_ids_doc_store: List[str],
+        doc_ids_scraping: List[str],
+        unsuccessful_docs: List[str],
     ):
         """Remove documents from the database that do not match any of the provided doc_ids."""
-        doc_ids_to_delete = set(doc_ids_doc_store) - set(doc_ids_scraping)
+        logger.debug(f"Unsuccessful documents: {unsuccessful_docs}")
+        doc_ids_to_delete = (
+            set(doc_ids_doc_store) - set(doc_ids_scraping) - set(unsuccessful_docs)
+        )
         document_store = self._get_document_store()
         vector_store = self._get_vector_store()
 
@@ -222,7 +248,7 @@ class IngestionWrapper(AbstractWrapper):
             for url in doc_ids_to_delete:
                 document_store.delete_document(doc_id=url)
                 vector_store.delete(url)
-                logger.debug(f"Deleted document with URL: {url}")
+                logger.info(f"Deleted document with URL: {url}")
             logger.info(f"Deleted {len(doc_ids_to_delete)} documents.")
         else:
             logger.info("No URLs to delete.")
@@ -243,7 +269,7 @@ class IngestionWrapper(AbstractWrapper):
         # READER / CACHE
         #
         # Récupérer les documents à partir du cache ou via le reader
-        documents = self._get_documents(dataset_config, use_cache)
+        documents, unsuccessful_docs = self._get_documents(dataset_config, use_cache)
         if documents is None:
             logger.critical(
                 f"Reading the dataset {dataset_config['id']} encountered an error. Ingestion aborted."
@@ -293,7 +319,9 @@ class IngestionWrapper(AbstractWrapper):
         # Supprimer les documents du document_store qui ne sont pas dans doc_ids_scraping
         if delete:
             logger.info("Deleting old documents...")
-            self._remove_unmatched_documents(doc_ids_doc_store, doc_ids_scraping)
+            self._remove_unmatched_documents(
+                doc_ids_doc_store, doc_ids_scraping, unsuccessful_docs
+            )
         else:
             logger.info(
                 "The delete option is disabled: old documents will not be deleted."
