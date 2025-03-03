@@ -41,7 +41,7 @@ class ChatbotWrapper(AbstractWrapper):
             permanent_metadata_filters
         )
 
-        project_name = config.get("project_name")
+        project_name = config.get("project")
         if project_name:
             project_filter = MetadataFilters(
                 filters=[MetadataFilter(key="project", value=project_name)]
