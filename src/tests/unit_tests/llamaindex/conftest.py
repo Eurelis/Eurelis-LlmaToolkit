@@ -20,7 +20,9 @@ from eurelis_llmatoolkit.llamaindex.factories.memory_persistence_factory import 
 from eurelis_llmatoolkit.llamaindex.factories.vectorstore_factory import (
     VectorStoreFactory,
 )
-
+from eurelis_llmatoolkit.llamaindex.readers.advanced_sitemap_reader import (
+    AdvancedSitemapReader,
+)
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -167,3 +169,24 @@ def metadata_filters(request: FixtureRequest):
             for key, value in key_value_pairs.items()
         ]
     )
+
+
+def create_readers(config_dataset):
+    readers = []
+    for dataset in config_dataset["dataset"]:
+        readers.append(
+            AdvancedSitemapReader(
+                dataset["reader"],
+                f"{config_dataset['project']}/{dataset['id']}",
+            )
+        )
+    return readers
+
+
+@pytest.fixture
+def advanced_sitemap_readers(request):
+    config_path = request.param
+    config_dataset = ConfigLoader.load_config(
+        f"./etc/config_tests/tests/unit_tests/llamaindex/{config_path}"
+    )
+    return create_readers(config_dataset)

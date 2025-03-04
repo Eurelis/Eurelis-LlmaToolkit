@@ -24,13 +24,13 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         self._headers = {"User-Agent": config.get("user_agent", "EurelisLLMATK/0.1")}
         self._namespace = namespace
 
-    def load_data(self, url: Optional[str] = None) -> list:
+    def load_data(self, url: Optional[str] = None) -> Optional[list]:
         """Charge les données d'un sitemap
 
         Args:
 
         Returns:
-            list: Liste des données du sitemap
+            Optional[list]: Liste des données du sitemap ou None en cas d'erreur
         """
         if url is None:
             load_params = self._get_load_data_params()
@@ -39,6 +39,10 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         logger.info(f"Loading data from sitemap URL: {url}")
 
         sitemap_content = self._fetch_url(url)
+        if sitemap_content is None:
+            logger.critical(f"Failed to fetch sitemap content for URL: {url}")
+            return None
+
         logger.debug(f"Sitemap : {url}")
         root = ET.fromstring(sitemap_content)
 
@@ -117,6 +121,8 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
         logger.debug(f"Fetching page data for URL: {url}")
         try:
             response = self._fetch_url(url)
+            if response is None:
+                self._unsuccessful_docs.append(url)  # Add URL to unsuccessful docs list
 
             page = BeautifulSoup(response, "html.parser")
 
@@ -212,7 +218,6 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
             page (BeautifulSoup): Page à traiter
             remove_list (list): Liste des éléments à supprimer
         """
-        logger.debug(f"Removing elements: {remove_list}")
         for remove in remove_list:
             nodes = []
             if isinstance(remove, str):
@@ -250,8 +255,20 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
             str: Contenu de la page
         """
         requests_timeout = self.config.get("requests_timeout", 60)
-        response = requests.get(url, timeout=requests_timeout, headers=self._headers)
-        if response.status_code == 200:
-            return response.content
-        logger.error(f"Error fetching {url}: {response.status_code}")
+        max_attempts = max(
+            1, self.config.get("max_attempts", 5)
+        )  # Assure au moins 1 tentative
+        for attempt in range(max_attempts):
+            response = requests.get(
+                url, timeout=requests_timeout, headers=self._headers
+            )
+            if response.status_code == 200:
+                return response.content
+
+            logger.error(
+                f"Error fetching {url}, attempt {attempt + 1}: {response.status_code}"
+            )
+            if attempt < max_attempts - 1:
+                time.sleep(2)  # Attend 2 secondes avant la prochaine tentative
+        logger.error(f"All {max_attempts} attempts failed for {url}")
         return None

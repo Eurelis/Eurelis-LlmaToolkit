@@ -14,6 +14,9 @@ class AbstractFSReader(BaseReader):
         self._namespace = namespace
         self._config = config
         self._file_dir = config["base_dir"]
+        self._unsuccessful_docs: list[str] = (
+            []
+        )  # Liste des docs non récupérés(ex:pages en timeout ou fichiers non trouvés)
 
     def _get_files(self, path: str, glob: str) -> Generator:
         """Récupère les fichiers à partir du path et du glob.
@@ -80,3 +83,7 @@ class AbstractFSReader(BaseReader):
             documents.append(document)
 
         return documents
+
+    def get_unsuccessful_docs(self) -> list[str]:
+        """Retourne une liste vide par défaut pour les fichiers/Docs échoués."""
+        return self._unsuccessful_docs
