@@ -98,7 +98,9 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
                 metadatas = {
                     "source": loc,
                     "namespace": self._namespace,
-                    "lastmod": url.find("{*}lastmod").text,
+                    "lastmod": (
+                        url.find("{*}lastmod").text if url.find("{*}lastmod") else None
+                    ),
                 }
                 page_data.metadata.update(metadatas)
                 all_data.append(page_data)
