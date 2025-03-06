@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Fix lastmod metadata in sitemap ingestion
+
 ### Removed
 
 ## [2.0.0dev9] - 2024-02-24
