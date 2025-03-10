@@ -1,11 +1,13 @@
 import os
 import pytest
+from pytest import FixtureRequest
 from llama_index.core import VectorStoreIndex
 from llama_index.core.storage import StorageContext
 from llama_index.core.vector_stores import (
     MetadataFilter,
     MetadataFilters,
     FilterOperator,
+    FilterCondition,
 )
 
 from eurelis_llmatoolkit.llamaindex.chatbot_wrapper import ChatbotWrapper
@@ -126,6 +128,45 @@ def filters():
                 operator=FilterOperator.EQ,
                 value="product-flexacryl-instant-waterproof-compound",
             )
+        ]
+    )
+
+
+@pytest.fixture
+def chatbot_project(request):
+    config_path, conversation_id = request.param
+
+    config_dataset = ConfigLoader.load_config(
+        f"../etc/config_tests/tests/unit_tests/llamaindex/{config_path}"  # ex: chatbot_wrapper/test_chatbot_config_project1.json
+    )
+    return ChatbotWrapper(config_dataset, conversation_id)
+
+
+@pytest.fixture
+def chatbot_project_with_permanent_filter(request):
+    config_path, conversation_id = request.param
+
+    config_dataset = ConfigLoader.load_config(
+        f"../etc/config_tests/tests/unit_tests/llamaindex/{config_path}"  # ex: chatbot_wrapper/test_chatbot_config_project1.json
+    )
+
+    permanent_filters = MetadataFilters(
+        filters=[MetadataFilter(key="common_field", value="common_value")],
+        condition=FilterCondition.AND,
+    )
+
+    return ChatbotWrapper(
+        config_dataset, conversation_id, permanent_metadata_filters=permanent_filters
+    )
+
+
+@pytest.fixture
+def metadata_filters(request: FixtureRequest):
+    key_value_pairs = request.param
+    return MetadataFilters(
+        filters=[
+            MetadataFilter(key=key, value=value)
+            for key, value in key_value_pairs.items()
         ]
     )
 
