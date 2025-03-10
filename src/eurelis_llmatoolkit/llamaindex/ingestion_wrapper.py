@@ -53,7 +53,8 @@ class IngestionWrapper(AbstractWrapper):
                 logger.warning(f"Dataset configuration missing 'id': {dataset_config}")
                 continue
 
-            documents = self._get_documents(dataset_config, use_cache=False)
+            # TODO : Ajouter la gestion des pages/documents en erreur
+            documents, _ = self._get_documents(dataset_config, use_cache=False)
 
             # Générer le cache
             self._generate_cache(dataset_id, documents)
