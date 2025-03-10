@@ -9,26 +9,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Removed
+
+## [2.0.0dev10] - 2025-03-10
+
+### Added
+
 - Fix in `AdvancedSitemapReader` for when the metadata `lastmod` does not exist
+- Fix in `IngestionWrapper` with cache
 
 ### Changed
 
 ### Removed
 
-## [2.0.0dev9] - 2024-02-24
+## [2.0.0dev9] - 2025-02-24
 
 ### Added
 
 - Manage timeout during sitemap ingestion
 - Environment variable to set Sentry environment tag
 
-## [2.0.0dev8] - 2024-02-13
+## [2.0.0dev8] - 2025-02-13
 
 ### Changed
 
 - Fix ingestion wrapper
 
-## [2.0.0dev7] - 2024-01-29
+## [2.0.0dev7] - 2025-01-29
 
 ### Added
 
@@ -44,12 +53,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Legacy code source
 
-## [2.0.0dev6] - 2024-01-11
+## [2.0.0dev6] - 2025-01-11
 
 - No exception raised if .env file not found
 - Limit pymupdf4llm.to_markdown verbosity
 
-## [2.0.0dev5] - 2024-01-09
+## [2.0.0dev5] - 2025-01-09
 
 - Add node post-processor support
 - Increaseed timeout for requests in AdvancedSitemaReader
