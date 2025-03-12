@@ -6,13 +6,13 @@ class VectorStoreFactory:
         if provider == "CustomMongoDB":
             import pymongo
             from eurelis_llmatoolkit.llamaindex.vector_stores.custom_mongodb_atlas_vector_store import (
-                CustomMongoDBAtlasVectorStore,
+                CustomMongoDBAtlasVectorSearch,
             )
 
             client = pymongo.MongoClient(config["url"])
 
             # FIXME : ValueError: Must specify MONGODB_URI via env variable if not directly passing in client.
-            return CustomMongoDBAtlasVectorStore(
+            return CustomMongoDBAtlasVectorSearch(
                 client,
                 db_name=config["db_name"],
                 collection_name=config["collection_name"],
