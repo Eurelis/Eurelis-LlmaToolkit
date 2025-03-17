@@ -86,7 +86,9 @@ class CustomMongoDBAtlasVectorSearch(MongoDBAtlasVectorSearch):
                     }
                 }
             else:
-                return filters_to_mql(filters, metadata_key=metadata_key)
+                return CustomMongoDBAtlasVectorSearch.filters_to_mql(
+                    filters, metadata_key=metadata_key
+                )
 
         if len(filters.filters) == 1:
             return process_filters(filters)
