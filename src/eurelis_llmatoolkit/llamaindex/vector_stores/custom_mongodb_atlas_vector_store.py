@@ -37,7 +37,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# TODO : Nettoyer le code et optimiser
 class CustomMongoDBAtlasVectorSearch(MongoDBAtlasVectorSearch):
     @staticmethod
     def filters_to_mql(
