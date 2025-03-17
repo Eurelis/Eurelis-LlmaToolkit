@@ -69,6 +69,7 @@ class CustomMongoDBAtlasVectorSearch(MongoDBAtlasVectorSearch):
             return {}
 
         def prepare_key(key: str) -> str:
+            # Prepares the key by prefixing it with the metadata key
             return (
                 f"{metadata_key}.{key}"
                 if not key.startswith(f"{metadata_key}.")
@@ -76,6 +77,7 @@ class CustomMongoDBAtlasVectorSearch(MongoDBAtlasVectorSearch):
             )
 
         def process_filters(filters: MetadataFilters) -> Dict[str, Any]:
+            # Processes the filters recursively
             if len(filters.filters) == 1:
                 mf = filters.filters[0]
                 return {
@@ -83,41 +85,27 @@ class CustomMongoDBAtlasVectorSearch(MongoDBAtlasVectorSearch):
                         map_lc_mql_filter_operators(mf.operator): mf.value
                     }
                 }
-            elif filters.condition == FilterCondition.AND:
-                return {
-                    "$and": [
-                        (
-                            process_filters(mf)
-                            if isinstance(mf, MetadataFilters)
-                            else {
-                                prepare_key(mf.key): {
-                                    map_lc_mql_filter_operators(mf.operator): mf.value
-                                }
-                            }
-                        )
-                        for mf in filters.filters
-                    ]
-                }
-            elif filters.condition == FilterCondition.OR:
-                return {
-                    "$or": [
-                        (
-                            process_filters(mf)
-                            if isinstance(mf, MetadataFilters)
-                            else {
-                                prepare_key(mf.key): {
-                                    map_lc_mql_filter_operators(mf.operator): mf.value
-                                }
-                            }
-                        )
-                        for mf in filters.filters
-                    ]
-                }
             else:
-                logger.debug("filters.condition not recognized. Returning empty dict")
-                return {}
+                return filters_to_mql(filters, metadata_key=metadata_key)
 
-        return process_filters(filters)
+        if len(filters.filters) == 1:
+            return process_filters(filters)
+
+        condition = f"${filters.condition.lower()}"
+        return {
+            condition: [
+                (
+                    process_filters(mf)
+                    if isinstance(mf, MetadataFilters)
+                    else {
+                        prepare_key(mf.key): {
+                            map_lc_mql_filter_operators(mf.operator): mf.value
+                        }
+                    }
+                )
+                for mf in filters.filters
+            ]
+        }
 
     #  On reproduit la méthode _query de la classe MongoDBAtlasVectorSearch en utilisant la méthode filters_to_mql modifiée avec self.filters_to_mql
     def _query(self, query: VectorStoreQuery) -> VectorStoreQueryResult:
