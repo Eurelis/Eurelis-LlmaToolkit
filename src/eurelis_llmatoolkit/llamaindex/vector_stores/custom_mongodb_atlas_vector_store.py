@@ -1,11 +1,7 @@
-import os
-from importlib.metadata import version
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict
 
-from llama_index.core.bridge.pydantic import PrivateAttr
-from llama_index.core.schema import BaseNode, MetadataMode, TextNode
+from llama_index.core.schema import TextNode
 from llama_index.core.vector_stores.types import (
-    BasePydanticVectorStore,
     VectorStoreQuery,
     VectorStoreQueryResult,
     VectorStoreQueryMode,
@@ -13,7 +9,6 @@ from llama_index.core.vector_stores.types import (
 from llama_index.core.vector_stores.utils import (
     legacy_metadata_dict_to_node,
     metadata_dict_to_node,
-    node_to_metadata_dict,
 )
 
 from llama_index.vector_stores.mongodb.pipelines import (
@@ -23,13 +18,12 @@ from llama_index.vector_stores.mongodb.pipelines import (
     reciprocal_rank_stage,
     final_hybrid_stage,
 )
-from pymongo import MongoClient
-from pymongo.driver_info import DriverInfo
-from pymongo.collection import Collection
-
 
 from typing import Any, Dict
-from llama_index.core.vector_stores.types import MetadataFilters, FilterCondition
+from llama_index.core.vector_stores.types import (
+    MetadataFilters,
+    MetadataFilter,
+)
 from llama_index.vector_stores.mongodb import MongoDBAtlasVectorSearch
 from llama_index.vector_stores.mongodb.pipelines import map_lc_mql_filter_operators
 import logging
@@ -75,38 +69,28 @@ class CustomMongoDBAtlasVectorSearch(MongoDBAtlasVectorSearch):
                 else key
             )
 
-        def process_filters(filters: MetadataFilters) -> Dict[str, Any]:
-            # Processes the filters recursively
-            if len(filters.filters) == 1:
-                mf = filters.filters[0]
-                return {
-                    prepare_key(mf.key): {
-                        map_lc_mql_filter_operators(mf.operator): mf.value
-                    }
+        def process_filter(filter: MetadataFilter) -> Dict[str, Any]:
+            # Processes a single filter
+            return {
+                prepare_key(filter.key): {
+                    map_lc_mql_filter_operators(filter.operator): filter.value
                 }
-            else:
-                return CustomMongoDBAtlasVectorSearch.filters_to_mql(
-                    filters, metadata_key=metadata_key
-                )
+            }
 
-        if len(filters.filters) == 1:
-            return process_filters(filters)
+        condition = f"${filters.condition}"
+        filter_list = [
+            (
+                process_filter(mf)
+                if isinstance(mf, MetadataFilter)
+                else CustomMongoDBAtlasVectorSearch.filters_to_mql(mf, metadata_key)
+            )
+            for mf in filters.filters
+        ]
 
-        condition = f"${filters.condition.lower()}"
-        return {
-            condition: [
-                (
-                    process_filters(mf)
-                    if isinstance(mf, MetadataFilters)
-                    else {
-                        prepare_key(mf.key): {
-                            map_lc_mql_filter_operators(mf.operator): mf.value
-                        }
-                    }
-                )
-                for mf in filters.filters
-            ]
-        }
+        if len(filter_list) == 1:
+            return filter_list[0]
+
+        return {condition: filter_list}
 
     #  On reproduit la méthode _query de la classe MongoDBAtlasVectorSearch en utilisant la méthode filters_to_mql modifiée avec self.filters_to_mql
     def _query(self, query: VectorStoreQuery) -> VectorStoreQueryResult:
