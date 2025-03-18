@@ -77,7 +77,7 @@ class CustomMongoDBAtlasVectorSearch(MongoDBAtlasVectorSearch):
                 }
             }
 
-        condition = f"${filters.condition}"
+        condition = f"${filters.condition.value}"
         filter_list = [
             (
                 process_filter(mf)
