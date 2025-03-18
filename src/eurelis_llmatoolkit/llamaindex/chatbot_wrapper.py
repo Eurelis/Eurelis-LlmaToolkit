@@ -284,27 +284,24 @@ class ChatbotWrapper(AbstractWrapper):
         # En fonction du retriever utilisé, les filtres peuvent ne pas être supportés
         if hasattr(self._chat_engine._retriever, "_filters"):
             # Combinaison des filtres
-
-            # Fusion des filtres permanents et des filtres personnalisés
             permanent_metadata_filters = (
-                self._permanent_metadata_filters.filters
+                self._permanent_metadata_filters
                 if self._permanent_metadata_filters
                 else None
             )
 
             custom_metadatafilters = (
-                metadata_filters.filters
+                metadata_filters
                 if metadata_filters and hasattr(metadata_filters, "filters")
                 else None
             )
 
-            # `filters` doit être un `None`, `MetadataFilters`, `MetadataFilter`, une liste de `MetadataFilters` ou de `MetadataFilter`
-            # - Pas de liste vide ni de tableau vide.
-            # - `MetadataFilters` ne peut pas avoir une liste vide de `filters`.
-            # - Si aucun filtre valide, retourner `None`.
-            combined_filters_list = (permanent_metadata_filters or []) + (
-                custom_metadatafilters or []
-            )
+            combined_filters_list = []
+            if permanent_metadata_filters:
+                combined_filters_list.append(permanent_metadata_filters)
+            if custom_metadatafilters:
+                combined_filters_list.append(custom_metadatafilters)
+
             combined_filters = (
                 MetadataFilters(
                     filters=combined_filters_list,
