@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 from llama_index.core.vector_stores import (
     FilterCondition,

@@ -19,7 +19,6 @@ from llama_index.vector_stores.mongodb.pipelines import (
     final_hybrid_stage,
 )
 
-from typing import Any, Dict
 from llama_index.core.vector_stores.types import (
     MetadataFilters,
     MetadataFilter,
