@@ -11,9 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Update `llama-index` dependencies from `0.11.14` to `0.12.25`
-
 ### Removed
+
+## [2.0.0dev12] - 2025-03-24
+
+### Changed
+
+- Update `llama-index` dependencies from `0.11.14` to `0.12.25`
 
 ## [2.0.0dev11] - 2025-03-19
 
