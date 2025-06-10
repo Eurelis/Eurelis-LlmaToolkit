@@ -49,9 +49,16 @@ class LLMNodeTransformer(NodeParser):
         Returns:
             List[BaseNode]: List of transformed nodes with generated content.
         """
+        logger.debug(f"Starting transformation of {len(nodes)} nodes")
         updated_nodes = []
         for node in nodes:
             original_content = node.get_content()
+            if not original_content.strip():
+                logger.debug(f"Empty content detected for node {node.id_}")
+
+            # Toujours ajouter le noeud original en premier en fonction de la configuration
+            if self._keep_origin_node:
+                updated_nodes.append(node)
 
             generated_content = self._generate_content_from_llm(original_content)
 
@@ -62,6 +69,7 @@ class LLMNodeTransformer(NodeParser):
                 )
                 updated_nodes.extend(new_nodes)
 
+        logger.debug(f"Transformation complete. Final node count: {len(updated_nodes)}")
         return updated_nodes
 
     def _generate_content_from_llm(self, content: str) -> List[str]:
@@ -137,11 +145,7 @@ class LLMNodeTransformer(NodeParser):
         )
         transformed_nodes = []
 
-        # Conserver le noeud d'origine si True
-        if self._keep_origin_node:
-            transformed_nodes.append(original_node)
-
-        # Crée un nouveau noeud pour chaque élément de contenu généré
+        # Créer un nouveau noeud pour chaque contenu généré
         for content in contents:
             new_node: BaseNode = copy.deepcopy(original_node)
             new_node.id_ = str(uuid.uuid4())
