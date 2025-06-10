@@ -6,10 +6,18 @@ class EmbeddingFactory:
         if provider == "OpenAI":
             from llama_index.embeddings.openai import OpenAIEmbedding
 
-            return OpenAIEmbedding(
-                model=config.get("model", "text-embedding-3-small"),
-                api_key=config["openai_api_key"],
-            )
+            kwargs = {
+                "model": config.get("model", "text-embedding-3-small"),
+                "api_key": config["openai_api_key"],
+            }
+
+            if "embed_batch_size" in config:
+                kwargs["embed_batch_size"] = config["embed_batch_size"]
+            if "max_retries" in config:
+                kwargs["max_retries"] = config["max_retries"]
+
+            return OpenAIEmbedding(**kwargs)
+
         if provider == "HuggingFace":
             from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 

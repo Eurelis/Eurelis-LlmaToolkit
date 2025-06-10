@@ -125,6 +125,7 @@ class AdvancedSitemapReader(AbstractReaderAdapter):
             response = self._fetch_url(url)
             if response is None:
                 self._unsuccessful_docs.append(url)  # Add URL to unsuccessful docs list
+                return None
 
             page = BeautifulSoup(response, "html.parser")
 
