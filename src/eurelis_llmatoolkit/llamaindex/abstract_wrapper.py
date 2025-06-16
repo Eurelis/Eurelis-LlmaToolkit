@@ -3,10 +3,7 @@ from abc import ABC
 from typing import TYPE_CHECKING, Iterable, Optional
 
 from llama_index.core import VectorStoreIndex
-from llama_index.core.embeddings import BaseEmbedding
-from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.core.storage import StorageContext
-from llama_index.core.vector_stores.types import MetadataFilters
 
 from eurelis_llmatoolkit.llamaindex.factories.documentstore_factory import (
     DocumentStoreFactory,
@@ -23,13 +20,22 @@ from eurelis_llmatoolkit.llamaindex.factories.vectorstore_factory import (
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
+    from llama_index.core.callbacks import CallbackManager
+    from llama_index.core.embeddings import BaseEmbedding
+    from llama_index.core.postprocessor.types import BaseNodePostprocessor
     from llama_index.core.retrievers import BaseRetriever
-    from llama_index.core.vector_stores.types import BasePydanticVectorStore
+    from llama_index.core.vector_stores.types import (
+        BasePydanticVectorStore,
+        MetadataFilters,
+    )
 
 
 class AbstractWrapper(ABC):
-    def __init__(self, config: dict):
+    def __init__(
+        self, config: dict, callback_manager: Optional[CallbackManager] = None
+    ):
         self._config: dict = config
+        self._callback_manager = callback_manager
         self._vector_store: "BasePydanticVectorStore" = None
         self._document_store: Optional["BasePydanticVectorStore"] = None
         self._storage_context: Optional[StorageContext] = None
@@ -89,7 +95,9 @@ class AbstractWrapper(ABC):
             return self._embedding_model
 
         embedding_config = self._config["embedding_model"]
-        self._embedding_model = EmbeddingFactory.create_embedding(embedding_config)
+        self._embedding_model = EmbeddingFactory.create_embedding(
+            embedding_config, callback_manager=self._callback_manager
+        )
 
         logger.debug("Embedding model created.")
         return self._embedding_model
@@ -148,6 +156,7 @@ class AbstractWrapper(ABC):
             vector_store,
             embed_model=self._get_embedding_model(),
             storage_context=storage_context,
+            callback_manager=self._callback_manager,
         )
 
         logger.debug("Vector store index created.")

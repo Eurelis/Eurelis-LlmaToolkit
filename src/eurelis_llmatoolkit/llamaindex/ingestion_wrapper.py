@@ -3,6 +3,7 @@ from typing import List, Optional
 
 from llama_index.core import Document
 from llama_index.core.ingestion import IngestionPipeline
+from llama_index.core.callbacks import CallbackManager
 
 from eurelis_llmatoolkit.llamaindex.abstract_wrapper import AbstractWrapper
 from eurelis_llmatoolkit.llamaindex.factories.cache_factory import CacheFactory
@@ -15,8 +16,10 @@ logger = logging.getLogger(__name__)
 
 
 class IngestionWrapper(AbstractWrapper):
-    def __init__(self, config: dict):
-        super().__init__(config)
+    def __init__(
+        self, config: dict, callback_manager: Optional[CallbackManager] = None
+    ):
+        super().__init__(config, callback_manager=callback_manager)
         self._config = config
         logger.debug("IngestionWrapper initialized")
 
@@ -315,7 +318,8 @@ class IngestionWrapper(AbstractWrapper):
         )
         # TODO: définir le show_progress via une variable d'environnement
         pipeline.run(documents=documents, show_progress=True)
-        logger.debug(f"Ingested {len(documents)} documents into the pipeline.")
+        # TODO info
+        logger.info(f"Ingested {len(documents)} documents into the pipeline.")
 
         # Supprimer les documents du document_store qui ne sont pas dans doc_ids_scraping
         if delete:
