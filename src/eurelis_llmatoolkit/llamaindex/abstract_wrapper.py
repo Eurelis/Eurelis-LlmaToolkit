@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 
 class AbstractWrapper(ABC):
     def __init__(
-        self, config: dict, callback_manager: Optional[CallbackManager] = None
+        self, config: dict, callback_manager: Optional["CallbackManager"] = None
     ):
         self._config: dict = config
         self._callback_manager = callback_manager
@@ -41,7 +41,7 @@ class AbstractWrapper(ABC):
         self._storage_context: Optional[StorageContext] = None
         self._vector_store_index: Optional[VectorStoreIndex] = None
         self._retriever: "BaseRetriever" = None
-        self._node_postprocessors: Optional[list[BaseNodePostprocessor]] = None
+        self._node_postprocessors: Optional[list["BaseNodePostprocessor"]] = None
         self._embedding_model: "BaseEmbedding" = None
         logger.debug("AbstractWrapper initialized.")
 
@@ -105,7 +105,7 @@ class AbstractWrapper(ABC):
     def _get_retriever(
         self,
         config: dict,
-        filters: Optional[MetadataFilters] = None,
+        filters: Optional["MetadataFilters"] = None,
     ):
         retriever_config = config.get("retriever")
 

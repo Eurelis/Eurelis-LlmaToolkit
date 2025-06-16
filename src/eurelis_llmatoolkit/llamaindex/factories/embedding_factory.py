@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 class EmbeddingFactory:
     @staticmethod
     def create_embedding(
-        config: dict, callback_manager: Optional[CallbackManager] = None
+        config: dict, callback_manager: Optional["CallbackManager"] = None
     ):
         provider = config["provider"]
 
