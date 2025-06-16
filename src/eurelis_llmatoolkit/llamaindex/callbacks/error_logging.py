@@ -41,7 +41,8 @@ class VerboseErrorLoggingHandler(BaseCallbackHandler):
             "vectorstore_saved": 0,
             "current_stage": None,
             "failed_docs": [],  # Liste des documents échoués
-            "success_docs": [],  # Liste des documents réussis (max 5)
+            "success_docs": [],  # Liste des 5 premiers documents réussis (pour exemple)
+            "all_success_sources": set(),  # Nouveau: stockage de toutes les sources réussies
         }
         self._trace_data[trace_id] = initial_state
         logger.info(f"[CALLBACK][TRACE INITIALIZED] {trace_id}")
@@ -146,6 +147,11 @@ class VerboseErrorLoggingHandler(BaseCallbackHandler):
                         self._trace_data[trace_id]["failed_docs"].append(doc_info)
                         failed_details.append(doc_info)
                     else:
+                        # Stocker toutes les sources réussies
+                        self._trace_data[trace_id]["all_success_sources"].add(
+                            doc_info["source"]
+                        )
+                        # Garder seulement 5 exemples pour l'affichage détaillé
                         if len(self._trace_data[trace_id]["success_docs"]) < 5:
                             self._trace_data[trace_id]["success_docs"].append(doc_info)
                             success_details.append(doc_info)
@@ -186,7 +192,9 @@ class VerboseErrorLoggingHandler(BaseCallbackHandler):
                     list({doc["source"] for doc in stats["failed_docs"]})
                 )
                 success_sources = sorted(
-                    list({doc["source"] for doc in stats["success_docs"]})
+                    list(
+                        stats["all_success_sources"]
+                    )  # Utiliser toutes les sources réussies
                 )
 
                 # Log des sources en format liste
