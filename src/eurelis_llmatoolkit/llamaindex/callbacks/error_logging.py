@@ -71,6 +71,21 @@ class VerboseErrorLoggingHandler(BaseCallbackHandler):
         elif event_type == CBEventType.EMBEDDING:
             chunks = payload.get(EventPayload.CHUNKS, [])
             if chunks:
+                # Afficher toutes les sources au début
+                initial_sources = sorted(
+                    list(
+                        {
+                            self._extract_chunk_info(chunk).get("source", "unknown")
+                            for chunk in chunks
+                            if chunk is not None
+                        }
+                    )
+                )
+
+                logger.info("=== SOURCES À TRAITER ===")
+                logger.info(str(initial_sources))
+                logger.info("=" * 50)
+
                 null_chunks = sum(1 for chunk in chunks if chunk is None)
                 valid_chunks = len(chunks) - null_chunks
                 self._update_trace_stats("embedding_input_docs", valid_chunks)
