@@ -51,7 +51,7 @@ class AbstractWrapper(ABC):
 
         vectorstore_config = self._config["vectorstore"]
         self._vector_store = VectorStoreFactory.create_vector_store(vectorstore_config)
-        logger.debug("Vector store created.")
+        logger.info("Vector store created.")
         return self._vector_store
 
     def _get_document_store(self):
@@ -63,7 +63,7 @@ class AbstractWrapper(ABC):
             self._document_store = DocumentStoreFactory.create_document_store(
                 documentstore_config
             )
-            logger.debug("Document store created.")
+            logger.info("Document store created.")
 
         return self._document_store
 
@@ -99,7 +99,7 @@ class AbstractWrapper(ABC):
             embedding_config, callback_manager=self._callback_manager
         )
 
-        logger.debug("Embedding model created.")
+        logger.info("Embedding model created.")
         return self._embedding_model
 
     def _get_retriever(

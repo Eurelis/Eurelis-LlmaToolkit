@@ -119,7 +119,7 @@ class IngestionWrapper(AbstractWrapper):
         Returns:
             List[Document]: List of documents with added project metadata.
         """
-        logger.debug("Adding project metadata to documents for project: %s", project)
+        logger.info("Adding project metadata to documents for project: %s", project)
         for doc in documents:
             if not hasattr(doc, "metadata"):
                 doc.metadata = {}
@@ -178,7 +178,7 @@ class IngestionWrapper(AbstractWrapper):
         Args:
             dataset_config (dict): The dataset configuration that specifies the transformations.
         """
-        logger.debug("Getting transformations for dataset_config: %s", dataset_config)
+        logger.info("Getting transformations for dataset_config: %s", dataset_config)
         # Transformations
         transformations = [
             TransformationFactory.create_transformation(t_config)
@@ -279,7 +279,7 @@ class IngestionWrapper(AbstractWrapper):
                 f"Reading the dataset {dataset_config['id']} encountered an error. Ingestion aborted."
             )
             return
-        logger.debug(f"Retrieved {len(documents)} documents for ingestion.")
+        logger.info(f"Retrieved {len(documents)} documents for ingestion.")
 
         #
         # ACRONYMS & NODE PARSER & EMBEDDINGS

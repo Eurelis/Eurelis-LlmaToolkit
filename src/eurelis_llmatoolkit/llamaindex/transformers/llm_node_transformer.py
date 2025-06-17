@@ -49,7 +49,9 @@ class LLMNodeTransformer(NodeParser):
         Returns:
             List[BaseNode]: List of transformed nodes with generated content.
         """
-        logger.debug(f"Starting transformation of {len(nodes)} nodes")
+        logger.info(
+            f"LLMNodeTransformer : Starting transformation of {len(nodes)} nodes"
+        )
         updated_nodes = []
         for node in nodes:
             original_content = node.get_content()

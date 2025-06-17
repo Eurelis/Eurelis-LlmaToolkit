@@ -130,7 +130,7 @@ pillow==11.1.0
 playwright==1.51.0
 posthog==3.21.0
 propcache==0.3.0
-protobuf==5.29.3
+protobuf==5.29.5
 pyasn1==0.6.1
 pyasn1-modules==0.4.1
 pycparser==2.22 ; implementation_name != 'pypy' and os_name == 'nt'
