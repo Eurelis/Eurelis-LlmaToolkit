@@ -11,6 +11,7 @@ from eurelis_llmatoolkit.llamaindex.factories.reader_factory import ReaderFactor
 from eurelis_llmatoolkit.llamaindex.factories.transformation_factory import (
     TransformationFactory,
 )
+from eurelis_llmatoolkit.llamaindex.factories.callback_factory import CallbackFactory
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,10 @@ class IngestionWrapper(AbstractWrapper):
     def __init__(
         self, config: dict, callback_manager: Optional[CallbackManager] = None
     ):
+        if callback_manager is None and "callbacks" in config:
+            callback_manager = CallbackFactory.create_callback_manager(
+                config["callbacks"]
+            )
         super().__init__(config, callback_manager=callback_manager)
         self._config = config
         logger.debug("IngestionWrapper initialized")

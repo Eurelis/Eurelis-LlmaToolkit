@@ -1,5 +1,7 @@
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Set, List
+from dataclasses import dataclass
+from collections import defaultdict
 
 from llama_index.core.callbacks.base_handler import BaseCallbackHandler
 from llama_index.core.callbacks.schema import CBEventType, EventPayload
@@ -7,17 +9,46 @@ from llama_index.core.callbacks.schema import CBEventType, EventPayload
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class DocumentInfo:
+    source: str
+    content_id: str
+    error: Optional[str] = None
+
+
+@dataclass
+class TraceStats:
+    transform_input_docs: int = 0
+    transform_input_null: int = 0
+    transform_output_docs: int = 0
+    transform_output_null: int = 0
+    embedding_input_docs: int = 0
+    embedding_input_null: int = 0
+    embedding_success: int = 0
+    embedding_null: int = 0
+    vectorstore_saved: int = 0
+    failed_docs: List[DocumentInfo] = None
+    success_docs: List[DocumentInfo] = None
+    all_success_sources: Set[str] = None
+    current_stage: Optional[str] = None
+
+    def __post_init__(self):
+        self.failed_docs = []
+        self.success_docs = []
+        self.all_success_sources = set()
+
+
 class VerboseErrorLoggingHandler(BaseCallbackHandler):
     """Handler that logs detailed information about errors and specific events."""
 
     def __init__(self) -> None:
         super().__init__(event_starts_to_ignore=[], event_ends_to_ignore=[])
-        self._trace_data = {}  # Pour stocker les données de traçage
+        self._trace_data: Dict[str, TraceStats] = defaultdict(TraceStats)
+        self._init_logging()
 
-        # Vérification précoce que le callback est fonctionnel
+    def _init_logging(self) -> None:
         logger.info("[CALLBACK] Initializing VerboseErrorLoggingHandler")
         try:
-            # Test simple du système de log
             logger.info("[CALLBACK] Info logging test")
             logger.info("[CALLBACK] Callback handler successfully initialized")
         except Exception as e:
@@ -26,24 +57,39 @@ class VerboseErrorLoggingHandler(BaseCallbackHandler):
             )
             raise RuntimeError("Callback handler initialization failed") from e
 
+    def _log_stats(self, prefix: str, stats: Dict[str, int]) -> None:
+        for key, value in stats.items():
+            logger.info(f"[CALLBACK] {prefix} {key}: {value}")
+
+    def _extract_chunk_info(self, chunk: str) -> DocumentInfo:
+        metadata = chunk.split("\n")
+        return DocumentInfo(
+            source=next(
+                (
+                    line.split(": ")[1]
+                    for line in metadata
+                    if line.startswith("source: ")
+                ),
+                "unknown",
+            ),
+            content_id=next(
+                (
+                    line.split(": ")[1]
+                    for line in metadata
+                    if line.startswith("c_contentId: ")
+                ),
+                "unknown",
+            ),
+        )
+
+    def _update_trace_stats(self, trace_id: str, key: str, value: int) -> None:
+        stats = self._trace_data[trace_id]
+        setattr(stats, key, getattr(stats, key, 0) + value)
+
     def start_trace(self, trace_id: str) -> None:
         logger.info(f"[CALLBACK][TRACE START] {trace_id}")
 
-        initial_state = {
-            "transform_input_docs": 0,
-            "transform_input_null": 0,
-            "transform_output_docs": 0,
-            "transform_output_null": 0,
-            "embedding_input_docs": 0,
-            "embedding_input_null": 0,
-            "embedding_success": 0,
-            "embedding_null": 0,
-            "vectorstore_saved": 0,
-            "current_stage": None,
-            "failed_docs": [],  # Liste des documents échoués
-            "success_docs": [],  # Liste des 5 premiers documents réussis (pour exemple)
-            "all_success_sources": set(),  # Nouveau: stockage de toutes les sources réussies
-        }
+        initial_state = TraceStats()
         self._trace_data[trace_id] = initial_state
         logger.info(f"[CALLBACK][TRACE INITIALIZED] {trace_id}")
 
@@ -51,11 +97,6 @@ class VerboseErrorLoggingHandler(BaseCallbackHandler):
         self, event_type: CBEventType, payload: Optional[Dict[str, Any]], **kwargs: Any
     ) -> None:
         logger.info(f"[CALLBACK][START] -> {event_type.name}: {payload}")
-
-        # logger.info(f"[CALLBACK][START] {event_type.name}")
-        # logger.info(
-        #     f"[CALLBACK][NODES COUNT] Number of inputs: {len(payload.get(EventPayload.CHUNKS, []))}"
-        # )
 
         if event_type == CBEventType.NODE_PARSING:
             docs = payload.get("documents", [])
@@ -191,9 +232,7 @@ class VerboseErrorLoggingHandler(BaseCallbackHandler):
                 # Marquer tous les chunks comme échoués
                 for chunk in chunks:
                     doc_info = self._extract_chunk_info(chunk)
-                    doc_info["error"] = (
-                        "Invalid embedding format - single embedding for multiple chunks"
-                    )
+                    doc_info.error = "Invalid embedding format - single embedding for multiple chunks"
                     self._trace_data[trace_id]["failed_docs"].append(doc_info)
 
                 self._update_trace_stats("embedding_null", len(chunks))
@@ -205,13 +244,13 @@ class VerboseErrorLoggingHandler(BaseCallbackHandler):
                 for chunk, embedding in zip(chunks, embeddings):
                     doc_info = self._extract_chunk_info(chunk)
                     if embedding is None:
-                        doc_info["error"] = "Null embedding"
+                        doc_info.error = "Null embedding"
                         self._trace_data[trace_id]["failed_docs"].append(doc_info)
                         failed_details.append(doc_info)
                     else:
                         # Stocker toutes les sources réussies
                         self._trace_data[trace_id]["all_success_sources"].add(
-                            doc_info["source"]
+                            doc_info.source
                         )
                         # Garder seulement 5 exemples pour l'affichage détaillé
                         if len(self._trace_data[trace_id]["success_docs"]) < 5:
@@ -233,29 +272,23 @@ class VerboseErrorLoggingHandler(BaseCallbackHandler):
                         "[CALLBACK][EMBEDDING FAILURES] Documents with null embeddings:"
                     )
                     for doc in failed_details:
-                        logger.error(
-                            f"  - Source: {doc['source']}, ID: {doc['content_id']}"
-                        )
+                        logger.error(f"  - Source: {doc.source}, ID: {doc.content_id}")
 
                 if success_details:
                     logger.info(
                         "[CALLBACK][EMBEDDING SUCCESS DETAILS] First 5 successful embeddings:"
                     )
                     for doc in success_details:
-                        logger.info(
-                            f"  - Source: {doc['source']}, ID: {doc['content_id']}"
-                        )
+                        logger.info(f"  - Source: {doc.source}, ID: {doc.content_id}")
 
                 # Ajout du récapitulatif des sources après le traitement des embeddings
                 stats = self._trace_data[trace_id]
 
                 # Collecter toutes les sources uniques
-                failed_sources = sorted(
-                    list({doc["source"] for doc in stats["failed_docs"]})
-                )
+                failed_sources = sorted(list({doc.source for doc in stats.failed_docs}))
                 success_sources = sorted(
                     list(
-                        stats["all_success_sources"]
+                        stats.all_success_sources
                     )  # Utiliser toutes les sources réussies
                 )
 
@@ -275,62 +308,36 @@ class VerboseErrorLoggingHandler(BaseCallbackHandler):
                     f"[CALLBACK][EMBEDDING DEBUG] Payload keys: {list(payload.keys())}"
                 )
 
-    def _extract_chunk_info(self, chunk: str) -> Dict[str, str]:
-        """Helper to extract metadata from a chunk."""
-        metadata = chunk.split("\n")
-        return {
-            "source": next(
-                (
-                    line.split(": ")[1]
-                    for line in metadata
-                    if line.startswith("source: ")
-                ),
-                "unknown",
-            ),
-            "content_id": next(
-                (
-                    line.split(": ")[1]
-                    for line in metadata
-                    if line.startswith("c_contentId: ")
-                ),
-                "unknown",
-            ),
-        }
-
     def end_trace(self, trace_id: str) -> None:
         if trace_id in self._trace_data:
             stats = self._trace_data[trace_id]
             logger.info(f"[CALLBACK][TRACE SUMMARY] {trace_id}")
             logger.info(
-                f"[CALLBACK] Transform input documents: {stats['transform_input_docs']} (Null: {stats['transform_input_null']})"
+                f"[CALLBACK] Transform input documents: {stats.transform_input_docs} (Null: {stats.transform_input_null})"
             )
             logger.info(
-                f"[CALLBACK] Transform output nodes: {stats['transform_output_docs']} (Null: {stats['transform_output_null']})"
+                f"[CALLBACK] Transform output nodes: {stats.transform_output_docs} (Null: {stats.transform_output_null})"
             )
             logger.info(
-                f"[CALLBACK] Embedding input nodes: {stats['embedding_input_docs']} (Null: {stats['embedding_input_null']})"
+                f"[CALLBACK] Embedding input nodes: {stats.embedding_input_docs} (Null: {stats.embedding_input_null})"
             )
-            logger.info(
-                f"[CALLBACK] Successful embeddings: {stats['embedding_success']}"
-            )
-            logger.info(f"[CALLBACK] Null embeddings: {stats['embedding_null']}")
+            logger.info(f"[CALLBACK] Successful embeddings: {stats.embedding_success}")
+            logger.info(f"[CALLBACK] Null embeddings: {stats.embedding_null}")
 
             # Ajout des logs pour les documents échoués
-            if stats["failed_docs"]:
+            if stats.failed_docs:
                 logger.error("[CALLBACK][FAILED DOCUMENTS]")
-                for doc in stats["failed_docs"]:
-                    logger.error(
-                        f"  - Source: {doc['source']}, ID: {doc['content_id']}"
-                    )
+                for doc in stats.failed_docs:
+                    logger.error(f"  - Source: {doc.source}, ID: {doc.content_id}")
 
             # Ajout des logs pour les documents réussis
-            if stats["success_docs"]:
+            if stats.success_docs:
                 logger.info("[CALLBACK][SUCCESSFUL DOCUMENTS (sample)]")
-                for doc in stats["success_docs"]:
-                    logger.info(f"  - Source: {doc['source']}, ID: {doc['content_id']}")
+                for doc in stats.success_docs:
+                    logger.info(f"  - Source: {doc.source}, ID: {doc.content_id}")
 
             if any(
-                stats[k] > 0
+                getattr(stats, k) > 0
                 for k in [
                     "transform_input_null",
                     "transform_output_null",
@@ -342,21 +349,14 @@ class VerboseErrorLoggingHandler(BaseCallbackHandler):
                     "[CALLBACK][ALERT] Null documents/nodes detected in pipeline!"
                 )
 
-            if stats["embedding_null"] > 0:
+            if stats.embedding_null > 0:
                 logger.error(
-                    f"[CALLBACK][ALERT] {stats['embedding_null']} documents have null embeddings!"
+                    f"[CALLBACK][ALERT] {stats.embedding_null} documents have null embeddings!"
                 )
 
-            if stats["embedding_input_docs"] != (
-                stats["embedding_success"] + stats["embedding_null"]
+            if stats.embedding_input_docs != (
+                stats.embedding_success + stats.embedding_null
             ):
                 logger.error("[CALLBACK][ALERT] Mismatch in embedding counts!")
 
             del self._trace_data[trace_id]
-
-    def _update_trace_stats(self, key: str, value: int) -> None:
-        """Helper to update trace statistics."""
-        for trace_id in self._trace_data:
-            self._trace_data[trace_id][key] = (
-                self._trace_data[trace_id].get(key, 0) + value
-            )
