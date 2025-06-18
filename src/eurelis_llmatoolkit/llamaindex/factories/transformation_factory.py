@@ -1,6 +1,14 @@
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from llama_index.core.callbacks import CallbackManager
+
+
 class TransformationFactory:
     @staticmethod
-    def create_transformation(config: dict):
+    def create_transformation(
+        config: dict, callback_manager: Optional["CallbackManager"] = None
+    ):
         provider = config["provider"]
 
         if provider == "SentenceSplitter":
@@ -9,6 +17,7 @@ class TransformationFactory:
             return SentenceSplitter(
                 chunk_size=config.get("chunk_size", 768),
                 chunk_overlap=config.get("chunk_overlap", 56),
+                callback_manager=callback_manager,
             )
         if provider == "JSONFileAcronymTransformer":
             from eurelis_llmatoolkit.llamaindex.transformers.json_file_acronym_transformer import (

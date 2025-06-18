@@ -50,7 +50,12 @@ class VerboseErrorLoggingHandler(BaseCallbackHandler):
     def on_event_start(
         self, event_type: CBEventType, payload: Optional[Dict[str, Any]], **kwargs: Any
     ) -> None:
-        logger.info(f"[CALLBACK][START] {event_type.name}: {payload}")
+        logger.info(f"[CALLBACK][START] -> {event_type.name}: {payload}")
+
+        # logger.info(f"[CALLBACK][START] {event_type.name}")
+        # logger.info(
+        #     f"[CALLBACK][NODES COUNT] Number of inputs: {len(payload.get(EventPayload.CHUNKS, []))}"
+        # )
 
         if event_type == CBEventType.NODE_PARSING:
             docs = payload.get("documents", [])
@@ -112,16 +117,58 @@ class VerboseErrorLoggingHandler(BaseCallbackHandler):
         self._ensure_trace_exists(trace_id)
 
         logger.info(f"[CALLBACK][END] {event_type.name}")
+        logger.info(f"[CALLBACK][END] -> {event_type.name}: {payload}")
 
         if not payload:
             logger.error("[CALLBACK][ERROR] Empty payload")
             return
 
         if event_type == CBEventType.NODE_PARSING:
+            docs = payload.get("documents", [])
             nodes = payload.get("nodes", [])
-            if nodes:
+
+            if docs and nodes:
                 self._update_trace_stats("transform_output_docs", len(nodes))
-                logger.info(f"[CALLBACK][TRANSFORM END] Created {len(nodes)} nodes")
+                logger.info(
+                    f"[CALLBACK][TRANSFORM END] Created {len(nodes)} nodes from {len(docs)} documents"
+                )
+
+                # Analyse détaillée par document
+                for doc in docs:
+                    if doc is None:
+                        logger.error("[CALLBACK][TRANSFORM ERROR] Found null document")
+                        continue
+
+                    doc_nodes = [
+                        n
+                        for n in nodes
+                        if getattr(n, "ref_doc_id", None)
+                        == getattr(doc, "doc_id", None)
+                    ]
+                    logger.info(
+                        f"[CALLBACK][TRANSFORM DETAIL] Document generated {len(doc_nodes)} nodes"
+                    )
+
+                    # Vérifier le contenu vide ou problématique
+                    if not getattr(doc, "text", "").strip():
+                        logger.warning(
+                            f"[CALLBACK][TRANSFORM WARNING] Empty document content: {getattr(doc, 'doc_id', 'unknown')}"
+                        )
+
+                    # Log de la source du document
+                    source = getattr(doc, "metadata", {}).get("source", "unknown")
+                    logger.info(
+                        f"[CALLBACK][TRANSFORM SOURCE] {source} -> {len(doc_nodes)} nodes"
+                    )
+
+                    # Vérifier les nœuds vides
+                    empty_nodes = [
+                        n for n in doc_nodes if not getattr(n, "text", "").strip()
+                    ]
+                    if empty_nodes:
+                        logger.warning(
+                            f"[CALLBACK][TRANSFORM WARNING] Found {len(empty_nodes)} empty nodes for source {source}"
+                        )
 
         elif event_type == CBEventType.EMBEDDING:
             embeddings = payload.get(EventPayload.EMBEDDINGS, [])
