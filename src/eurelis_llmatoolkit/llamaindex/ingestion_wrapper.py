@@ -17,13 +17,12 @@ logger = logging.getLogger(__name__)
 
 
 class IngestionWrapper(AbstractWrapper):
-    def __init__(
-        self, config: dict, callback_manager: Optional[CallbackManager] = None
-    ):
-        if callback_manager is None and "callbacks" in config:
-            callback_manager = CallbackFactory.create_callback_manager(
-                config["callbacks"]
-            )
+    def __init__(self, config: dict):
+        callback_manager = (
+            CallbackFactory.create_callback_manager(config["callbacks"])
+            if "callbacks" in config
+            else None
+        )
         super().__init__(config, callback_manager=callback_manager)
         self._config = config
         logger.debug("IngestionWrapper initialized")

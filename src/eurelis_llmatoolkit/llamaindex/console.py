@@ -91,9 +91,7 @@ def cli(ctx: click.Context, config: str, logging_config: str, enable_sentry: boo
     config_dict = ConfigLoader.load_config(config)
     if not isinstance(config_dict, dict):
         raise ValueError("Loaded config is not a dictionary")
-    ctx.obj["wrapper"] = IngestionWrapper(
-        config_dict, callback_manager=callback_manager
-    )
+    ctx.obj["wrapper"] = IngestionWrapper(config_dict)
     ctx.obj["search_wrapper"] = SearchWrapper(config_dict)
     ctx.obj["chatbot_wrapper"] = ChatbotWrapper(config_dict, "default_console")
 
