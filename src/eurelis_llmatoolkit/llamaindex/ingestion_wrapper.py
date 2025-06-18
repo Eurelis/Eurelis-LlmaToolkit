@@ -185,7 +185,9 @@ class IngestionWrapper(AbstractWrapper):
         logger.info("Getting transformations for dataset_config: %s", dataset_config)
         # Transformations
         transformations = [
-            TransformationFactory.create_transformation(t_config)
+            TransformationFactory.create_transformation(
+                t_config, self._callback_manager
+            )
             for t_config in dataset_config["transformations"]
         ]
 
@@ -195,14 +197,18 @@ class IngestionWrapper(AbstractWrapper):
         if acronyms:
             transformations.insert(
                 0,
-                TransformationFactory.create_transformation(dataset_config["acronyms"]),
+                TransformationFactory.create_transformation(
+                    dataset_config["acronyms"], self._callback_manager
+                ),
             )
         # Metadata
         metadata = dataset_config.get("metadata", None)
         if metadata:
             transformations.insert(
                 0,
-                TransformationFactory.create_transformation(dataset_config["metadata"]),
+                TransformationFactory.create_transformation(
+                    dataset_config["metadata"], self._callback_manager
+                ),
             )
 
         # Embedding (last transformation)

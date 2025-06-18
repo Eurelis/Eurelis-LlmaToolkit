@@ -96,15 +96,17 @@ class VerboseErrorLoggingHandler(BaseCallbackHandler):
     def on_event_start(
         self, event_type: CBEventType, payload: Optional[Dict[str, Any]], **kwargs: Any
     ) -> None:
-        logger.info(f"[CALLBACK][START] -> {event_type.name}: {payload}")
+        trace_id = kwargs.get("trace_id", "default")
+        logger.info(f"[CALLBACK][START] -> {event_type.name}")
+        # logger.info(f"[CALLBACK][START] -> {event_type.name}: {payload}")
 
         if event_type == CBEventType.NODE_PARSING:
             docs = payload.get("documents", [])
             if docs:
                 null_docs = sum(1 for doc in docs if doc is None)
                 valid_docs = len(docs) - null_docs
-                self._update_trace_stats("transform_input_docs", valid_docs)
-                self._update_trace_stats("transform_input_null", null_docs)
+                self._update_trace_stats(trace_id, "transform_input_docs", valid_docs)
+                self._update_trace_stats(trace_id, "transform_input_null", null_docs)
                 logger.info(
                     f"[CALLBACK][TRANSFORM START] Processing {valid_docs} documents "
                     f"({null_docs} null documents found)"
@@ -134,8 +136,8 @@ class VerboseErrorLoggingHandler(BaseCallbackHandler):
 
                 null_chunks = sum(1 for chunk in chunks if chunk is None)
                 valid_chunks = len(chunks) - null_chunks
-                self._update_trace_stats("embedding_input_docs", valid_chunks)
-                self._update_trace_stats("embedding_input_null", null_chunks)
+                self._update_trace_stats(trace_id, "embedding_input_docs", valid_chunks)
+                self._update_trace_stats(trace_id, "embedding_input_null", null_chunks)
                 logger.info(
                     f"[CALLBACK][EMBEDDING START] Processing {valid_chunks} chunks "
                     f"({null_chunks} null chunks found)"
@@ -233,9 +235,9 @@ class VerboseErrorLoggingHandler(BaseCallbackHandler):
                 for chunk in chunks:
                     doc_info = self._extract_chunk_info(chunk)
                     doc_info.error = "Invalid embedding format - single embedding for multiple chunks"
-                    self._trace_data[trace_id]["failed_docs"].append(doc_info)
+                    self._trace_data[trace_id].failed_docs.append(doc_info)
 
-                self._update_trace_stats("embedding_null", len(chunks))
+                self._update_trace_stats(trace_id, "embedding_null", len(chunks))
                 return
 
             if embeddings and chunks:
@@ -245,23 +247,23 @@ class VerboseErrorLoggingHandler(BaseCallbackHandler):
                     doc_info = self._extract_chunk_info(chunk)
                     if embedding is None:
                         doc_info.error = "Null embedding"
-                        self._trace_data[trace_id]["failed_docs"].append(doc_info)
+                        self._trace_data[trace_id].failed_docs.append(doc_info)
                         failed_details.append(doc_info)
                     else:
                         # Stocker toutes les sources réussies
-                        self._trace_data[trace_id]["all_success_sources"].add(
+                        self._trace_data[trace_id].all_success_sources.add(
                             doc_info.source
                         )
                         # Garder seulement 5 exemples pour l'affichage détaillé
-                        if len(self._trace_data[trace_id]["success_docs"]) < 5:
-                            self._trace_data[trace_id]["success_docs"].append(doc_info)
+                        if len(self._trace_data[trace_id].success_docs) < 5:
+                            self._trace_data[trace_id].success_docs.append(doc_info)
                             success_details.append(doc_info)
 
                 null_count = sum(1 for emb in embeddings if emb is None)
                 success_count = len(embeddings) - null_count
 
-                self._update_trace_stats("embedding_success", success_count)
-                self._update_trace_stats("embedding_null", null_count)
+                self._update_trace_stats(trace_id, "embedding_success", success_count)
+                self._update_trace_stats(trace_id, "embedding_null", null_count)
 
                 logger.info(
                     f"[CALLBACK][EMBEDDING END] Successful: {success_count}, Null: {null_count}"
