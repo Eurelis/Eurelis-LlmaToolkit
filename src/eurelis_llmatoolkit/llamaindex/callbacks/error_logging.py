@@ -1,6 +1,6 @@
 import logging
 from typing import Any, Dict, Optional, Set, List
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from collections import defaultdict
 
 from llama_index.core.callbacks.base_handler import BaseCallbackHandler
@@ -27,15 +27,10 @@ class TraceStats:
     embedding_success: int = 0
     embedding_null: int = 0
     vectorstore_saved: int = 0
-    failed_docs: List[DocumentInfo] = None
-    success_docs: List[DocumentInfo] = None
-    all_success_sources: Set[str] = None
+    failed_docs: List[DocumentInfo] = field(default_factory=list)
+    success_docs: List[DocumentInfo] = field(default_factory=list)
+    all_success_sources: Set[str] = field(default_factory=set)
     current_stage: Optional[str] = None
-
-    def __post_init__(self):
-        self.failed_docs = []
-        self.success_docs = []
-        self.all_success_sources = set()
 
 
 class VerboseErrorLoggingHandler(BaseCallbackHandler):
@@ -44,13 +39,11 @@ class VerboseErrorLoggingHandler(BaseCallbackHandler):
     def __init__(self) -> None:
         super().__init__(event_starts_to_ignore=[], event_ends_to_ignore=[])
         self._trace_data: Dict[str, TraceStats] = defaultdict(TraceStats)
-        self._init_logging()
 
-    def _init_logging(self) -> None:
         logger.info("[CALLBACK] Initializing VerboseErrorLoggingHandler")
         try:
-            logger.info("[CALLBACK] Info logging test")
-            logger.info("[CALLBACK] Callback handler successfully initialized")
+            logger.debug("[CALLBACK] Info logging test")
+            logger.debug("[CALLBACK] Callback handler successfully initialized")
         except Exception as e:
             logger.error(
                 f"[CALLBACK][CRITICAL] Failed to initialize callback handler: {e}"
@@ -59,7 +52,7 @@ class VerboseErrorLoggingHandler(BaseCallbackHandler):
 
     def _log_stats(self, prefix: str, stats: Dict[str, int]) -> None:
         for key, value in stats.items():
-            logger.info(f"[CALLBACK] {prefix} {key}: {value}")
+            logger.debug(f"[CALLBACK] {prefix} {key}: {value}")
 
     def _extract_chunk_info(self, chunk: str) -> DocumentInfo:
         metadata = chunk.split("\n")
@@ -82,275 +75,246 @@ class VerboseErrorLoggingHandler(BaseCallbackHandler):
             ),
         )
 
-    def _update_trace_stats(self, trace_id: str, key: str, value: int) -> None:
-        stats = self._trace_data[trace_id]
+    def _update_trace_stats(self, event_id: str, key: str, value: int) -> None:
+        stats = self._trace_data[event_id]
         setattr(stats, key, getattr(stats, key, 0) + value)
 
-    def start_trace(self, trace_id: str) -> None:
-        logger.info(f"[CALLBACK][TRACE START] {trace_id}")
+    def start_trace(self, trace_id: Optional[str] = None) -> None:
+        """Start a trace with the given trace ID.
 
+        Args:
+            trace_id: Optional ID for this trace
+        """
+        if trace_id is None:
+            trace_id = "default"
+        logger.debug(f"[CALLBACK][TRACE START] {trace_id}")
         initial_state = TraceStats()
         self._trace_data[trace_id] = initial_state
-        logger.info(f"[CALLBACK][TRACE INITIALIZED] {trace_id}")
+        logger.debug(f"[CALLBACK][TRACE INITIALIZED] {trace_id}")
+
+    def _log_payload_counts(self, payload: Optional[Dict[str, Any]]) -> None:
+        """Log counts for each key in the payload."""
+        if not payload:
+            return
+        for k, v in payload.items():
+            try:
+                count = (
+                    len(v)
+                    if hasattr(v, "__len__") and not isinstance(v, str)
+                    else "N/A"
+                )
+            except Exception:
+                count = "N/A"
+            logger.debug(f"[CALLBACK][PAYLOAD COUNT] {k}: {count}")
+
+    def _log_sources_summary(self, stats: TraceStats, context: str = "") -> None:
+        """Log summary of successful and failed sources."""
+        failed_sources = sorted(list({doc.source for doc in stats.failed_docs}))
+        success_sources = sorted(list(stats.all_success_sources))
+        logger.debug(f"=== RÉSUMÉ DES SOURCES {context}===")
+        logger.debug("SOURCES EN ÉCHEC:")
+        logger.debug(str(failed_sources))
+        logger.debug("SOURCES EN SUCCÈS:")
+        logger.debug(str(success_sources))
+        logger.debug("=" * 50)
+
+    def _log_document_details(self, stats: TraceStats) -> None:
+        """Log details about failed and successful documents."""
+        if stats.failed_docs:
+            logger.error("[CALLBACK][FAILED DOCUMENTS]")
+            for doc in stats.failed_docs:
+                logger.error(f"  - Source: {doc.source}, ID: {doc.content_id}")
+
+        if stats.success_docs:
+            logger.debug("[CALLBACK][SUCCESSFUL DOCUMENTS (sample)]")
+            for doc in stats.success_docs:
+                logger.debug(f"  - Source: {doc.source}, ID: {doc.content_id}")
 
     def on_event_start(
         self, event_type: CBEventType, payload: Optional[Dict[str, Any]], **kwargs: Any
-    ) -> None:
-        trace_id = kwargs.get("trace_id", "default")
-        logger.info(f"[CALLBACK][START] -> {event_type.name}")
-        # logger.info(f"[CALLBACK][START] -> {event_type.name}: {payload}")
+    ) -> str:
+        event_id = kwargs.get("event_id", "default")
+        logger.debug(f"[CALLBACK][START] -> {event_type.name}")
+        logger.debug(f"[CALLBACK][START] -> {event_type.name}: {payload}")
+        self._log_payload_counts(payload)
 
         if event_type == CBEventType.NODE_PARSING:
-            docs = payload.get("documents", [])
+            docs = payload.get("documents", []) if payload else []
             if docs:
                 null_docs = sum(1 for doc in docs if doc is None)
                 valid_docs = len(docs) - null_docs
-                self._update_trace_stats(trace_id, "transform_input_docs", valid_docs)
-                self._update_trace_stats(trace_id, "transform_input_null", null_docs)
-                logger.info(
-                    f"[CALLBACK][TRANSFORM START] Processing {valid_docs} documents "
-                    f"({null_docs} null documents found)"
+                self._update_trace_stats(event_id, "transform_input_docs", valid_docs)
+                self._update_trace_stats(event_id, "transform_input_null", null_docs)
+                logger.debug(
+                    f"[CALLBACK][TRANSFORM START] Processing {valid_docs} documents"
                 )
-                if null_docs > 0:
-                    logger.warning(
-                        f"[CALLBACK][TRANSFORM WARNING] Found {null_docs} null documents!"
-                    )
 
         elif event_type == CBEventType.EMBEDDING:
-            chunks = payload.get(EventPayload.CHUNKS, [])
-            if chunks:
-                # Afficher toutes les sources au début
-                initial_sources = sorted(
-                    list(
-                        {
-                            self._extract_chunk_info(chunk).get("source", "unknown")
-                            for chunk in chunks
-                            if chunk is not None
-                        }
-                    )
-                )
+            if payload and EventPayload.SERIALIZED in payload:
+                logger.debug("[CALLBACK][EMBEDDING START] Starting embedding process")
 
-                logger.info("=== SOURCES À TRAITER ===")
-                logger.info(str(initial_sources))
-                logger.info("=" * 50)
+        return event_id
 
-                null_chunks = sum(1 for chunk in chunks if chunk is None)
-                valid_chunks = len(chunks) - null_chunks
-                self._update_trace_stats(trace_id, "embedding_input_docs", valid_chunks)
-                self._update_trace_stats(trace_id, "embedding_input_null", null_chunks)
-                logger.info(
-                    f"[CALLBACK][EMBEDDING START] Processing {valid_chunks} chunks "
-                    f"({null_chunks} null chunks found)"
-                )
-                if null_chunks > 0:
-                    logger.warning(
-                        f"[CALLBACK][EMBEDDING WARNING] Found {null_chunks} null chunks!"
-                    )
-
-    def _ensure_trace_exists(self, trace_id: str) -> None:
-        """Ensure that a trace exists for the given ID."""
-        if trace_id not in self._trace_data:
-            logger.warning(f"[CALLBACK] Initializing missing trace {trace_id}")
-            self.start_trace(trace_id)
+    def _ensure_trace_exists(self, event_id: str) -> None:
+        """Ensure that a TraceStats object exists for the given event_id."""
+        if event_id not in self._trace_data:
+            self._trace_data[event_id] = TraceStats()
 
     def on_event_end(
         self, event_type: CBEventType, payload: Optional[Dict[str, Any]], **kwargs: Any
     ) -> None:
-        trace_id = kwargs.get("trace_id", "default")
-        self._ensure_trace_exists(trace_id)
-
-        logger.info(f"[CALLBACK][END] {event_type.name}")
-        logger.info(f"[CALLBACK][END] -> {event_type.name}: {payload}")
+        event_id = kwargs.get("event_id", "default")
+        self._ensure_trace_exists(event_id)
+        logger.debug(f"[CALLBACK][END] {event_type.name}")
+        logger.debug(f"[CALLBACK][END] -> {event_type.name}: {payload}")
+        self._log_payload_counts(payload)
 
         if not payload:
             logger.error("[CALLBACK][ERROR] Empty payload")
             return
 
         if event_type == CBEventType.NODE_PARSING:
-            docs = payload.get("documents", [])
-            nodes = payload.get("nodes", [])
-
-            if docs and nodes:
-                self._update_trace_stats("transform_output_docs", len(nodes))
-                logger.info(
-                    f"[CALLBACK][TRANSFORM END] Created {len(nodes)} nodes from {len(docs)} documents"
-                )
-
-                # Analyse détaillée par document
-                for doc in docs:
-                    if doc is None:
-                        logger.error("[CALLBACK][TRANSFORM ERROR] Found null document")
-                        continue
-
-                    doc_nodes = [
-                        n
-                        for n in nodes
-                        if getattr(n, "ref_doc_id", None)
-                        == getattr(doc, "doc_id", None)
-                    ]
-                    logger.info(
-                        f"[CALLBACK][TRANSFORM DETAIL] Document generated {len(doc_nodes)} nodes"
-                    )
-
-                    # Vérifier le contenu vide ou problématique
-                    if not getattr(doc, "text", "").strip():
-                        logger.warning(
-                            f"[CALLBACK][TRANSFORM WARNING] Empty document content: {getattr(doc, 'doc_id', 'unknown')}"
-                        )
-
-                    # Log de la source du document
-                    source = getattr(doc, "metadata", {}).get("source", "unknown")
-                    logger.info(
-                        f"[CALLBACK][TRANSFORM SOURCE] {source} -> {len(doc_nodes)} nodes"
-                    )
-
-                    # Vérifier les nœuds vides
-                    empty_nodes = [
-                        n for n in doc_nodes if not getattr(n, "text", "").strip()
-                    ]
-                    if empty_nodes:
-                        logger.warning(
-                            f"[CALLBACK][TRANSFORM WARNING] Found {len(empty_nodes)} empty nodes for source {source}"
-                        )
-
+            self._handle_node_parsing_end(event_id, payload)
         elif event_type == CBEventType.EMBEDDING:
-            embeddings = payload.get(EventPayload.EMBEDDINGS, [])
-            chunks = payload.get(EventPayload.CHUNKS, [])
+            self._handle_embedding_end(event_id, payload)
 
-            if not isinstance(embeddings, list):
-                logger.error(
-                    f"[CALLBACK][EMBEDDING ERROR] Invalid embeddings type: {type(embeddings)}"
-                )
-                return
+    def _handle_node_parsing_end(self, event_id: str, payload: Dict[str, Any]) -> None:
+        """Handle node parsing end event."""
+        nodes = payload.get("nodes", [])
+        if not nodes:
+            return
 
-            if len(embeddings) == 1 and chunks and len(chunks) > 1:
-                logger.error(
-                    "[CALLBACK][EMBEDDING ERROR] Single embedding returned for multiple chunks"
-                )
-                logger.error(
-                    f"[CALLBACK][EMBEDDING DEBUG] Number of chunks: {len(chunks)}"
-                )
+        self._update_trace_stats(event_id, "transform_output_docs", len(nodes))
+        logger.debug(f"[CALLBACK][TRANSFORM END] Created {len(nodes)} nodes")
 
-                # Marquer tous les chunks comme échoués
-                for chunk in chunks:
-                    doc_info = self._extract_chunk_info(chunk)
-                    doc_info.error = "Invalid embedding format - single embedding for multiple chunks"
-                    self._trace_data[trace_id].failed_docs.append(doc_info)
+        empty_nodes = [n for n in nodes if not getattr(n, "text", "").strip()]
+        if empty_nodes:
+            logger.warning(
+                f"[CALLBACK][TRANSFORM WARNING] Found {len(empty_nodes)} empty nodes"
+            )
 
-                self._update_trace_stats(trace_id, "embedding_null", len(chunks))
-                return
+    def _handle_embedding_end(self, event_id: str, payload: Dict[str, Any]) -> None:
+        """Handle embedding end event."""
+        embeddings = payload.get(EventPayload.EMBEDDINGS, [])
+        chunks = payload.get(EventPayload.CHUNKS, [])
 
-            if embeddings and chunks:
-                success_details = []
-                failed_details = []
-                for chunk, embedding in zip(chunks, embeddings):
-                    doc_info = self._extract_chunk_info(chunk)
-                    if embedding is None:
-                        doc_info.error = "Null embedding"
-                        self._trace_data[trace_id].failed_docs.append(doc_info)
-                        failed_details.append(doc_info)
-                    else:
-                        # Stocker toutes les sources réussies
-                        self._trace_data[trace_id].all_success_sources.add(
-                            doc_info.source
-                        )
-                        # Garder seulement 5 exemples pour l'affichage détaillé
-                        if len(self._trace_data[trace_id].success_docs) < 5:
-                            self._trace_data[trace_id].success_docs.append(doc_info)
-                            success_details.append(doc_info)
+        if not isinstance(embeddings, list):
+            logger.error(
+                f"[CALLBACK][EMBEDDING ERROR] Invalid embeddings type: {type(embeddings)}"
+            )
+            return
 
-                null_count = sum(1 for emb in embeddings if emb is None)
-                success_count = len(embeddings) - null_count
+        if len(embeddings) == 1 and chunks and len(chunks) > 1:
+            self._handle_single_embedding_error(event_id, chunks)
+            return
 
-                self._update_trace_stats(trace_id, "embedding_success", success_count)
-                self._update_trace_stats(trace_id, "embedding_null", null_count)
+        if embeddings and chunks:
+            self._process_embeddings_and_chunks(event_id, embeddings, chunks)
+        else:
+            logger.error(
+                f"[CALLBACK][EMBEDDING DEBUG] Missing data - E: {bool(embeddings)}, C: {bool(chunks)}"
+            )
+            logger.error(
+                f"[CALLBACK][EMBEDDING DEBUG] Payload keys: {list(payload.keys())}"
+            )
 
-                logger.info(
-                    f"[CALLBACK][EMBEDDING END] Successful: {success_count}, Null: {null_count}"
-                )
+    def _handle_single_embedding_error(self, event_id: str, chunks: List[str]) -> None:
+        """Handle error case of single embedding for multiple chunks."""
+        logger.error(
+            "[CALLBACK][EMBEDDING ERROR] Single embedding returned for multiple chunks"
+        )
+        logger.error(f"[CALLBACK][EMBEDDING DEBUG] Number of chunks: {len(chunks)}")
 
-                if failed_details:
-                    logger.error(
-                        "[CALLBACK][EMBEDDING FAILURES] Documents with null embeddings:"
-                    )
-                    for doc in failed_details:
-                        logger.error(f"  - Source: {doc.source}, ID: {doc.content_id}")
+        for chunk in chunks:
+            doc_info = self._extract_chunk_info(chunk)
+            doc_info.error = (
+                "Invalid embedding format - single embedding for multiple chunks"
+            )
+            self._trace_data[event_id].failed_docs.append(doc_info)
 
-                if success_details:
-                    logger.info(
-                        "[CALLBACK][EMBEDDING SUCCESS DETAILS] First 5 successful embeddings:"
-                    )
-                    for doc in success_details:
-                        logger.info(f"  - Source: {doc.source}, ID: {doc.content_id}")
+        self._update_trace_stats(event_id, "embedding_null", len(chunks))
 
-                # Ajout du récapitulatif des sources après le traitement des embeddings
-                stats = self._trace_data[trace_id]
+    def _process_embeddings_and_chunks(
+        self, event_id: str, embeddings: List[Any], chunks: List[str]
+    ) -> None:
+        """Process embeddings and chunks, updating statistics and logging results."""
+        success_details = []
+        failed_details = []
 
-                # Collecter toutes les sources uniques
-                failed_sources = sorted(list({doc.source for doc in stats.failed_docs}))
-                success_sources = sorted(
-                    list(
-                        stats.all_success_sources
-                    )  # Utiliser toutes les sources réussies
-                )
-
-                # Log des sources en format liste
-                logger.info("=== RÉSUMÉ DES SOURCES ===")
-                logger.info("SOURCES EN ÉCHEC:")
-                logger.info(str(failed_sources))
-                logger.info("SOURCES EN SUCCÈS:")
-                logger.info(str(success_sources))
-                logger.info("=" * 50)
-
+        for chunk, embedding in zip(chunks, embeddings):
+            doc_info = self._extract_chunk_info(chunk)
+            if embedding is None:
+                doc_info.error = "Null embedding"
+                self._trace_data[event_id].failed_docs.append(doc_info)
+                failed_details.append(doc_info)
             else:
-                logger.error(
-                    f"[CALLBACK][EMBEDDING DEBUG] Missing data - Embeddings: {bool(embeddings)}, Chunks: {bool(chunks)}"
-                )
-                logger.error(
-                    f"[CALLBACK][EMBEDDING DEBUG] Payload keys: {list(payload.keys())}"
-                )
+                self._trace_data[event_id].all_success_sources.add(doc_info.source)
+                if len(self._trace_data[event_id].success_docs) < 5:
+                    self._trace_data[event_id].success_docs.append(doc_info)
+                    success_details.append(doc_info)
 
-    def end_trace(self, trace_id: str) -> None:
+        null_count = sum(1 for emb in embeddings if emb is None)
+        success_count = len(embeddings) - null_count
+
+        self._update_trace_stats(event_id, "embedding_success", success_count)
+        self._update_trace_stats(event_id, "embedding_null", null_count)
+
+        logger.info(
+            f"[CALLBACK][EMBEDDING END] Successful: {success_count}, Null: {null_count}"
+        )
+
+        if failed_details:
+            logger.error(
+                "[CALLBACK][EMBEDDING FAILURES] Documents with null embeddings:"
+            )
+            for doc in failed_details:
+                logger.error(f"  - Source: {doc.source}, ID: {doc.content_id}")
+
+        if success_details:
+            logger.debug(
+                "[CALLBACK][EMBEDDING SUCCESS DETAILS] First 5 successful embeddings:"
+            )
+            for doc in success_details:
+                logger.debug(f"  - Source: {doc.source}, ID: {doc.content_id}")
+
+        stats = self._trace_data[event_id]
+        self._log_sources_summary(stats)
+
+    def end_trace(
+        self,
+        trace_id: Optional[str] = None,
+        trace_map: Optional[Dict[str, List[str]]] = None,
+    ) -> None:
+        """Run when an overall trace is exited.
+
+        Args:
+            trace_id: Optional ID for the trace
+            trace_map: Optional mapping of trace information
+        """
+        if trace_id is None:
+            trace_id = "default"
+
         if trace_id in self._trace_data:
             stats = self._trace_data[trace_id]
-            logger.info(f"[CALLBACK][TRACE SUMMARY] {trace_id}")
-            logger.info(
+            # Log summary statistics
+            logger.debug(f"[CALLBACK][TRACE SUMMARY] {trace_id}")
+            logger.debug(
                 f"[CALLBACK] Transform input documents: {stats.transform_input_docs} (Null: {stats.transform_input_null})"
             )
-            logger.info(
-                f"[CALLBACK] Transform output nodes: {stats.transform_output_docs} (Null: {stats.transform_output_null})"
+            logger.debug(
+                f"[CALLBACK] Transform output nodes: {stats.transform_output_docs}"
             )
-            logger.info(
-                f"[CALLBACK] Embedding input nodes: {stats.embedding_input_docs} (Null: {stats.embedding_input_null})"
+            logger.debug(
+                f"[CALLBACK] Embedding input nodes: {stats.embedding_input_docs}"
             )
-            logger.info(f"[CALLBACK] Successful embeddings: {stats.embedding_success}")
-            logger.info(f"[CALLBACK] Null embeddings: {stats.embedding_null}")
+            logger.debug(f"[CALLBACK] Successful embeddings: {stats.embedding_success}")
+            logger.debug(f"[CALLBACK] Null embeddings: {stats.embedding_null}")
 
-            # Ajout des logs pour les documents échoués
-            if stats.failed_docs:
-                logger.error("[CALLBACK][FAILED DOCUMENTS]")
-                for doc in stats.failed_docs:
-                    logger.error(f"  - Source: {doc.source}, ID: {doc.content_id}")
+            # Log documents and sources details
+            self._log_document_details(stats)
+            self._log_sources_summary(stats, "FINAL ")
 
-            # Ajout des logs pour les documents réussis
-            if stats.success_docs:
-                logger.info("[CALLBACK][SUCCESSFUL DOCUMENTS (sample)]")
-                for doc in stats.success_docs:
-                    logger.info(f"  - Source: {doc.source}, ID: {doc.content_id}")
-
-            if any(
-                getattr(stats, k) > 0
-                for k in [
-                    "transform_input_null",
-                    "transform_output_null",
-                    "embedding_input_null",
-                    "embedding_null",
-                ]
-            ):
-                logger.error(
-                    "[CALLBACK][ALERT] Null documents/nodes detected in pipeline!"
-                )
-
+            # Log alerts
             if stats.embedding_null > 0:
                 logger.error(
                     f"[CALLBACK][ALERT] {stats.embedding_null} documents have null embeddings!"
@@ -361,4 +325,31 @@ class VerboseErrorLoggingHandler(BaseCallbackHandler):
             ):
                 logger.error("[CALLBACK][ALERT] Mismatch in embedding counts!")
 
+            # Clean up trace data
             del self._trace_data[trace_id]
+            # Compute sources before logging
+            failed_sources = sorted(list({doc.source for doc in stats.failed_docs}))
+            success_sources = sorted(list(stats.all_success_sources))
+
+            logger.debug("=== RÉSUMÉ DES SOURCES ===")
+            logger.debug("SOURCES EN ÉCHEC:")
+            logger.debug(str(failed_sources))
+            logger.debug("SOURCES EN SUCCÈS:")
+            logger.debug(str(success_sources))
+            logger.debug("=" * 50)
+
+            # Clean up trace data
+            del self._trace_data[trace_id]
+            for doc in stats.failed_docs:
+                logger.error(f"  - Source: {doc.source}, ID: {doc.content_id}")
+
+            if stats.success_docs:
+                logger.debug("[CALLBACK][SUCCESSFUL DOCUMENTS (sample)]")
+                for doc in stats.success_docs:
+                    logger.debug(f"  - Source: {doc.source}, ID: {doc.content_id}")
+
+            # Log alerts
+            if stats.embedding_null > 0:
+                logger.error(
+                    f"[CALLBACK][ALERT] {stats.embedding_null} documents have null embeddings!"
+                )
