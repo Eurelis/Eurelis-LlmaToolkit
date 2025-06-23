@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced OpenAI embedding creation with configurable batch size and retry parameters
 - Improved error logging for failed URL fetches in AdvancedSitemapReader
 - Added detailed progress logging for node transformation in LLMNodeTransformer
+- New `VerboseErrorLoggingHandler` callback (llamaindex) and its factory for detailed error and event logging in the ingestion pipeline
 
 ### Changed
 
