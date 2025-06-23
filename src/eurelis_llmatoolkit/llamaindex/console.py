@@ -1,8 +1,4 @@
 import click
-from llama_index.core.callbacks import CallbackManager
-from eurelis_llmatoolkit.llamaindex.callbacks.error_logging import (
-    VerboseErrorLoggingHandler,
-)
 
 from eurelis_llmatoolkit.llamaindex.chatbot_wrapper import ChatbotWrapper
 from eurelis_llmatoolkit.llamaindex.config_loader import ConfigLoader
@@ -85,8 +81,6 @@ def cli(ctx: click.Context, config: str, logging_config: str, enable_sentry: boo
             # We recommend adjusting this value in production.
             profiles_sample_rate=1.0,
         )
-
-    callback_manager = CallbackManager([VerboseErrorLoggingHandler()])
 
     config_dict = ConfigLoader.load_config(config)
     if not isinstance(config_dict, dict):
