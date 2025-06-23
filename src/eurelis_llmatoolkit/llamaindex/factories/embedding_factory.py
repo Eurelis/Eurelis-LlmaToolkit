@@ -1,6 +1,14 @@
+from typing import TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from llama_index.core.callbacks import CallbackManager
+
+
 class EmbeddingFactory:
     @staticmethod
-    def create_embedding(config: dict):
+    def create_embedding(
+        config: dict, callback_manager: Optional["CallbackManager"] = None
+    ):
         provider = config["provider"]
 
         if provider == "OpenAI":
@@ -9,6 +17,7 @@ class EmbeddingFactory:
             kwargs = {
                 "model": config.get("model", "text-embedding-3-small"),
                 "api_key": config["openai_api_key"],
+                "callback_manager": callback_manager,
             }
 
             if "embed_batch_size" in config:

@@ -130,7 +130,7 @@ pillow==11.1.0
 playwright==1.51.0
 posthog==3.21.0
 propcache==0.3.0
-protobuf==5.29.3
+protobuf==5.29.5
 pyasn1==0.6.1
 pyasn1-modules==0.4.1
 pycparser==2.22 ; implementation_name != 'pypy' and os_name == 'nt'
@@ -191,7 +191,7 @@ typer==0.15.2
 typing-extensions==4.12.2
 typing-inspect==0.9.0
 tzdata==2025.1
-urllib3==2.3.0
+urllib3==2.5.0
 uvicorn==0.34.0
 uvloop==0.21.0 ; platform_python_implementation != 'PyPy' and sys_platform != 'cygwin' and sys_platform != 'win32'
 watchfiles==1.0.4

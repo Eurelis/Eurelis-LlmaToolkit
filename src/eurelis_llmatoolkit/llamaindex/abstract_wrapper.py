@@ -3,10 +3,7 @@ from abc import ABC
 from typing import TYPE_CHECKING, Iterable, Optional
 
 from llama_index.core import VectorStoreIndex
-from llama_index.core.embeddings import BaseEmbedding
-from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.core.storage import StorageContext
-from llama_index.core.vector_stores.types import MetadataFilters
 
 from eurelis_llmatoolkit.llamaindex.factories.documentstore_factory import (
     DocumentStoreFactory,
@@ -23,19 +20,28 @@ from eurelis_llmatoolkit.llamaindex.factories.vectorstore_factory import (
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
+    from llama_index.core.callbacks import CallbackManager
+    from llama_index.core.embeddings import BaseEmbedding
+    from llama_index.core.postprocessor.types import BaseNodePostprocessor
     from llama_index.core.retrievers import BaseRetriever
-    from llama_index.core.vector_stores.types import BasePydanticVectorStore
+    from llama_index.core.vector_stores.types import (
+        BasePydanticVectorStore,
+        MetadataFilters,
+    )
 
 
 class AbstractWrapper(ABC):
-    def __init__(self, config: dict):
+    def __init__(
+        self, config: dict, callback_manager: Optional["CallbackManager"] = None
+    ):
         self._config: dict = config
+        self._callback_manager = callback_manager
         self._vector_store: "BasePydanticVectorStore" = None
         self._document_store: Optional["BasePydanticVectorStore"] = None
         self._storage_context: Optional[StorageContext] = None
         self._vector_store_index: Optional[VectorStoreIndex] = None
         self._retriever: "BaseRetriever" = None
-        self._node_postprocessors: Optional[list[BaseNodePostprocessor]] = None
+        self._node_postprocessors: Optional[list["BaseNodePostprocessor"]] = None
         self._embedding_model: "BaseEmbedding" = None
         logger.debug("AbstractWrapper initialized.")
 
@@ -45,7 +51,7 @@ class AbstractWrapper(ABC):
 
         vectorstore_config = self._config["vectorstore"]
         self._vector_store = VectorStoreFactory.create_vector_store(vectorstore_config)
-        logger.debug("Vector store created.")
+        logger.info("Vector store created.")
         return self._vector_store
 
     def _get_document_store(self):
@@ -57,7 +63,7 @@ class AbstractWrapper(ABC):
             self._document_store = DocumentStoreFactory.create_document_store(
                 documentstore_config
             )
-            logger.debug("Document store created.")
+            logger.info("Document store created.")
 
         return self._document_store
 
@@ -89,15 +95,17 @@ class AbstractWrapper(ABC):
             return self._embedding_model
 
         embedding_config = self._config["embedding_model"]
-        self._embedding_model = EmbeddingFactory.create_embedding(embedding_config)
+        self._embedding_model = EmbeddingFactory.create_embedding(
+            embedding_config, callback_manager=self._callback_manager
+        )
 
-        logger.debug("Embedding model created.")
+        logger.info("Embedding model created.")
         return self._embedding_model
 
     def _get_retriever(
         self,
         config: dict,
-        filters: Optional[MetadataFilters] = None,
+        filters: Optional["MetadataFilters"] = None,
     ):
         retriever_config = config.get("retriever")
 
@@ -148,6 +156,7 @@ class AbstractWrapper(ABC):
             vector_store,
             embed_model=self._get_embedding_model(),
             storage_context=storage_context,
+            callback_manager=self._callback_manager,
         )
 
         logger.debug("Vector store index created.")

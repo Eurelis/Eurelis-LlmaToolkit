@@ -10,13 +10,19 @@ from eurelis_llmatoolkit.llamaindex.factories.reader_factory import ReaderFactor
 from eurelis_llmatoolkit.llamaindex.factories.transformation_factory import (
     TransformationFactory,
 )
+from eurelis_llmatoolkit.llamaindex.factories.callback_factory import CallbackFactory
 
 logger = logging.getLogger(__name__)
 
 
 class IngestionWrapper(AbstractWrapper):
     def __init__(self, config: dict):
-        super().__init__(config)
+        callback_manager = (
+            CallbackFactory.create_callback_manager(config["callbacks"])
+            if "callbacks" in config
+            else None
+        )
+        super().__init__(config, callback_manager=callback_manager)
         self._config = config
         logger.debug("IngestionWrapper initialized")
 
@@ -116,7 +122,7 @@ class IngestionWrapper(AbstractWrapper):
         Returns:
             List[Document]: List of documents with added project metadata.
         """
-        logger.debug("Adding project metadata to documents for project: %s", project)
+        logger.info("Adding project metadata to documents for project: %s", project)
         for doc in documents:
             if not hasattr(doc, "metadata"):
                 doc.metadata = {}
@@ -175,10 +181,12 @@ class IngestionWrapper(AbstractWrapper):
         Args:
             dataset_config (dict): The dataset configuration that specifies the transformations.
         """
-        logger.debug("Getting transformations for dataset_config: %s", dataset_config)
+        logger.info("Getting transformations for dataset_config: %s", dataset_config)
         # Transformations
         transformations = [
-            TransformationFactory.create_transformation(t_config)
+            TransformationFactory.create_transformation(
+                t_config, self._callback_manager
+            )
             for t_config in dataset_config["transformations"]
         ]
 
@@ -188,14 +196,18 @@ class IngestionWrapper(AbstractWrapper):
         if acronyms:
             transformations.insert(
                 0,
-                TransformationFactory.create_transformation(dataset_config["acronyms"]),
+                TransformationFactory.create_transformation(
+                    dataset_config["acronyms"], self._callback_manager
+                ),
             )
         # Metadata
         metadata = dataset_config.get("metadata", None)
         if metadata:
             transformations.insert(
                 0,
-                TransformationFactory.create_transformation(dataset_config["metadata"]),
+                TransformationFactory.create_transformation(
+                    dataset_config["metadata"], self._callback_manager
+                ),
             )
 
         # Embedding (last transformation)
@@ -276,7 +288,7 @@ class IngestionWrapper(AbstractWrapper):
                 f"Reading the dataset {dataset_config['id']} encountered an error. Ingestion aborted."
             )
             return
-        logger.debug(f"Retrieved {len(documents)} documents for ingestion.")
+        logger.info(f"Retrieved {len(documents)} documents for ingestion.")
 
         #
         # ACRONYMS & NODE PARSER & EMBEDDINGS
@@ -315,7 +327,7 @@ class IngestionWrapper(AbstractWrapper):
         )
         # TODO: définir le show_progress via une variable d'environnement
         pipeline.run(documents=documents, show_progress=True)
-        logger.debug(f"Ingested {len(documents)} documents into the pipeline.")
+        logger.info(f"Ingested {len(documents)} documents into the pipeline.")
 
         # Supprimer les documents du document_store qui ne sont pas dans doc_ids_scraping
         if delete:
