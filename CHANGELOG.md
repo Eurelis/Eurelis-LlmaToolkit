@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Removed
+
+## [2.0.0dev13] - 2025-06-23
+
+### Added
+
 - Enhanced OpenAI embedding creation with configurable batch size and retry parameters
 - Improved error logging for failed URL fetches in AdvancedSitemapReader
 - Added detailed progress logging for node transformation in LLMNodeTransformer
