@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from llama_index.core.vector_stores import (
     FilterCondition,
@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from llama_index.core.base.llms.base import BaseLLM
     from llama_index.core.memory import BaseMemory
+    from llama_index.core.retrievers import BaseRetriever
+    from llama_index.core.schema import NodeWithScore
 
 
 class ChatbotWrapper(AbstractWrapper):
@@ -85,6 +87,71 @@ class ChatbotWrapper(AbstractWrapper):
         self._save_memory(chat_engine._memory)
 
         return response
+
+    def retrieve_similar_docs(
+        self,
+        text: str,
+        metadata_filters: Optional["MetadataFilters"] = None,
+        top_k: int = 5,
+    ) -> List[NodeWithScore]:
+        """
+        Retrieve similar documents to the given text using the retriever.
+
+        Args:
+            text (str): The input text to find similar documents for.
+            metadata_filters (Optional[MetadataFilters]): Optional metadata filters.
+            top_k (int): Number of top similar documents to return.
+
+        Returns:
+            List: List of similar documents/nodes.
+        """
+        logger.info("Retrieving similar documents for text: %s", text)
+        if self._chat_engine is None:
+            logger.error(
+                "The '_chat_engine' must be initialized using the '_create_chat_engine' method."
+            )
+            raise ValueError(
+                "The '_chat_engine' must be initialized using the '_create_chat_engine' method."
+            )
+
+        retriever: Optional["BaseRetriever"] = getattr(
+            self._chat_engine, "_retriever", None
+        )
+        if retriever is None:
+            logger.error("No retriever found in chat engine.")
+            raise ValueError("No retriever found in chat engine.")
+
+        # Appliquer les filtres si supportés
+        if hasattr(retriever, "_filters"):
+            permanent_metadata_filters = (
+                self._permanent_metadata_filters
+                if self._permanent_metadata_filters
+                else None
+            )
+            custom_metadatafilters = (
+                metadata_filters
+                if metadata_filters and hasattr(metadata_filters, "filters")
+                else None
+            )
+            combined_filters_list = []
+            if permanent_metadata_filters:
+                combined_filters_list.append(permanent_metadata_filters)
+            if custom_metadatafilters:
+                combined_filters_list.append(custom_metadatafilters)
+            combined_filters = (
+                MetadataFilters(
+                    filters=combined_filters_list,
+                    condition=FilterCondition.AND,
+                )
+                if combined_filters_list
+                else None
+            )
+            retriever._filters = combined_filters
+
+        # Utiliser le retriever pour récupérer les documents similaires
+        results = retriever.retrieve(text)
+        logger.debug("Retrieved %d similar documents.", len(results))
+        return results[:top_k] if top_k > 0 else results
 
     def _initialize_memory(self, chat_store_key: str) -> "BaseMemory":
         """
