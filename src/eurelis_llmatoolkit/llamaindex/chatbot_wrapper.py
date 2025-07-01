@@ -93,7 +93,7 @@ class ChatbotWrapper(AbstractWrapper):
         text: str,
         metadata_filters: Optional["MetadataFilters"] = None,
         top_k: int = 5,
-    ) -> List[NodeWithScore]:
+    ) -> List["NodeWithScore"]:
         """
         Retrieve similar documents to the given text using the retriever.
 
@@ -123,31 +123,7 @@ class ChatbotWrapper(AbstractWrapper):
 
         # Appliquer les filtres si supportés
         if hasattr(retriever, "_filters"):
-            permanent_metadata_filters = (
-                self._permanent_metadata_filters
-                if self._permanent_metadata_filters
-                else None
-            )
-            custom_metadatafilters = (
-                metadata_filters
-                if metadata_filters and hasattr(metadata_filters, "filters")
-                else None
-            )
-            combined_filters_list = []
-            if permanent_metadata_filters:
-                combined_filters_list.append(permanent_metadata_filters)
-            if custom_metadatafilters:
-                combined_filters_list.append(custom_metadatafilters)
-            combined_filters = (
-                MetadataFilters(
-                    filters=combined_filters_list,
-                    condition=FilterCondition.AND,
-                )
-                if combined_filters_list
-                else None
-            )
-            retriever._filters = combined_filters
-
+            retriever._filters = self._get_combined_filters(metadata_filters)
         # Utiliser le retriever pour récupérer les documents similaires
         results = retriever.retrieve(text)
         logger.debug("Retrieved %d similar documents.", len(results))
@@ -350,36 +326,10 @@ class ChatbotWrapper(AbstractWrapper):
 
         # En fonction du retriever utilisé, les filtres peuvent ne pas être supportés
         if hasattr(self._chat_engine._retriever, "_filters"):
-            # Combinaison des filtres
-            permanent_metadata_filters = (
-                self._permanent_metadata_filters
-                if self._permanent_metadata_filters
-                else None
-            )
-
-            custom_metadatafilters = (
-                metadata_filters
-                if metadata_filters and hasattr(metadata_filters, "filters")
-                else None
-            )
-
-            combined_filters_list = []
-            if permanent_metadata_filters:
-                combined_filters_list.append(permanent_metadata_filters)
-            if custom_metadatafilters:
-                combined_filters_list.append(custom_metadatafilters)
-
-            combined_filters = (
-                MetadataFilters(
-                    filters=combined_filters_list,
-                    condition=FilterCondition.AND,
-                )
-                if combined_filters_list
-                else None
-            )
-
             # Appliquer les filtres combinés si existants
-            self._chat_engine._retriever._filters = combined_filters
+            self._chat_engine._retriever._filters = self._get_combined_filters(
+                metadata_filters
+            )
             logger.debug("Filters applied to chat engine retriever.")
         else:
             logger.error(
@@ -393,6 +343,37 @@ class ChatbotWrapper(AbstractWrapper):
             # self._chat_engine._prefix_messages = system_prompt
 
         return self._chat_engine
+
+    def _get_combined_filters(
+        self, metadata_filters: Optional["MetadataFilters"] = None
+    ) -> Optional["MetadataFilters"]:
+        """
+        Combine permanent and custom metadata filters using AND condition.
+        """
+        permanent_metadata_filters = (
+            self._permanent_metadata_filters
+            if self._permanent_metadata_filters
+            else None
+        )
+        custom_metadatafilters = (
+            metadata_filters
+            if metadata_filters and hasattr(metadata_filters, "filters")
+            else None
+        )
+        combined_filters_list = []
+        if permanent_metadata_filters:
+            combined_filters_list.append(permanent_metadata_filters)
+        if custom_metadatafilters:
+            combined_filters_list.append(custom_metadatafilters)
+        combined_filters = (
+            MetadataFilters(
+                filters=combined_filters_list,
+                condition=FilterCondition.AND,
+            )
+            if combined_filters_list
+            else None
+        )
+        return combined_filters
 
     def _save_memory(self, memory):
         """
