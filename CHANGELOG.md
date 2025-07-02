@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Removed
+
+## [2.0.0dev14] - 2025-07-02
+
+### Added
+
 - New `retrieve_similar_docs` method in `ChatbotWrapper` to retrieve documents similar to a given text using the retriever.
 
 ### Changed
