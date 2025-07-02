@@ -106,7 +106,7 @@ class AbstractWrapper(ABC):
         self,
         config: dict,
         filters: Optional["MetadataFilters"] = None,
-    ):
+    ) -> "BaseRetriever":
         retriever_config = config.get("retriever")
 
         if retriever_config:
