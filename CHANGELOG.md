@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
+- Update `llama-index` dependencies from `0.12.25` to `0.12.41`
 
 ### Removed
 
