@@ -1,6 +1,4 @@
 import logging
-import asyncio
-
 from typing import TYPE_CHECKING, List, Optional, Union, Callable
 
 from llama_index.core.agent.workflow import ReActAgent
@@ -43,7 +41,7 @@ class ReActWrapper(AbstractWrapper):
             chat_store_key=conversation_id, tools=tools
         )
 
-    def run(self, message: str):
+    async def run(self, message: str):
         """
         Runs the chatbot by initializing the vector store, storage context,
         index, retriever, query engine, and memory.
@@ -55,8 +53,8 @@ class ReActWrapper(AbstractWrapper):
 
         # Récupération du react_agent instancié
         react_agent = self._get_react_agent()
-        handler = react_agent.run(message, memory=self._memory)
-        response = asyncio.run(handler)
+        response = await react_agent.run(message, memory=self._memory)
+
         logger.debug("Chatbot response: %s", response)
 
         # Sauvegarder l'historique des conversations mises à jour en utilisant la mémoire du chat_engine
