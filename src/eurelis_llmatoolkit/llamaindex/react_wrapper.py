@@ -25,12 +25,15 @@ class ReActWrapper(AbstractWrapper):
         conversation_id: str,
         tools: Optional[List[Union[BaseTool, Callable]]] = None,
         persistence_data: Optional[dict] = None,
+        custom_system_prompt=None,
     ):
         super().__init__(config)
         self._llm: Optional["BaseLLM"] = None
         self._memory: Optional["BaseMemory"] = None
         self._memory_persistence = None
         self._persistence_data = persistence_data
+        self._conversation_id = conversation_id
+        self._custom_system_prompt = custom_system_prompt
 
         logger.info(
             "ChatbotWrapper initialized with conversation_id: %s", conversation_id
@@ -38,7 +41,9 @@ class ReActWrapper(AbstractWrapper):
 
         # Création d'un chat_engine
         self._react_agent = self._create_react_agent(
-            chat_store_key=conversation_id, tools=tools
+            chat_store_key=conversation_id,
+            tools=tools,
+            custom_system_prompt=custom_system_prompt,
         )
 
     async def run(self, message: str):
@@ -54,7 +59,6 @@ class ReActWrapper(AbstractWrapper):
         # Récupération du react_agent instancié
         react_agent = self._get_react_agent()
         response = await react_agent.run(message, memory=self._memory)
-
         logger.debug("Chatbot response: %s", response)
 
         # Sauvegarder l'historique des conversations mises à jour en utilisant la mémoire du chat_engine
@@ -267,3 +271,13 @@ class ReActWrapper(AbstractWrapper):
         if memory_persistence is not None:
             memory_persistence.save_history()
             logger.info("Memory history saved successfully.")
+
+    def update_tools(self, tools: Optional[List[Union["BaseTool", Callable]]]):
+        """
+        Re-create the react agent with the new tools.
+        """
+        self._react_agent = self._create_react_agent(
+            chat_store_key=self._conversation_id,
+            tools=tools,
+            custom_system_prompt=self._custom_system_prompt,
+        )
