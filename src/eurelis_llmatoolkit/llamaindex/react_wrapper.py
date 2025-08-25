@@ -1,6 +1,7 @@
 import logging
 from typing import TYPE_CHECKING, List, Optional, Union, Callable
 
+from llama_index.core import PromptTemplate
 from llama_index.core.agent.workflow import ReActAgent
 from llama_index.core.tools import BaseTool
 
@@ -227,6 +228,10 @@ class ReActWrapper(AbstractWrapper):
             tools=tools,
             llm=llm,
         )
+        # Le prompt doit être un PromptTemplate et doit être ajouté de cette façon pour que ReActAgent le prenne en compte
+        react_system_prompt = PromptTemplate(system_prompt) if system_prompt else None
+        if react_system_prompt:
+            react_agent.update_prompts({"react_header": react_system_prompt})
 
         logger.info("ReAct Agent created successfully.")
         return react_agent
