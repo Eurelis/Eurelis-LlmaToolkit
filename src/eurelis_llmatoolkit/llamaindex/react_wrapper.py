@@ -1,7 +1,6 @@
 import logging
 from typing import TYPE_CHECKING, List, Optional, Union, Callable
 
-from llama_index.core import PromptTemplate
 from llama_index.core.agent.workflow import ReActAgent
 from llama_index.core.tools import BaseTool
 
@@ -228,10 +227,19 @@ class ReActWrapper(AbstractWrapper):
             tools=tools,
             llm=llm,
         )
-        # Le prompt doit être un PromptTemplate et doit être ajouté de cette façon pour que ReActAgent le prenne en compte
-        react_system_prompt = PromptTemplate(system_prompt) if system_prompt else None
-        if react_system_prompt:
-            react_agent.update_prompts({"react_header": react_system_prompt})
+
+        # Remarque : Dans ReActAgent, l'argument system_prompt n'est pas directement utilisé pour la logique principale du prompt.
+        # Le prompt 'react_header' contient les instructions principales du workflow ReAct.
+        # Le prompt 'react_header' semble prévaloir sur 'system_prompt' dans la réponse.
+        # Pour personnaliser l'agent, on préfixe notre system_prompt au template existant de react_header,
+        # afin de conserver la logique ReAct originale tout en injectant nos instructions personnalisées.
+
+        # Récupérer le react_header actuel
+        react_header = react_agent.get_prompts()["react_header"]
+        # Ajouter ton texte avant le template existant
+        react_header.template = system_prompt + react_header.template
+        # Mettre à jour l’agent
+        react_agent.update_prompts({"react_header": react_header})
 
         logger.info("ReAct Agent created successfully.")
         return react_agent
