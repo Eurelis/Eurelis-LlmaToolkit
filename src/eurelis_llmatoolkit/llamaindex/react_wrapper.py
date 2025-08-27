@@ -62,7 +62,6 @@ class ReActWrapper(AbstractWrapper):
         logger.debug("Chatbot response: %s", response)
 
         # Sauvegarder l'historique des conversations mises à jour en utilisant la mémoire du chat_engine
-        # TODO WARNING: Vérifier que la mémoire est bien à jour avant de sauvegarder
         self._save_memory(self._memory)
 
         return response
@@ -236,7 +235,7 @@ class ReActWrapper(AbstractWrapper):
 
         # Récupérer le react_header actuel
         react_header = react_agent.get_prompts()["react_header"]
-        # Ajouter ton texte avant le template existant
+        # Ajouter le system_prompt avant le template existant
         react_header.template = system_prompt + react_header.template
         # Mettre à jour l’agent
         react_agent.update_prompts({"react_header": react_header})
