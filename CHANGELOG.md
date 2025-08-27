@@ -10,9 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
-- Update `llama-index` dependencies from `0.12.25` to `0.12.41`
 
 ### Removed
+
+## [2.0.0dev15] - 2025-08-27
+
+### Added
+
+- ReAct wrapper
+
+### Changed
+
+- Update `llama-index` dependencies from `0.12.25` to `0.12.41`
 
 ## [2.0.0dev14] - 2025-07-02
 
