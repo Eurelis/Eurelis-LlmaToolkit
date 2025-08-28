@@ -217,6 +217,21 @@ class ReActWrapper(AbstractWrapper):
 
         llm = self._get_llm()
 
+        # Filtrer les arguments autorisés pour ReActAgent de la configuration
+        allowed_keys = ("streaming", "verbose")
+
+        # Valeurs par défaut pour certaines clés
+        default_values = {
+            "streaming": False,
+        }
+
+        # Construction de kwargs
+        kwargs = {
+            k: react_agent_config.get(k, default_values.get(k))
+            for k in allowed_keys
+            if k in react_agent_config or k in default_values
+        }
+
         react_agent = ReActAgent(
             name=react_agent_config.get("name", "ReAct Agent"),
             description=react_agent_config.get(
@@ -225,6 +240,7 @@ class ReActWrapper(AbstractWrapper):
             system_prompt=system_prompt,
             tools=tools,
             llm=llm,
+            **kwargs,
         )
 
         # Remarque : Dans ReActAgent, l'argument system_prompt n'est pas directement utilisé pour la logique principale du prompt.
