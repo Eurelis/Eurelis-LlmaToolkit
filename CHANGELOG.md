@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- GPT-5 compatibility
+
 ### Changed
+
+- Dependencies updated to `llamaindex 0.13.3`
+- ReActWrapper adapted following the update
 
 ### Removed
 
