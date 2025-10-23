@@ -5,13 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.0.0] - 2025-10-22
 
 ### Added
 
-### Changed
-
-### Removed
+- GPT-5 compatibility
+- ReActWrapper
 
 ## [2.0.0dev16] - 2025-09-01
 
@@ -42,8 +41,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-### Removed
-
 ## [2.0.0dev13] - 2025-06-23
 
 ### Added
@@ -56,8 +53,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Update dependancies
-
-### Removed
 
 ## [2.0.0dev12] - 2025-03-24
 
@@ -72,20 +67,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New VectorSearch CustomMongoDBAtlasVectorSearch with filter tree compatibility
 - Update dépendancies
 
-### Changed
-
-### Removed
-
 ## [2.0.0dev10] - 2025-03-10
 
 ### Added
 
 - Fix in `AdvancedSitemapReader` for when the metadata `lastmod` does not exist
 - Fix in `IngestionWrapper` with cache
-
-### Changed
-
-### Removed
 
 ## [2.0.0dev9] - 2025-02-24
 
