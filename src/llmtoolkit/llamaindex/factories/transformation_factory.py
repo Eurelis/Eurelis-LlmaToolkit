@@ -1,4 +1,4 @@
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from llama_index.core.callbacks import CallbackManager
@@ -20,19 +20,19 @@ class TransformationFactory:
                 callback_manager=callback_manager,
             )
         if provider == "JSONFileAcronymTransformer":
-            from eurelis_llmatoolkit.llamaindex.transformers.json_file_acronym_transformer import (
+            from llmtoolkit.llamaindex.transformers.json_file_acronym_transformer import (
                 JSONFileAcronymTransformer,
             )
 
             return JSONFileAcronymTransformer(config)
         if provider == "MetadataTransformer":
-            from eurelis_llmatoolkit.llamaindex.transformers.metadata_transformer import (
+            from llmtoolkit.llamaindex.transformers.metadata_transformer import (
                 MetadataTransformer,
             )
 
             return MetadataTransformer(config)
         if provider == "LLMNodeTransformer":
-            from eurelis_llmatoolkit.llamaindex.transformers.llm_node_transformer import (
+            from llmtoolkit.llamaindex.transformers.llm_node_transformer import (
                 LLMNodeTransformer,
             )
 

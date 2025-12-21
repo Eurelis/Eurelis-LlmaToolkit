@@ -1,5 +1,5 @@
-from eurelis_llmatoolkit.llamaindex.factories.memory_factory import MemoryFactory
-from eurelis_llmatoolkit.llamaindex.factories.memory_persistence_factory import (
+from llmtoolkit.llamaindex.factories.memory_factory import MemoryFactory
+from llmtoolkit.llamaindex.factories.memory_persistence_factory import (
     MemoryPersistenceFactory,
 )
 

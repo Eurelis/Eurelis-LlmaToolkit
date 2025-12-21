@@ -1,29 +1,26 @@
 import os
+
 import pytest
-from pytest import FixtureRequest
+from dotenv import load_dotenv
 from llama_index.core import VectorStoreIndex
 from llama_index.core.storage import StorageContext
 from llama_index.core.vector_stores import (
+    FilterCondition,
+    FilterOperator,
     MetadataFilter,
     MetadataFilters,
-    FilterOperator,
-    FilterCondition,
 )
+from pytest import FixtureRequest
 
-from eurelis_llmatoolkit.llamaindex.chatbot_wrapper import ChatbotWrapper
-from eurelis_llmatoolkit.llamaindex.config_loader import ConfigLoader
-from eurelis_llmatoolkit.llamaindex.factories.embedding_factory import EmbeddingFactory
-from eurelis_llmatoolkit.llamaindex.factories.memory_factory import MemoryFactory
-from eurelis_llmatoolkit.llamaindex.factories.memory_persistence_factory import (
+from llmtoolkit.llamaindex.chatbot_wrapper import ChatbotWrapper
+from llmtoolkit.llamaindex.config_loader import ConfigLoader
+from llmtoolkit.llamaindex.factories.embedding_factory import EmbeddingFactory
+from llmtoolkit.llamaindex.factories.memory_factory import MemoryFactory
+from llmtoolkit.llamaindex.factories.memory_persistence_factory import (
     MemoryPersistenceFactory,
 )
-from eurelis_llmatoolkit.llamaindex.factories.vectorstore_factory import (
-    VectorStoreFactory,
-)
-from eurelis_llmatoolkit.llamaindex.readers.advanced_sitemap_reader import (
-    AdvancedSitemapReader,
-)
-from dotenv import load_dotenv
+from llmtoolkit.llamaindex.factories.vectorstore_factory import VectorStoreFactory
+from llmtoolkit.llamaindex.readers.advanced_sitemap_reader import AdvancedSitemapReader
 
 load_dotenv()
 

@@ -1,5 +1,6 @@
 import pytest
-from eurelis_llmatoolkit.llamaindex.chatbot_wrapper import ChatbotWrapper
+
+from llmtoolkit.llamaindex.chatbot_wrapper import ChatbotWrapper
 
 
 @pytest.mark.parametrize(
@@ -202,4 +203,5 @@ def test_run_with_common_and_specific_filters(
     assert all(
         source_node.node.metadata.get("project") == project_name
         for source_node in response.source_nodes
+    ), f"All nodes should belong to {project_name}."
     ), f"All nodes should belong to {project_name}."

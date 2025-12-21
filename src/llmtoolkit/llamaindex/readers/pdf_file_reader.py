@@ -3,7 +3,7 @@ from pathlib import Path
 
 from llama_index.core.schema import Document
 
-from eurelis_llmatoolkit.llamaindex.readers.abstract_fs_reader import AbstractFSReader
+from llmtoolkit.llamaindex.readers.abstract_fs_reader import AbstractFSReader
 
 
 class PDFFileReader(AbstractFSReader):

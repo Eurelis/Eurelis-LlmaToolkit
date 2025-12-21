@@ -5,17 +5,13 @@ from typing import TYPE_CHECKING, Iterable, Optional
 from llama_index.core import VectorStoreIndex
 from llama_index.core.storage import StorageContext
 
-from eurelis_llmatoolkit.llamaindex.factories.documentstore_factory import (
-    DocumentStoreFactory,
-)
-from eurelis_llmatoolkit.llamaindex.factories.embedding_factory import EmbeddingFactory
-from eurelis_llmatoolkit.llamaindex.factories.node_postprocessor_factory import (
+from llmtoolkit.llamaindex.factories.documentstore_factory import DocumentStoreFactory
+from llmtoolkit.llamaindex.factories.embedding_factory import EmbeddingFactory
+from llmtoolkit.llamaindex.factories.node_postprocessor_factory import (
     NodePostProcessorFactory,
 )
-from eurelis_llmatoolkit.llamaindex.factories.retriever_factory import RetrieverFactory
-from eurelis_llmatoolkit.llamaindex.factories.vectorstore_factory import (
-    VectorStoreFactory,
-)
+from llmtoolkit.llamaindex.factories.retriever_factory import RetrieverFactory
+from llmtoolkit.llamaindex.factories.vectorstore_factory import VectorStoreFactory
 
 logger = logging.getLogger(__name__)
 

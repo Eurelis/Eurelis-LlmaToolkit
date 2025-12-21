@@ -1,8 +1,9 @@
 import importlib
 from typing import Optional
+
 from llama_index.core.memory.types import BaseChatStoreMemory
 
-from eurelis_llmatoolkit.llamaindex.chat_memory_persistence.json_persistence_handler import (
+from llmtoolkit.llamaindex.chat_memory_persistence.json_persistence_handler import (
     JSONPersistenceHandler,
 )
 

@@ -5,7 +5,8 @@ class VectorStoreFactory:
 
         if provider == "CustomMongoDB":
             import pymongo
-            from eurelis_llmatoolkit.llamaindex.vector_stores.custom_mongodb_atlas_vector_store import (
+
+            from llmtoolkit.llamaindex.vector_stores.custom_mongodb_atlas_vector_store import (
                 CustomMongoDBAtlasVectorSearch,
             )
 
@@ -52,4 +53,5 @@ class VectorStoreFactory:
 
             return ChromaVectorStore(client=client, chroma_collection=collection)
 
+        raise ValueError(f"Vector store provider {provider} is not supported.")
         raise ValueError(f"Vector store provider {provider} is not supported.")

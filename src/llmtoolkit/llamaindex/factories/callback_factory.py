@@ -1,5 +1,6 @@
 import importlib
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING, List
+
 from llama_index.core.callbacks import CallbackManager
 
 if TYPE_CHECKING:
@@ -8,7 +9,7 @@ if TYPE_CHECKING:
 
 class CallbackFactory:
     _built_in = {
-        "ErrorLogging": "eurelis_llmatoolkit.llamaindex.callbacks.error_logging.VerboseErrorLoggingHandler",
+        "ErrorLogging": "llmtoolkit.llamaindex.callbacks.error_logging.VerboseErrorLoggingHandler",
         # Ajouter d'autres callbacks built-in ici
     }
 
@@ -63,4 +64,5 @@ class CallbackFactory:
         callback_config = config.copy()
         callback_config.pop("provider", None)
 
+        return callback_class(**callback_config)
         return callback_class(**callback_config)

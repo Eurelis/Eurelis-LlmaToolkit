@@ -9,9 +9,7 @@ import requests.compat
 from bs4 import BeautifulSoup
 from llama_index.core.schema import Document
 
-from eurelis_llmatoolkit.llamaindex.readers.abstract_reader_adapter import (
-    AbstractReaderAdapter,
-)
+from llmtoolkit.llamaindex.readers.abstract_reader_adapter import AbstractReaderAdapter
 
 logger = logging.getLogger(__name__)
 

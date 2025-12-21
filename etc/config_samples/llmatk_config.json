@@ -172,7 +172,7 @@
         {
             "id": "url",
             "reader": {
-                "provider": "eurelis_llmatoolkit.llamaindex.readers.CommunitySimpleWebPageReader",
+                "provider": "llmtoolkit.llamaindex.readers.CommunitySimpleWebPageReader",
                 "urls": [
                     "https://www.eurelis.com/blog/potentiel-amplifie-par-ia-opportunites-du-couplage-entre-les-llm-et-les-bdd-vectorielles/"
                 ],
@@ -200,8 +200,8 @@
         {
             "id": "txt",
             "reader": {
-                "provider": "eurelis_llmatoolkit.llamaindex.readers.TXTFileReader",
-                "_provider": "eurelis_llmatoolkit.llamaindex.readers.TXTFileReader",
+                "provider": "llmtoolkit.llamaindex.readers.TXTFileReader",
+                "_provider": "llmtoolkit.llamaindex.readers.TXTFileReader",
                 "base_dir": "../etc/data_sample/",
                 "glob": "*.txt"
             },
@@ -220,7 +220,7 @@
         {
             "id": "pdf",
             "reader": {
-                "provider": "eurelis_llmatoolkit.llamaindex.readers.PDFFileReader",
+                "provider": "llmtoolkit.llamaindex.readers.PDFFileReader",
                 "base_dir": "../etc/data_sample/",
                 "glob": "*.pdf"
             },

@@ -1,14 +1,14 @@
-import click
-
-from eurelis_llmatoolkit.llamaindex.chatbot_wrapper import ChatbotWrapper
-from eurelis_llmatoolkit.llamaindex.config_loader import ConfigLoader
-from eurelis_llmatoolkit.llamaindex.ingestion_wrapper import IngestionWrapper
-from eurelis_llmatoolkit.llamaindex.search_wrapper import SearchWrapper
-
-import os
 import logging
 import logging.config
-from dotenv import load_dotenv, find_dotenv
+import os
+
+import click
+from dotenv import find_dotenv, load_dotenv
+
+from llmtoolkit.llamaindex.chatbot_wrapper import ChatbotWrapper
+from llmtoolkit.llamaindex.config_loader import ConfigLoader
+from llmtoolkit.llamaindex.ingestion_wrapper import IngestionWrapper
+from llmtoolkit.llamaindex.search_wrapper import SearchWrapper
 
 logger = logging.getLogger(__name__)
 

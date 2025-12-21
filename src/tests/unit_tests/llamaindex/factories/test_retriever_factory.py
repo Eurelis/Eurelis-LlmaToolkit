@@ -1,4 +1,4 @@
-from eurelis_llmatoolkit.llamaindex.factories.retriever_factory import RetrieverFactory
+from llmtoolkit.llamaindex.factories.retriever_factory import RetrieverFactory
 
 
 def test_load_vector_index_retriever(embedding, index):

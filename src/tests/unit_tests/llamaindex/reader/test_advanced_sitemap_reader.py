@@ -1,7 +1,6 @@
 import pytest
-from eurelis_llmatoolkit.llamaindex.readers.advanced_sitemap_reader import (
-    AdvancedSitemapReader,
-)
+
+from llmtoolkit.llamaindex.readers.advanced_sitemap_reader import AdvancedSitemapReader
 
 
 @pytest.mark.parametrize(

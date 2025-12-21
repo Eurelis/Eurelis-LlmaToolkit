@@ -3,17 +3,15 @@ from typing import TYPE_CHECKING, List, Optional
 
 from llama_index.core.vector_stores import (
     FilterCondition,
-    MetadataFilters,
     MetadataFilter,
+    MetadataFilters,
 )
 
-from eurelis_llmatoolkit.llamaindex.abstract_wrapper import AbstractWrapper
-from eurelis_llmatoolkit.llamaindex.factories.chat_engine_factory import (
-    ChatEngineFactory,
-)
-from eurelis_llmatoolkit.llamaindex.factories.llm_factory import LLMFactory
-from eurelis_llmatoolkit.llamaindex.factories.memory_factory import MemoryFactory
-from eurelis_llmatoolkit.llamaindex.factories.memory_persistence_factory import (
+from llmtoolkit.llamaindex.abstract_wrapper import AbstractWrapper
+from llmtoolkit.llamaindex.factories.chat_engine_factory import ChatEngineFactory
+from llmtoolkit.llamaindex.factories.llm_factory import LLMFactory
+from llmtoolkit.llamaindex.factories.memory_factory import MemoryFactory
+from llmtoolkit.llamaindex.factories.memory_persistence_factory import (
     MemoryPersistenceFactory,
 )
 

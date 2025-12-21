@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 
 from llama_index.core import Document
 
-from eurelis_llmatoolkit.llamaindex.readers.abstract_fs_reader import AbstractFSReader
+from llmtoolkit.llamaindex.readers.abstract_fs_reader import AbstractFSReader
 
 
 class FSCacheMarshaller(AbstractFSReader):

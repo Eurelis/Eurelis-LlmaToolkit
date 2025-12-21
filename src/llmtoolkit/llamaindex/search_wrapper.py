@@ -1,8 +1,9 @@
 import logging
+
 from llama_index.core.schema import NodeWithScore
 from llama_index.core.vector_stores import MetadataFilter
 
-from eurelis_llmatoolkit.llamaindex.abstract_wrapper import AbstractWrapper
+from llmtoolkit.llamaindex.abstract_wrapper import AbstractWrapper
 
 logger = logging.getLogger(__name__)
 
@@ -94,4 +95,5 @@ class SearchWrapper(AbstractWrapper):
         else:
             results = retriever.retrieve(query)
         logger.debug("Nodes retrieved.")
+        return results
         return results

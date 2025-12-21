@@ -1,4 +1,4 @@
-from eurelis_llmatoolkit.llamaindex.factories.reader_factory import ReaderFactory
+from llmtoolkit.llamaindex.factories.reader_factory import ReaderFactory
 
 
 def test_load_community_simple_web_page_reader():
@@ -58,7 +58,7 @@ def test_load_pdf_file_reader():
 
 def test_load_custom_reader():
     config = {
-        "provider": "eurelis_llmatoolkit.llamaindex.readers.community_sitemap_reader.CommunitySitemapReader",
+        "provider": "llmtoolkit.llamaindex.readers.community_sitemap_reader.CommunitySitemapReader",
         "url": "https://www.eurelis.com/sitemap.xml",
     }
     reader = ReaderFactory.create_reader("eurelis", config)

@@ -4,7 +4,7 @@ class CacheFactory:
         provider = cache_config["provider"]
 
         if provider == "FSCache":
-            from eurelis_llmatoolkit.llamaindex.scraping_cache.cache_marshaller.fs_cache_marshaller import (
+            from llmtoolkit.llamaindex.scraping_cache.cache_marshaller.fs_cache_marshaller import (
                 FSCacheMarshaller,
             )
 

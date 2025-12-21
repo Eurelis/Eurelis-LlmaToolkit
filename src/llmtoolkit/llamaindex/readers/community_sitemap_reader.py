@@ -1,8 +1,6 @@
 from llama_index.readers.web import SitemapReader
 
-from eurelis_llmatoolkit.llamaindex.readers.abstract_reader_adapter import (
-    AbstractReaderAdapter,
-)
+from llmtoolkit.llamaindex.readers.abstract_reader_adapter import AbstractReaderAdapter
 
 
 class CommunitySitemapReader(AbstractReaderAdapter):

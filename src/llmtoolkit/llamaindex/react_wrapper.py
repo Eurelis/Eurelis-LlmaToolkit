@@ -1,13 +1,13 @@
 import logging
-from typing import TYPE_CHECKING, List, Optional, Union, Callable
+from typing import TYPE_CHECKING, Callable, List, Optional, Union
 
 from llama_index.core.agent.workflow import ReActAgent
 from llama_index.core.tools import BaseTool
 
-from eurelis_llmatoolkit.llamaindex.abstract_wrapper import AbstractWrapper
-from eurelis_llmatoolkit.llamaindex.factories.llm_factory import LLMFactory
-from eurelis_llmatoolkit.llamaindex.factories.memory_factory import MemoryFactory
-from eurelis_llmatoolkit.llamaindex.factories.memory_persistence_factory import (
+from llmtoolkit.llamaindex.abstract_wrapper import AbstractWrapper
+from llmtoolkit.llamaindex.factories.llm_factory import LLMFactory
+from llmtoolkit.llamaindex.factories.memory_factory import MemoryFactory
+from llmtoolkit.llamaindex.factories.memory_persistence_factory import (
     MemoryPersistenceFactory,
 )
 

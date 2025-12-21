@@ -1,11 +1,11 @@
-import logging
 import json
+import logging
 from typing import Any, Dict
 
 from llama_index.core.base.llms.types import ChatMessage, MessageRole
 from llama_index.core.memory.types import BaseChatStoreMemory
 
-from eurelis_llmatoolkit.llamaindex.chat_memory_persistence.abstract_memory_persistence_handler import (
+from llmtoolkit.llamaindex.chat_memory_persistence.abstract_memory_persistence_handler import (
     AbstractMemoryPersistenceHandler,
 )
 

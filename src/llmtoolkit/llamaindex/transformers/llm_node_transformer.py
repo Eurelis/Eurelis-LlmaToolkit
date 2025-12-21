@@ -7,7 +7,7 @@ from llama_index.core.node_parser import NodeParser
 from llama_index.core.schema import BaseNode
 from pydantic import BaseModel
 
-from eurelis_llmatoolkit.llamaindex.factories.llm_factory import LLMFactory
+from llmtoolkit.llamaindex.factories.llm_factory import LLMFactory
 
 logger = logging.getLogger(__name__)
 

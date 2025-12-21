@@ -1,13 +1,11 @@
+import json
 from typing import List
 
 import requests
 import requests.compat
-import json
 from bs4 import BeautifulSoup
 
-from eurelis_llmatoolkit.llamaindex.readers.advanced_sitemap_reader import (
-    AdvancedSitemapReader,
-)
+from llmtoolkit.llamaindex.readers.advanced_sitemap_reader import AdvancedSitemapReader
 
 
 class BostikSitemapReader(AdvancedSitemapReader):

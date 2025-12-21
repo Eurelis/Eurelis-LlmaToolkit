@@ -4,13 +4,11 @@ from typing import List, Optional
 from llama_index.core import Document
 from llama_index.core.ingestion import IngestionPipeline
 
-from eurelis_llmatoolkit.llamaindex.abstract_wrapper import AbstractWrapper
-from eurelis_llmatoolkit.llamaindex.factories.cache_factory import CacheFactory
-from eurelis_llmatoolkit.llamaindex.factories.reader_factory import ReaderFactory
-from eurelis_llmatoolkit.llamaindex.factories.transformation_factory import (
-    TransformationFactory,
-)
-from eurelis_llmatoolkit.llamaindex.factories.callback_factory import CallbackFactory
+from llmtoolkit.llamaindex.abstract_wrapper import AbstractWrapper
+from llmtoolkit.llamaindex.factories.cache_factory import CacheFactory
+from llmtoolkit.llamaindex.factories.callback_factory import CallbackFactory
+from llmtoolkit.llamaindex.factories.reader_factory import ReaderFactory
+from llmtoolkit.llamaindex.factories.transformation_factory import TransformationFactory
 
 logger = logging.getLogger(__name__)
 

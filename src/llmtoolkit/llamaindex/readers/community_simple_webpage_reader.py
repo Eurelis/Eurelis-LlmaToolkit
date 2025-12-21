@@ -1,8 +1,6 @@
 from llama_index.readers.web import SimpleWebPageReader
 
-from eurelis_llmatoolkit.llamaindex.readers.abstract_reader_adapter import (
-    AbstractReaderAdapter,
-)
+from llmtoolkit.llamaindex.readers.abstract_reader_adapter import AbstractReaderAdapter
 
 
 class CommunitySimpleWebPageReader(AbstractReaderAdapter):

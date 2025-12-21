@@ -1,5 +1,5 @@
-from eurelis_llmatoolkit.llamaindex.ingestion_wrapper import IngestionWrapper
-from eurelis_llmatoolkit.llamaindex.config_loader import ConfigLoader
+from llmtoolkit.llamaindex.config_loader import ConfigLoader
+from llmtoolkit.llamaindex.ingestion_wrapper import IngestionWrapper
 
 
 def test_simple_init():
