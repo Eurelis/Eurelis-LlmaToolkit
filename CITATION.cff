@@ -7,6 +7,6 @@ authors:
     given-names: "Jérôme"
   - family-names: "Loisy"
     given-names: "Nicolas"
-title: "Eurelis-LlmaToolkit"
+title: "LlmToolkit"
 date-released: 2024-05-20
-url: "https://github.com/Eurelis/Eurelis-KB-Framework"
+url: "https://github.com/Eurelis/Eurelis-LlmaToolkit"

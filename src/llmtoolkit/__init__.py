@@ -1,2 +1,2 @@
 def main() -> None:
-    print("Hello from eurelis-llmatoolkit!")
+    print("Hello from LlmToolkit!")

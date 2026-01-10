@@ -10,15 +10,18 @@ exclude = [
   "etc/",
 ]
 
+[tool.hatch.build.targets.wheel]
+packages = ["src/llmtoolkit"]
+
 [project]
-name = "eurelis-llmatoolkit"
+name = "llmtoolkit"
 version = "2.0.0"
 authors = [
   { name="Vincent LAMBERT", email="v.lambert@eurelis.com" },
   { name="Jérôme DIAZ", email="j.diaz@eurelis.com" },
   { name="Nicolas LOISY", email="n.loisy@eurelis.com " }
 ]
-description = "Framework to build and manage IA based applications. Based on Langchain and LlamaIndex under the hood."
+description = "Framework to build and manage IA based applications. Based on LlamaIndex under the hood."
 readme = "README.md"
 requires-python = ">=3.11.3"
 classifiers = [
